@@ -60,8 +60,8 @@ class _TemplatesListViewState extends State<TemplatesListView> {
             child: Center(
               child: SizedBox(
                 width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                height: UiControlSize.dense,
+                child: CircularProgressIndicator(strokeWidth: UiStrokeWidth.thick),
               ),
             ),
           );
@@ -134,7 +134,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
               itemCount: filteredTemplates.length,
               itemLabel: 'TEMPLATES',
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: UiSpacing.tight),
 
             if (filteredTemplates.isEmpty)
               Padding(
@@ -146,7 +146,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                         : 'No matching templates',
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 11,
+                      fontSize: UiFont.compact,
                     ),
                   ),
                 ),
@@ -156,7 +156,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: filteredTemplates.length,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: UiInsets.verticalTight,
                   itemBuilder: (context, index) {
                     final template = filteredTemplates[index];
                     final nodeCount = template.nodes.length;
@@ -181,7 +181,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                         border: Border(
                           bottom: BorderSide(
                             color: theme.dividerColor.withValues(alpha: 0.05),
-                            width: 1,
+                            width: UiStrokeWidth.standard,
                           ),
                         ),
                       ),
@@ -193,7 +193,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                             relations: template.relations,
                             size: 44.0,
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: UiSpacing.standard),
 
                           // Template metadata text details
                           Expanded(
@@ -204,17 +204,17 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                 Text(
                                   template.name,
                                   style: const TextStyle(
-                                    fontSize: 12,
+                                    fontSize: UiFont.standard,
                                     fontWeight: FontWeight.bold,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: UiSpacing.tight),
                                 Text(
                                   '$nodeCount nodes · $relationCount relations',
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: UiFont.micro,
                                     color: theme.colorScheme.onSurface
                                         .withValues(alpha: 0.5),
                                   ),
@@ -252,7 +252,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                   enableHover: false,
                                   tooltip: 'Place at Center',
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: UiSpacing.tight),
                                 // Delete template button
                                 CentrodeIconButton(
                                   icon: Icons.delete_outline_rounded,
@@ -283,7 +283,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                   ? 'Unknown'
                                   : formatTimestampShort(template.createdAt.toInt()),
                               style: TextStyle(
-                                fontSize: 8,
+                                fontSize: UiFont.micro,
                                 color: theme.colorScheme.onSurface.withValues(
                                   alpha: 0.3,
                                 ),
@@ -317,12 +317,12 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                             ),
                             decoration: BoxDecoration(
                               color: theme.cardColor.withValues(alpha: 0.9),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(UiRadius.card),
                               border: Border.all(
                                 color: theme.colorScheme.primary.withValues(
                                   alpha: 0.4,
                                 ),
-                                width: 1.5,
+                                width: UiStrokeWidth.thick,
                               ),
                               boxShadow: const [
                                 BoxShadow(
@@ -337,10 +337,10 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                               children: [
                                 Icon(
                                   Icons.copy_all_outlined,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                   color: theme.colorScheme.primary,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: UiSpacing.standard),
                                 Text(
                                   template.name,
                                   style: theme.textTheme.bodySmall?.copyWith(
@@ -395,12 +395,12 @@ class TemplatePreviewWidget extends StatelessWidget {
         color: isDark
             ? Colors.white.withValues(alpha: 0.05)
             : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(UiRadius.control),
         border: Border.all(
           color: isDark
               ? Colors.white.withValues(alpha: 0.1)
               : Colors.black.withValues(alpha: 0.08),
-          width: 1,
+          width: UiStrokeWidth.standard,
         ),
       ),
       child: ClipRRect(

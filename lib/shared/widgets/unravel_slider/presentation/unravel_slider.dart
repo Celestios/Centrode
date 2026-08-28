@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -232,7 +233,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
         setState(() => _applyDragDelta(delta * 0.4));
       }
 
-      _scrollSettleTimer = Timer(const Duration(milliseconds: 140), () {
+      _scrollSettleTimer = Timer(UiMotion.fast, () {
         if (!mounted) return;
         _isInteracting = false;
         if (!widget.magnetic) {
@@ -362,7 +363,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
                             borderRadius: style.handleBorderRadius,
                             border: Border.all(
                               color: style.handleBorderColor!,
-                              width: 1.2,
+                              width: UiStrokeWidth.thick,
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -385,7 +386,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
                             borderRadius: style.handleBorderRadius,
                             border: Border.all(
                               color: style.handleBorderColor!,
-                              width: 1.2,
+                              width: UiStrokeWidth.thick,
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -502,7 +503,7 @@ class _DefaultUnravelCell<T> extends StatelessWidget {
                 size: style.iconSize,
                 color: itemColor,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: UiSpacing.tight),
               Text(
                 label,
                 maxLines: 1,

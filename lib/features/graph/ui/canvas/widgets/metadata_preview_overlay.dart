@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/utils/date_utils.dart';
@@ -52,7 +53,7 @@ class MetadataPreviewOverlay extends StatelessWidget {
                 Text(
                   'METADATA',
                   style: TextStyle(
-                    fontSize: 8.5,
+                    fontSize: UiFont.compact,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.0,
                     color: Colors.white.withValues(alpha: 0.6),
@@ -65,14 +66,14 @@ class MetadataPreviewOverlay extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: UiSpacing.tight),
 
             // Tags section
             if (hasTags) ...[
               Text(
                 'Tags',
                 style: TextStyle(
-                  fontSize: 9.0,
+                  fontSize: UiFont.micro,
                   fontWeight: FontWeight.bold,
                   color: Colors.white.withValues(alpha: 0.9),
                 ),
@@ -100,7 +101,7 @@ class MetadataPreviewOverlay extends StatelessWidget {
                     child: Text(
                       tag.fields.name,
                       style: TextStyle(
-                        fontSize: 8.0,
+                        fontSize: UiFont.micro,
                         color: Color(tag.fields.color),
                         fontWeight: FontWeight.w600,
                       ),
@@ -110,7 +111,7 @@ class MetadataPreviewOverlay extends StatelessWidget {
               ),
               if (hasComments)
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: UiInsets.verticalTight,
                   child: Divider(color: Colors.white12, height: 1),
                 ),
             ],
@@ -120,23 +121,23 @@ class MetadataPreviewOverlay extends StatelessWidget {
               Text(
                 'Latest Comment',
                 style: TextStyle(
-                  fontSize: 9.0,
+                  fontSize: UiFont.micro,
                   fontWeight: FontWeight.bold,
                   color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: UiSpacing.tight),
               Text(
                 latestComment.text,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 9.0,
+                  fontSize: UiFont.micro,
                   color: Colors.white.withValues(alpha: 0.75),
                   height: 1.2,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: UiSpacing.tight),
               Text(
                 formatTimestampShort(latestComment.createdAt.toInt()),
                 style: TextStyle(

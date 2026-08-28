@@ -47,10 +47,10 @@ class SectionHeader extends StatelessWidget {
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w500,
-                          fontSize: 11,
+                          fontSize: UiFont.compact,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: UiSpacing.standard),
                       if (onSelectAll != null) ...[
                         _ActionPill(
                           label: 'Select all',
@@ -59,7 +59,7 @@ class SectionHeader extends StatelessWidget {
                           borderColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                           textColor: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: UiSpacing.tight),
                       ],
                       _ActionPill(
                         label: 'Cancel',
@@ -68,7 +68,7 @@ class SectionHeader extends StatelessWidget {
                         borderColor: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                         textColor: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: UiSpacing.tight),
                       _ActionPill(
                         label: 'Delete',
                         onTap: onDelete,
@@ -87,7 +87,7 @@ class SectionHeader extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: UiSpacing.standard),
           Divider(
             height: 1,
             color: theme.dividerColor.withValues(alpha: 0.2),
@@ -122,13 +122,13 @@ class _ActionPill extends StatelessWidget {
     final theme = Theme.of(context);
     return CentrodeButton(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(UiRadius.control),
       enableHover: false,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(UiRadius.control),
           border: Border.all(color: borderColor),
         ),
         child: icon != null
@@ -140,7 +140,7 @@ class _ActionPill extends StatelessWidget {
                   Text(
                     label,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 11,
+                      fontSize: UiFont.compact,
                       color: textColor,
                       fontWeight: fontWeight ?? FontWeight.w500,
                     ),
@@ -150,7 +150,7 @@ class _ActionPill extends StatelessWidget {
             : Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
+                  fontSize: UiFont.compact,
                   color: textColor,
                   fontWeight: fontWeight ?? FontWeight.w500,
                 ),

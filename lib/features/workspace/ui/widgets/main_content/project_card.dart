@@ -67,7 +67,7 @@ class _ProjectCardState extends State<ProjectCard> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: GlassPanel(
-          borderRadius: 12.0,
+          borderRadius: UiRadius.panel,
           enableBackdrop: false,
           color: _isHovered || widget.isSelected
               ? theme.colorScheme.primary.withValues(alpha: 0.12)
@@ -97,14 +97,14 @@ class _ProjectCardState extends State<ProjectCard> {
                       },
                       enableHover: false,
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(8),
+                        top: Radius.circular(UiRadius.panel),
                       ),
                       child: Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary.withValues(alpha: 0.08),
                           borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(8),
+                            top: Radius.circular(UiRadius.panel),
                           ),
                         ),
                         child: widget.previewPath != null
@@ -128,12 +128,12 @@ class _ProjectCardState extends State<ProjectCard> {
                           color: widget.isSelected
                               ? theme.colorScheme.primary
                               : theme.cardColor.withValues(alpha: 0.85),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(UiRadius.control),
                           border: Border.all(
                             color: widget.isSelected
                                 ? theme.colorScheme.primary
                                 : theme.dividerColor.withValues(alpha: 0.8),
-                            width: 1.5,
+                            width: UiStrokeWidth.thick,
                           ),
                         ),
                         child: CentrodeIconButton(
@@ -141,7 +141,7 @@ class _ProjectCardState extends State<ProjectCard> {
                             widget.onSelectionChanged?.call(!widget.isSelected);
                           },
                           enableHover: false,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(UiRadius.control),
                           iconSize: 15,
                           buttonSize: 22,
                           icon: Icons.check,
@@ -155,7 +155,7 @@ class _ProjectCardState extends State<ProjectCard> {
             SizedBox(
               height: 48,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: UiInsets.horizontalStandard,
                 child: Row(
                   children: [
                     Expanded(
@@ -165,7 +165,7 @@ class _ProjectCardState extends State<ProjectCard> {
                         children: [
                           if (_isEditing)
                             SizedBox(
-                              height: 20,
+                              height: UiControlSize.dense,
                               child: TextField(
                                 controller: _controller,
                                 autofocus: true,
@@ -211,7 +211,7 @@ class _ProjectCardState extends State<ProjectCard> {
                           Text(
                             widget.lastOpened,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
+                              fontSize: UiFont.micro,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -232,7 +232,7 @@ class _ProjectCardState extends State<ProjectCard> {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(UiRadius.card),
                       ),
                       color: theme.cardColor,
                       elevation: 4,
@@ -247,24 +247,24 @@ class _ProjectCardState extends State<ProjectCard> {
                         ),
                         child: Icon(
                           Icons.more_horiz,
-                          size: 14,
+                          size: UiIconSize.dense,
                           color: theme.textTheme.bodySmall?.color,
                         ),
                       ),
                       itemBuilder: (context) => [
                         const PopupMenuItem(
                           value: 'delete',
-                          height: 32,
+                          height: UiControlSize.standard,
                           child: Text('Delete', style: TextStyle(fontSize: 13)),
                         ),
                         const PopupMenuItem(
                           value: 'share',
-                          height: 32,
+                          height: UiControlSize.standard,
                           child: Text('Share', style: TextStyle(fontSize: 13)),
                         ),
                         const PopupMenuItem(
                           value: 'metadata',
-                          height: 32,
+                          height: UiControlSize.standard,
                           child: Text('View metadata', style: TextStyle(fontSize: 13)),
                         ),
                       ],

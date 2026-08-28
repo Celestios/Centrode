@@ -30,14 +30,10 @@ class WorkspaceHubScreen extends StatelessWidget {
               top: 0,
               left: 0,
               right: 0,
-              height: 48,
-              child: DragToMoveArea(child: SizedBox.expand()),
-            ),
-          if (isDesktop)
-            const Positioned(
-              top: 8,
-              right: 0,
-              child: WindowControlButtons(),
+              child: CentrodeWindowTitleBar(
+                height: 48,
+                enableGlass: false,
+              ),
             ),
         ],
       ),

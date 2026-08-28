@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Pattern C: Inline Value & Swatch Row combining label, swatch, and micro slider.
@@ -47,14 +48,14 @@ class InlinePropertyRow extends StatelessWidget {
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? Colors.white54,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: UiSpacing.tight),
           ] else if (label.isNotEmpty) ...[
             SizedBox(
               width: 75,
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: UiFont.compact,
                   fontWeight: FontWeight.w500,
                   color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                 ),
@@ -68,10 +69,10 @@ class InlinePropertyRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colorSwatch,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24, width: 1),
+                border: Border.all(color: Colors.white24, width: UiStrokeWidth.standard),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: UiSpacing.tight),
           ],
           Expanded(
             child: SliderTheme(
@@ -97,7 +98,7 @@ class InlinePropertyRow extends StatelessWidget {
               valueText,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontSize: 11.0,
+                fontSize: UiFont.compact,
                 fontWeight: FontWeight.w500,
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.75) ?? Colors.white70,
               ),

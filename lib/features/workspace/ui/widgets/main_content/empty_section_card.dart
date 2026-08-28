@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/theme/design_tokens.dart';
 
 class EmptySectionCard extends StatelessWidget {
   final String description;
@@ -13,19 +14,19 @@ class EmptySectionCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return SizedBox(
-      width: 180,
-      height: 140,
+      width: WorkspaceTokens.cardWidth,
+      height: WorkspaceTokens.cardHeight,
       child: CustomPaint(
         painter: _DashedBorderPainter(
           color: theme.dividerColor.withValues(alpha: 0.4),
         ),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(UiSpacing.container),
             child: Text(
               description,
               style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 11,
+                fontSize: UiFont.compact,
                 color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
               ),
               textAlign: TextAlign.center,
@@ -48,13 +49,13 @@ class _DashedBorderPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 1.5
+      ..strokeWidth = UiStrokeWidth.thick
       ..style = PaintingStyle.stroke;
 
     final path = Path()
       ..addRRect(RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(8),
+        const Radius.circular(UiRadius.panel),
       ));
 
     const double dashWidth = 6;

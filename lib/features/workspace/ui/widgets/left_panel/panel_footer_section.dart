@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 class PanelFooterSection extends StatelessWidget {
@@ -21,7 +22,7 @@ class PanelFooterSection extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.person_outline,
-              size: 20,
+              size: UiIconSize.standard,
               color: theme.iconTheme.color,
             ),
             title: Text(
@@ -34,7 +35,7 @@ class PanelFooterSection extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.settings_outlined,
-              size: 20,
+              size: UiIconSize.standard,
               color: theme.iconTheme.color,
             ),
             title: Text(
@@ -47,7 +48,7 @@ class PanelFooterSection extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.help_outline,
-              size: 20,
+              size: UiIconSize.standard,
               color: theme.iconTheme.color,
             ),
             title: Text(
@@ -60,7 +61,7 @@ class PanelFooterSection extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.info_outline,
-              size: 20,
+              size: UiIconSize.standard,
               color: theme.iconTheme.color,
             ),
             title: Text(

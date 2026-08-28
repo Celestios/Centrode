@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -355,10 +356,10 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
                     color: isDark
                         ? Colors.black.withValues(alpha: 0.3)
                         : Colors.white.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(UiRadius.control),
                     border: Border.all(
                       color: canvasAccent.withValues(alpha: 0.6),
-                      width: 1.5,
+                      width: UiStrokeWidth.thick,
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),

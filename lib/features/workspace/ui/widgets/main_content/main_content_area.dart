@@ -63,8 +63,8 @@ class MainContentArea extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.home_rounded, color: titleColor, size: 16),
-                      const SizedBox(width: 4),
+                      Icon(Icons.home_rounded, color: titleColor, size: UiIconSize.dense),
+                      const SizedBox(width: UiSpacing.tight),
                       RichText(
                         text: TextSpan(
                           children: [
@@ -73,7 +73,7 @@ class MainContentArea extends StatelessWidget {
                               style: TextStyle(
                                 color: titleColor,
                                 fontWeight: FontWeight.w800,
-                                fontSize: 12,
+                                fontSize: UiFont.standard,
                                 letterSpacing: 1.5,
                               ),
                             ),
@@ -82,7 +82,7 @@ class MainContentArea extends StatelessWidget {
                               style: TextStyle(
                                 color: subtitleColor,
                                 fontWeight: FontWeight.w400,
-                                fontSize: 12,
+                                fontSize: UiFont.standard,
                                 letterSpacing: 0.5,
                               ),
                             ),

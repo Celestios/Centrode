@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import '../utils/dashed_box_paint_utils.dart';
 
@@ -72,7 +73,7 @@ class PersistentOptAreaPainter extends CustomPainter {
       Rect.fromCenter(
         center: Offset(rect.left, rect.center.dy),
         width: 6,
-        height: 20,
+        height: UiControlSize.dense,
       ),
       const Radius.circular(3),
     );
@@ -84,7 +85,7 @@ class PersistentOptAreaPainter extends CustomPainter {
       Rect.fromCenter(
         center: Offset(rect.right, rect.center.dy),
         width: 6,
-        height: 20,
+        height: UiControlSize.dense,
       ),
       const Radius.circular(3),
     );

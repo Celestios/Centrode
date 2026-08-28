@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
@@ -184,7 +185,7 @@ class NodeLayer extends StatelessWidget {
                                   color: Color(resolvedStyle?.strokeColor != 0
                                       ? resolvedStyle!.strokeColor
                                       : 0xFF00E5FF),
-                                  width: 1.5,
+                                  width: UiStrokeWidth.thick,
                                 ),
                                 boxShadow: [
                                   BoxShadow(

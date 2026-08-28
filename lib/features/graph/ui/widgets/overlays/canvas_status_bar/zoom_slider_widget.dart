@@ -36,14 +36,14 @@ class ZoomSliderWidget extends StatelessWidget {
                   viewportController,
                   (scale - 0.1).clamp(0.2, 3.0),
                 ),
-                iconSize: 14,
+                iconSize: UiIconSize.dense,
                 compact: true,
                 enableHover: false,
                 iconColor: textColor.withValues(alpha: 0.7),
               ),
               SizedBox(
                 width: 80,
-                height: 20,
+                height: UiControlSize.dense,
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 2,
@@ -73,16 +73,16 @@ class ZoomSliderWidget extends StatelessWidget {
                   viewportController,
                   (scale + 0.1).clamp(0.2, 3.0),
                 ),
-                iconSize: 14,
+                iconSize: UiIconSize.dense,
                 compact: true,
                 enableHover: false,
                 iconColor: textColor.withValues(alpha: 0.7),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: UiSpacing.tight),
               CentrodeButton(
                 onTap: () => _updateZoom(viewportController, 1.0),
                 tooltip: 'Reset zoom to 100%',
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(UiRadius.control),
                 enableHover: false,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -92,19 +92,19 @@ class ZoomSliderWidget extends StatelessWidget {
                   child: Text(
                     '$percent%',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: UiFont.micro,
                       fontWeight: FontWeight.bold,
                       color: primaryColor,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
               CentrodeIconButton(
                 icon: Icons.center_focus_strong,
                 onPressed: () => _updateZoom(viewportController, 1.0),
                 tooltip: 'Reset zoom to 100%',
-                iconSize: 14,
+                iconSize: UiIconSize.dense,
                 compact: true,
                 enableHover: false,
                 iconColor: textColor.withValues(alpha: 0.7),

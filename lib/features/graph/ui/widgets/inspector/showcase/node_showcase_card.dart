@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import '../components/node_shape_definitions.dart';
@@ -180,10 +181,10 @@ class NodeShowcaseCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(UiRadius.card),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.06),
-          width: 0.8,
+          width: UiStrokeWidth.subtle,
         ),
       ),
       child: Stack(
@@ -194,7 +195,7 @@ class NodeShowcaseCard extends StatelessWidget {
             painter: ShowcaseGridPainter(accentColor.withValues(alpha: 0.12)),
           ),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
+            duration: UiMotion.fast,
             width: targetWidth,
             height: targetHeight,
             child: Stack(

@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
@@ -39,7 +40,7 @@ class CollapsibleSidebar extends StatelessWidget {
     return GlassPanel(
       borderRadius: 16,
       blur: isVisible ? 12.0 : 0.0,
-      duration: const Duration(milliseconds: 250),
+      duration: UiMotion.standard,
       curve: Curves.easeInOut,
       width: targetWidth,
       shadow: isVisible
@@ -67,21 +68,21 @@ class CollapsibleSidebar extends StatelessWidget {
                       vertical: 12,
                     ),
                     child: SizedBox(
-                      height: 32,
+                      height: UiControlSize.standard,
                       child: Row(
                         children: [
                           if (icon != null) ...[
-                            Icon(icon, color: primaryColor, size: 16),
-                            const SizedBox(width: 8),
+                            Icon(icon, color: primaryColor, size: UiIconSize.dense),
+                            const SizedBox(width: UiSpacing.standard),
                           ],
                           Expanded(
                             child: AnimatedOpacity(
                               opacity: isMinimized ? 0.0 : 1.0,
-                              duration: const Duration(milliseconds: 150),
+                              duration: UiMotion.fast,
                               child: Text(
                                 title.toUpperCase(),
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: UiFont.standard,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 1.1,
                                   color: primaryColor,

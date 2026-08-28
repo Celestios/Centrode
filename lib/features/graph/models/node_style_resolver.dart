@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/features/graph/models/graph_node.dart';
 
@@ -24,15 +25,15 @@ NodeStyle fallbackStyle([
   return NodeStyle(
     bgColor: 0xFFFFFFFF,
     strokeColor: 0xFF000000,
-    strokeWidth: 1,
+    strokeWidth: UiStrokeWidth.standard.toInt(),
     fontFamily: defaultNodeFont,
     fontSize: fs,
     shape: defaultNodeShape,
     width: (width ?? 0).round(),
     height: (height ?? 0).round(),
     textColor: 0xFF000000,
-    borderRadius: 8.0,
-    padding: 8.0,
+    borderRadius: UiRadius.card,
+    padding: UiSpacing.standard,
     shadowColor: 0x33000000,
     shadowBlur: 4.0,
     shadowSpread: 0.0,
@@ -77,16 +78,16 @@ NodeStyle resolveStyle(UiNode node) {
       fallbackStyle(size.width, size.height).copyWith(
         bgColor: containerBgColor,
         strokeColor: containerStrokeColor,
-        strokeWidth: 2,
-        borderRadius: 12.0,
+        strokeWidth: UiStrokeWidth.thick.toInt(),
+        borderRadius: UiRadius.panel,
         textColor: 0xFFFFFFFF,
       ),
     FrameUiNode(:final size) =>
       fallbackStyle(size.width, size.height).copyWith(
         bgColor: frameBgColor,
         strokeColor: frameStrokeColor,
-        strokeWidth: 2,
-        borderRadius: 8.0,
+        strokeWidth: UiStrokeWidth.thick.toInt(),
+        borderRadius: UiRadius.card,
         textColor: 0xFFFFFFFF,
       ),
     _ => fallbackStyle(),

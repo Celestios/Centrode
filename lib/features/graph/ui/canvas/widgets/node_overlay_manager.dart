@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
@@ -37,11 +38,11 @@ class NodeOverlayManager {
           child: Container(
             width: size.width + 4,
             constraints: const BoxConstraints(minHeight: 40),
-            padding: const EdgeInsets.all(4),
+            padding: UiInsets.tight,
             decoration: BoxDecoration(
               color: canvasAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: canvasAccent, width: 2),
+              borderRadius: BorderRadius.circular(UiRadius.control),
+              border: Border.all(color: canvasAccent, width: UiStrokeWidth.thick),
               boxShadow: [
                 BoxShadow(
                   color: canvasAccent.withValues(alpha: 0.38),

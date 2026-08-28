@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,7 +65,7 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
 
   void _onSearchChanged() {
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 150), () {
+    _debounceTimer = Timer(UiMotion.fast, () {
       _doSearch();
     });
   }
@@ -173,13 +174,13 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
     if (targetOffset < currentScroll) {
       _scrollController.animateTo(
         targetOffset,
-        duration: const Duration(milliseconds: 100),
+        duration: UiMotion.fast,
         curve: Curves.easeOut,
       );
     } else if (targetOffset + itemHeight > currentScroll + viewportHeight) {
       _scrollController.animateTo(
         targetOffset + itemHeight - viewportHeight,
-        duration: const Duration(milliseconds: 100),
+        duration: UiMotion.fast,
         curve: Curves.easeOut,
       );
     }
@@ -266,10 +267,10 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
             child: GlassPanel(
               borderRadius: 8,
               blur: 10.0,
-              duration: const Duration(milliseconds: 250),
+              duration: UiMotion.standard,
               curve: hasFocus ? Curves.fastOutSlowIn : Curves.easeOutCubic,
               width: hasFocus ? 420.0 : 240.0,
-              height: 28,
+              height: UiControlSize.dense,
               color: hasFocus
                   ? theme.cardColor.withValues(alpha: 0.85)
                   : theme.colorScheme.onSurface.withValues(alpha: 0.06),
@@ -283,30 +284,30 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
               border: hasFocus
                   ? Border.all(
                       color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                      width: 1.0,
+                      width: UiStrokeWidth.standard,
                     )
                   : null,
               child: Row(
                   children: [
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Icon(
                       Icons.search_rounded,
-                      size: 14,
+                      size: UiIconSize.dense,
                       color: hasFocus
                           ? theme.colorScheme.primary
                           : theme.iconTheme.color?.withValues(alpha: 0.4),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       child: TextField(
                         controller: _searchController,
                         focusNode: _focusNode,
-                        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+                        style: theme.textTheme.bodyMedium?.copyWith(fontSize: UiFont.standard),
                         decoration: InputDecoration(
                           hintText: "Search ('>' cmd, '#' tag, '?' db)...",
                           hintStyle: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.hintColor.withValues(alpha: 0.7),
-                            fontSize: 12,
+                            fontSize: UiFont.standard,
                           ),
                           border: InputBorder.none,
                           isDense: true,
@@ -323,12 +324,12 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
                         margin: const EdgeInsets.only(right: 6),
                         decoration: BoxDecoration(
                           color: theme.dividerColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(UiRadius.control),
                         ),
                         child: Text(
                           'Ctrl P',
                           style: TextStyle(
-                            fontSize: 8,
+                            fontSize: UiFont.micro,
                             color: theme.hintColor,
                             fontWeight: FontWeight.bold,
                           ),

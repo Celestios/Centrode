@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Reusable top-level section container with a pinned live showcase header.
@@ -75,10 +76,10 @@ class _ShowcaseSectionHeaderDelegate extends SliverPersistentHeaderDelegate {
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF0F1117).withValues(alpha: overlapsContent ? 0.95 : 0.88),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(UiRadius.panel),
           border: Border.all(
             color: accentColor.withValues(alpha: overlapsContent ? 0.35 : 0.22),
-            width: 0.8,
+            width: UiStrokeWidth.subtle,
           ),
           boxShadow: overlapsContent
               ? [
@@ -99,12 +100,12 @@ class _ShowcaseSectionHeaderDelegate extends SliverPersistentHeaderDelegate {
               padding: const EdgeInsets.only(left: 2.0, right: 2.0, bottom: 4.0),
               child: Row(
                 children: [
-                  Icon(icon, size: 14, color: accentColor),
-                  const SizedBox(width: 6),
+                  Icon(icon, size: UiIconSize.dense, color: accentColor),
+                  const SizedBox(width: UiSpacing.tight),
                   Text(
                     title.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: UiFont.compact,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
                       color: accentColor.withValues(alpha: 0.95),
@@ -167,12 +168,12 @@ class GlassSectionShell extends StatelessWidget {
             padding: const EdgeInsets.only(left: 2.0, right: 2.0, bottom: 6.0),
             child: Row(
               children: [
-                Icon(icon, size: 14, color: accentColor),
-                const SizedBox(width: 6),
+                Icon(icon, size: UiIconSize.dense, color: accentColor),
+                const SizedBox(width: UiSpacing.tight),
                 Text(
                   title.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: UiFont.compact,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
                     color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.95),
@@ -191,13 +192,13 @@ class GlassSectionShell extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(UiRadius.panel),
               border: Border.all(
                 color: accentColor.withValues(alpha: 0.22),
-                width: 0.8,
+                width: UiStrokeWidth.subtle,
               ),
             ),
-            padding: const EdgeInsets.all(8.0),
+            padding: UiInsets.standard,
             child: child,
           ),
         ],
@@ -229,11 +230,11 @@ class _SectionScopeBadge extends StatelessWidget {
             size: 13,
             color: Colors.white.withValues(alpha: 0.55),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: UiSpacing.tight),
           Text(
             'GLOBAL',
             style: TextStyle(
-              fontSize: 8.5,
+              fontSize: UiFont.compact,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.8,
               color: Colors.white.withValues(alpha: 0.55),
@@ -261,11 +262,11 @@ class _SectionScopeBadge extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: UiSpacing.tight),
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            fontSize: 8.5,
+            fontSize: UiFont.compact,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.7,
             color: accentColor.withValues(alpha: 0.95),

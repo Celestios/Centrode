@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../engine/config.dart';
@@ -219,7 +220,7 @@ class TextNodeRenderer {
       text: TextSpan(
         text: String.fromCharCode(iconData.codePoint),
         style: TextStyle(
-          fontSize: 12.0 * scale,
+          fontSize: UiFont.standard * scale,
           fontFamily: 'MaterialIcons',
           color: Color(style.textColor).withValues(alpha: 0.7),
         ),

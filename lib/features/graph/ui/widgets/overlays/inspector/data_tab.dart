@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -99,12 +100,12 @@ class _DataTabState extends State<DataTab> {
   Widget _buildCenteredPlaceholder(ThemeData theme, String text) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: UiInsets.gutter,
         child: Text(
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: UiFont.standard,
             fontWeight: FontWeight.w500,
             color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
           ),
@@ -117,18 +118,18 @@ class _DataTabState extends State<DataTab> {
     return CentrodeIconButton(
       icon: Icons.add_rounded,
       onPressed: _startAddingTag,
-      iconSize: 20,
+      iconSize: UiIconSize.standard,
       enableHover: false,
     );
   }
 
   Widget _buildTagEditor(ThemeData theme, InfoUiNode node, Color primaryAccent) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: UiInsets.standard,
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: primaryAccent.withValues(alpha: 0.2), width: 0.8),
+        borderRadius: BorderRadius.circular(UiRadius.card),
+        border: Border.all(color: primaryAccent.withValues(alpha: 0.2), width: UiStrokeWidth.subtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,18 +138,18 @@ class _DataTabState extends State<DataTab> {
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 32,
+                  height: UiControlSize.standard,
                   child: TextField(
                     controller: _tagController,
                     focusNode: _tagFocusNode,
                     style: TextStyle(
-                      fontSize: 12.0,
+                      fontSize: UiFont.standard,
                       color: theme.textTheme.bodyMedium?.color,
                     ),
                     decoration: InputDecoration(
                       hintText: 'New tag name...',
                       hintStyle: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: UiFont.standard,
                         color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
@@ -158,7 +159,7 @@ class _DataTabState extends State<DataTab> {
                       filled: true,
                       fillColor: Colors.black.withValues(alpha: 0.25),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(UiRadius.control),
                         borderSide: BorderSide.none,
                       ),
                     ),
@@ -166,7 +167,7 @@ class _DataTabState extends State<DataTab> {
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: UiSpacing.tight),
               CentrodeIconButton(
                 icon: Icons.close_rounded,
                 onPressed: _cancelAddingTag,
@@ -174,7 +175,7 @@ class _DataTabState extends State<DataTab> {
                 buttonSize: 26,
                 enableHover: false,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: UiSpacing.tight),
               CentrodeIconButton(
                 icon: Icons.check_rounded,
                 onPressed: () => _addTag(node),
@@ -184,7 +185,7 @@ class _DataTabState extends State<DataTab> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: UiSpacing.standard),
           Row(
             children: [
               Expanded(
@@ -200,10 +201,10 @@ class _DataTabState extends State<DataTab> {
                           });
                         },
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
+                          duration: UiMotion.fast,
                           margin: const EdgeInsets.only(right: 6),
                           width: 20,
-                          height: 20,
+                          height: UiControlSize.dense,
                           decoration: BoxDecoration(
                             color: Color(colorValue),
                             shape: BoxShape.circle,
@@ -241,7 +242,7 @@ class _DataTabState extends State<DataTab> {
               CentrodeIconButton(
                 icon: Icons.shuffle_rounded,
                 onPressed: _randomizePalette,
-                iconSize: 18,
+                iconSize: UiIconSize.standard,
                 enableHover: false,
               ),
             ],
@@ -300,10 +301,10 @@ class _DataTabState extends State<DataTab> {
                         ),
                         decoration: BoxDecoration(
                           color: tagColor.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(UiRadius.card),
                           border: Border.all(
                             color: tagColor.withValues(alpha: 0.5),
-                            width: 0.8,
+                            width: UiStrokeWidth.subtle,
                           ),
                         ),
                         child: Row(
@@ -312,19 +313,19 @@ class _DataTabState extends State<DataTab> {
                             Text(
                               tag.fields.name,
                               style: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: UiFont.standard,
                                 fontWeight: FontWeight.w600,
                                 color: tagColor,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: UiSpacing.tight),
                             CentrodeIconButton(
                               icon: Icons.close_rounded,
                               onPressed: () => widget.renderState.removeTagFromNode(
                                 node.id,
                                 tag.key.key.uuid,
                               ),
-                              iconSize: 14,
+                              iconSize: UiIconSize.dense,
                               buttonSize: 18,
                               enableHover: false,
                             ),
@@ -336,7 +337,7 @@ class _DataTabState extends State<DataTab> {
                   ],
                 ),
               if (_isAddingTag) ...[
-                if (node.tags.isNotEmpty) const SizedBox(height: 8),
+                if (node.tags.isNotEmpty) const SizedBox(height: UiSpacing.standard),
                 _buildTagEditor(theme, node, primaryAccent),
               ],
             ],
@@ -355,18 +356,18 @@ class _DataTabState extends State<DataTab> {
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 32,
+                      height: UiControlSize.standard,
                       child: TextField(
                         controller: _commentController,
                         focusNode: _commentFocusNode,
                         style: TextStyle(
-                          fontSize: 12.0,
+                          fontSize: UiFont.standard,
                           color: theme.textTheme.bodyMedium?.color,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Write a comment...',
                           hintStyle: TextStyle(
-                            fontSize: 11.5,
+                            fontSize: UiFont.standard,
                             color: theme.textTheme.bodyMedium?.color
                                 ?.withValues(alpha: 0.4),
                           ),
@@ -377,7 +378,7 @@ class _DataTabState extends State<DataTab> {
                           filled: true,
                           fillColor: Colors.black.withValues(alpha: 0.2),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(UiRadius.control),
                             borderSide: BorderSide.none,
                           ),
                         ),
@@ -385,16 +386,16 @@ class _DataTabState extends State<DataTab> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: UiSpacing.tight),
                   CentrodeIconButton(
                     icon: Icons.send_rounded,
                     onPressed: () => _addComment(node),
-                    iconSize: 18,
+                    iconSize: UiIconSize.standard,
                     enableHover: false,
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: UiSpacing.standard),
 
               if (node.comments.isNotEmpty)
                 Column(
@@ -404,7 +405,7 @@ class _DataTabState extends State<DataTab> {
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(UiRadius.card),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.06),
                           width: 0.6,
@@ -419,7 +420,7 @@ class _DataTabState extends State<DataTab> {
                               Text(
                                 formatTimestampShort(comment.createdAt.toInt()),
                                 style: TextStyle(
-                                  fontSize: 9.5,
+                                  fontSize: UiFont.compact,
                                   fontWeight: FontWeight.w600,
                                   color: theme.textTheme.bodyMedium?.color
                                       ?.withValues(alpha: 0.45),
@@ -434,11 +435,11 @@ class _DataTabState extends State<DataTab> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: UiSpacing.tight),
                           Text(
                             comment.text,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: UiFont.standard,
                               color: theme.textTheme.bodyMedium?.color
                                   ?.withValues(alpha: 0.9),
                               height: 1.3,
@@ -456,7 +457,7 @@ class _DataTabState extends State<DataTab> {
                     child: Text(
                       'No comments added',
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: UiFont.standard,
                         color: theme.textTheme.bodyMedium?.color
                             ?.withValues(alpha: 0.4),
                       ),

@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'showcase_painters.dart';
 
@@ -70,10 +71,10 @@ class RelationShowcaseCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(UiRadius.card),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.06),
-          width: 0.8,
+          width: UiStrokeWidth.subtle,
         ),
       ),
       child: Stack(
@@ -98,7 +99,7 @@ class RelationShowcaseCard extends StatelessWidget {
           ),
           if (labelShape != 'none')
             AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
+              duration: UiMotion.fast,
               padding: EdgeInsets.symmetric(
                 horizontal: padding.clamp(4.0, 14.0),
                 vertical: (padding * 0.35).clamp(2.0, 6.0),
@@ -108,7 +109,7 @@ class RelationShowcaseCard extends StatelessWidget {
                 borderRadius: labelRadius,
                 border: Border.all(
                   color: accentColor.withValues(alpha: 0.85),
-                  width: 0.8,
+                  width: UiStrokeWidth.subtle,
                 ),
                 boxShadow: [
                   BoxShadow(

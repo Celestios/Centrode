@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
@@ -58,7 +59,7 @@ class _MediaNodeWidgetState extends State<MediaNodeWidget> {
       width: node.size.width,
       height: node.size.height,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(4.0),
+        borderRadius: BorderRadius.circular(UiRadius.control),
         child: _buildMediaContent(context, localFile, node),
       ),
     );
@@ -83,17 +84,17 @@ class _MediaNodeWidgetState extends State<MediaNodeWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.audiotrack_rounded, size: 32.0, color: Color(0xFF80CBC4)),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: UiSpacing.standard),
               Text(
                 node.attachment.name,
-                style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(fontSize: UiFont.standard, fontWeight: FontWeight.bold, color: Colors.white),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4.0),
+              const SizedBox(height: UiSpacing.tight),
               Text(
                 '${(node.attachment.byteSize / (1024 * 1024)).toStringAsFixed(1)} MB',
-                style: TextStyle(fontSize: 10.0, color: Colors.white.withValues(alpha: 0.6)),
+                style: TextStyle(fontSize: UiFont.micro, color: Colors.white.withValues(alpha: 0.6)),
               ),
             ],
           ),
@@ -109,17 +110,17 @@ class _MediaNodeWidgetState extends State<MediaNodeWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.picture_as_pdf_rounded, size: 36.0, color: Color(0xFFEF5350)),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: UiSpacing.standard),
               Text(
                 node.attachment.name,
-                style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(fontSize: UiFont.standard, fontWeight: FontWeight.bold, color: Colors.white),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4.0),
+              const SizedBox(height: UiSpacing.tight),
               Text(
                 '${(node.attachment.byteSize / (1024 * 1024)).toStringAsFixed(1)} MB',
-                style: TextStyle(fontSize: 10.0, color: Colors.white.withValues(alpha: 0.6)),
+                style: TextStyle(fontSize: UiFont.micro, color: Colors.white.withValues(alpha: 0.6)),
               ),
             ],
           ),
@@ -133,12 +134,12 @@ class _MediaNodeWidgetState extends State<MediaNodeWidget> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 32.0, color: Colors.white.withValues(alpha: 0.7)),
-          const SizedBox(height: 6.0),
+          const SizedBox(height: UiSpacing.tight),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: UiInsets.horizontalStandard,
             child: Text(
               label,
-              style: TextStyle(fontSize: 11.0, color: Colors.white.withValues(alpha: 0.8)),
+              style: TextStyle(fontSize: UiFont.compact, color: Colors.white.withValues(alpha: 0.8)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

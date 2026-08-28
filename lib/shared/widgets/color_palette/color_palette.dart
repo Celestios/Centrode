@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/utils/color_harmony_generator.dart';
@@ -119,9 +120,9 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
+              duration: UiMotion.fast,
               width: 28,
-              height: 28,
+              height: UiControlSize.dense,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: c,
@@ -176,7 +177,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: UiSpacing.container),
           SizedBox(
             width: 130,
             height: 130,
@@ -188,7 +189,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                   left: 65 - 16,
                   top: 65 - 16,
                   width: 32,
-                  height: 32,
+                  height: UiControlSize.standard,
                   child: Container(
                     decoration: BoxDecoration(
                       color: _selectedColor,
@@ -204,7 +205,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                     child: Center(
                       child: Icon(
                         Icons.palette_rounded,
-                        size: 14,
+                        size: UiIconSize.dense,
                         color: ColorUtils.getContrastTextColor(_selectedColor),
                       ),
                     ),
@@ -233,7 +234,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
+                          duration: UiMotion.fast,
                           decoration: BoxDecoration(
                             color: c,
                             shape: BoxShape.circle,
@@ -259,9 +260,9 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: UiSpacing.container),
           Divider(color: theme.dividerColor.withValues(alpha: 0.15)),
-          const SizedBox(height: 8),
+          const SizedBox(height: UiSpacing.standard),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -269,7 +270,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                 'SHUFFLE',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 9,
+                  fontSize: UiFont.micro,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
@@ -279,14 +280,14 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                   cursor: SystemMouseCursors.click,
                   child: Icon(
                     Icons.refresh_rounded,
-                    size: 14,
+                    size: UiIconSize.dense,
                     color: theme.colorScheme.primary,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: UiSpacing.standard),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: _shuffledColors.take(5).map((c) {
@@ -296,7 +297,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                 child: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
+                    duration: UiMotion.fast,
                     width: 22,
                     height: 22,
                     decoration: BoxDecoration(
@@ -344,13 +345,13 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
           'PRESETS',
           style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 10,
+            fontSize: UiFont.micro,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: UiSpacing.tight),
         _buildCompactPresets(context),
-        const SizedBox(height: 14),
+        const SizedBox(height: UiSpacing.container),
 
         // Color Theory Harmony picker
         Row(
@@ -360,7 +361,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               'HARMONIES',
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 10,
+                fontSize: UiFont.micro,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
@@ -369,13 +370,13 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               dropdownColor: theme.cardColor,
               underline: const SizedBox(),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: UiFont.micro,
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.primary,
               ),
               icon: Icon(
                 Icons.arrow_drop_down,
-                size: 14,
+                size: UiIconSize.dense,
                 color: theme.colorScheme.primary,
               ),
               items: ColorHarmonyType.values.map((type) {
@@ -392,7 +393,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: UiSpacing.tight),
 
         // Harmony Swatch Display
         Wrap(
@@ -407,9 +408,9 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: UiMotion.fast,
                   width: 28,
-                  height: 28,
+                  height: UiControlSize.dense,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: c,
@@ -441,7 +442,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
             );
           }).toList(),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: UiSpacing.container),
 
         // Sliders (Hue)
         Row(
@@ -451,14 +452,14 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               'HUE',
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 10,
+                fontSize: UiFont.micro,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             Text(
               '${_currentHsv.hue.toInt()}°',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: UiFont.micro,
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
@@ -478,10 +479,10 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
           ),
           child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 4),
+            margin: UiInsets.verticalTight,
             height: 12,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(UiRadius.control),
               gradient: const LinearGradient(
                 colors: [
                   Color(0xFFFF0000),
@@ -504,7 +505,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: UiSpacing.standard),
 
         // Sliders (Opacity / Alpha)
         if (widget.showAlpha) ...[
@@ -515,14 +516,14 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                 'TRANSPARENCY',
                 style: theme.textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 10,
+                  fontSize: UiFont.micro,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
               Text(
                 '${(_selectedColor.a * 100).toInt()}%',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: UiFont.micro,
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
@@ -542,10 +543,10 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
             ),
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
+              margin: UiInsets.verticalTight,
               height: 12,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(UiRadius.control),
                 gradient: LinearGradient(
                   colors: [
                     _selectedColor.withValues(alpha: 0.0),
@@ -563,11 +564,11 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: UiSpacing.standard),
         ],
 
         // Shuffle Section
-        const SizedBox(height: 4),
+        const SizedBox(height: UiSpacing.tight),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -575,7 +576,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               'QUICK SHUFFLE',
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 10,
+                fontSize: UiFont.micro,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
@@ -590,12 +591,12 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
                     Text(
                       'SHUFFLE',
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: UiFont.micro,
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: UiSpacing.tight),
                     Icon(
                       Icons.shuffle_rounded,
                       size: 12,
@@ -607,7 +608,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: UiSpacing.standard),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: _shuffledColors.map((c) {
@@ -619,7 +620,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: UiMotion.fast,
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(

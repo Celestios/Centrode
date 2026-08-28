@@ -141,13 +141,13 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
             offset: const Offset(0, 2),
           ),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
+            duration: UiMotion.fast,
             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
             decoration: BoxDecoration(
               color: _isHovered
                   ? primaryColor.withValues(alpha: 0.18)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(12.0),
+              borderRadius: BorderRadius.circular(UiRadius.panel),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -155,7 +155,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                 if (!showBadges)
                   Icon(
                     Icons.tune_rounded,
-                    size: 16,
+                    size: UiIconSize.dense,
                     color: primaryColor,
                   )
                 else
@@ -173,7 +173,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                               child: _BadgeCircle(
                                 count: relationCount,
                                 color: relationColor,
-                                size: 18,
+                                size: UiIconSize.standard,
                               ),
                             ),
                           if (nodeCount > 0)
@@ -183,7 +183,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                               child: _BadgeCircle(
                                 count: nodeCount,
                                 color: primaryColor,
-                                size: 18,
+                                size: UiIconSize.standard,
                               ),
                             ),
                         ],
@@ -199,7 +199,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                         child: Text(
                           'INSPECTOR',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: UiFont.compact,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.2,
                             color: primaryColor.withValues(alpha: 0.9),
@@ -213,7 +213,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                   _isExpanded
                       ? Icons.chevron_right_rounded
                       : Icons.chevron_left_rounded,
-                  size: 16,
+                  size: UiIconSize.dense,
                   color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                 ),
               ],
@@ -249,7 +249,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(UiRadius.panel),
         border: Border.all(
           color: panelEdgeColor,
           width: isNothingSelected ? 1.2 : 1.0,
@@ -279,7 +279,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
             children: [
               // Top Tab Switcher Bar (Appearance vs Data)
               _buildTopTabBar(context, renderState),
-              const SizedBox(height: 6),
+              const SizedBox(height: UiSpacing.tight),
 
               // Main Dynamic Body with Full-Width Sliding Tab Transition
               Expanded(
@@ -335,12 +335,12 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                                     )
                                   : Center(
                                       child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                        padding: UiInsets.horizontalContainer,
                                         child: Text(
                                           'Select a node to inspect and edit its Tags & Comments.',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            fontSize: 11.5,
+                                            fontSize: UiFont.standard,
                                             fontWeight: FontWeight.w600,
                                             color: Theme.of(context)
                                                 .textTheme
@@ -399,10 +399,10 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(UiRadius.card),
             border: Border.all(
               color: theme.dividerColor.withValues(alpha: 0.1),
-              width: 0.8,
+              width: UiStrokeWidth.subtle,
             ),
           ),
           child: TweenAnimationBuilder<double>(
@@ -431,7 +431,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: UiSpacing.tight),
                   Expanded(
                     flex: dataFlex,
                     child: _GlassTabButton(
@@ -480,17 +480,17 @@ class _GlassTabButton extends StatelessWidget {
       enableHover: false,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        height: 30,
+        height: UiControlSize.standard,
         decoration: BoxDecoration(
           color: isActive
               ? activeColor.withValues(alpha: 0.25)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(UiRadius.card),
           border: Border.all(
             color: isActive
                 ? activeColor.withValues(alpha: 0.5)
                 : Colors.transparent,
-            width: 0.8,
+            width: UiStrokeWidth.subtle,
           ),
         ),
         child: Row(
@@ -503,7 +503,7 @@ class _GlassTabButton extends StatelessWidget {
                   ? activeColor
                   : textColor.withValues(alpha: 0.6),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: UiSpacing.tight),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 180),
               style: TextStyle(
@@ -543,7 +543,7 @@ class _BadgeCircle extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(
           color: Theme.of(context).scaffoldBackgroundColor,
-          width: 1.5,
+          width: UiStrokeWidth.thick,
         ),
       ),
       child: Center(

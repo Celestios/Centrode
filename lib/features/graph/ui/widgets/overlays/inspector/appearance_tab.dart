@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../../../presentation/node_render_state.dart';
@@ -38,11 +39,11 @@ class AppearanceTab extends StatelessWidget {
             size: 10,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: UiSpacing.tight),
           Text(
             title,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: UiFont.micro,
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
@@ -53,7 +54,7 @@ class AppearanceTab extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 10,
+        fontSize: UiFont.micro,
         fontWeight: FontWeight.bold,
         color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
       ),
@@ -66,7 +67,7 @@ class AppearanceTab extends StatelessWidget {
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: UiFont.standard,
           color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
         ),
       ),
@@ -92,7 +93,7 @@ class AppearanceTab extends StatelessWidget {
             Text(
               value.toStringAsFixed(0),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: UiFont.micro,
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
@@ -155,7 +156,7 @@ class AppearanceTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(theme, 'LINE STYLE'),
-        const SizedBox(height: 8),
+        const SizedBox(height: UiSpacing.standard),
         Row(
           children: [
             Expanded(
@@ -171,7 +172,7 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: UiSpacing.tight),
             Expanded(
               child: _StrategyButton(
                 icon: Icons.gesture_rounded,
@@ -185,7 +186,7 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: UiSpacing.tight),
             Expanded(
               child: _StrategyButton(
                 icon: Icons.alt_route_rounded,
@@ -199,7 +200,7 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: UiSpacing.tight),
             Expanded(
               child: _StrategyButton(
                 icon: Icons.waves_rounded,
@@ -213,7 +214,7 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: UiSpacing.tight),
             Expanded(
               child: _StrategyButton(
                 icon: Icons.ssid_chart_rounded,
@@ -227,7 +228,7 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: UiSpacing.tight),
             Expanded(
               child: _StrategyButton(
                 icon: Icons.polyline_rounded,
@@ -256,7 +257,7 @@ class AppearanceTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(theme, 'SHAPE'),
-        const SizedBox(height: 8),
+        const SizedBox(height: UiSpacing.standard),
         Row(
           children: [
             Expanded(
@@ -266,8 +267,8 @@ class AppearanceTab extends StatelessWidget {
                   renderState,
                   (style) => style.copyWith(shape: 'rectangle'),
                 ),
-                icon: const Icon(Icons.crop_square, size: 16),
-                label: const Text('Rectangle', style: TextStyle(fontSize: 11)),
+                icon: const Icon(Icons.crop_square, size: UiIconSize.dense),
+                label: const Text('Rectangle', style: TextStyle(fontSize: UiFont.compact)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: currentStyle.shape != 'circle'
                       ? theme.colorScheme.primary
@@ -280,7 +281,7 @@ class AppearanceTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: UiSpacing.standard),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _updateSelectedNodesStyle(
@@ -288,8 +289,8 @@ class AppearanceTab extends StatelessWidget {
                   renderState,
                   (style) => style.copyWith(shape: 'circle'),
                 ),
-                icon: const Icon(Icons.circle_outlined, size: 16),
-                label: const Text('Circle', style: TextStyle(fontSize: 11)),
+                icon: const Icon(Icons.circle_outlined, size: UiIconSize.dense),
+                label: const Text('Circle', style: TextStyle(fontSize: UiFont.compact)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: currentStyle.shape == 'circle'
                       ? theme.colorScheme.primary
@@ -304,9 +305,9 @@ class AppearanceTab extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: UiSpacing.gutter),
         _buildSectionHeader(theme, 'BACKGROUND COLOR'),
-        const SizedBox(height: 8),
+        const SizedBox(height: UiSpacing.standard),
         UniversalColorPalette(
           initialColor: Color(currentStyle.bgColor),
           mode: ColorPaletteMode.advanced,
@@ -321,7 +322,7 @@ class AppearanceTab extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: UiSpacing.gutter),
         _buildStyleSlider(
           context,
           title: 'FONT SIZE',
@@ -334,7 +335,7 @@ class AppearanceTab extends StatelessWidget {
             (style) => style.copyWith(fontSize: val),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: UiSpacing.container),
         _buildStyleSlider(
           context,
           title: 'BORDER RADIUS',
@@ -347,7 +348,7 @@ class AppearanceTab extends StatelessWidget {
             (style) => style.copyWith(borderRadius: val),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: UiSpacing.container),
         _buildStyleSlider(
           context,
           title: 'BORDER WIDTH',
@@ -397,7 +398,7 @@ class _StrategyButton extends StatelessWidget {
       onPressed: onTap,
       icon: Icon(
         icon,
-        size: 16,
+        size: UiIconSize.dense,
         color: _isSelected
             ? theme.colorScheme.primary
             : theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -405,7 +406,7 @@ class _StrategyButton extends StatelessWidget {
       label: Text(
         label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: UiFont.micro,
           fontWeight: _isSelected ? FontWeight.bold : FontWeight.normal,
           color: _isSelected
               ? theme.colorScheme.primary
@@ -417,7 +418,7 @@ class _StrategyButton extends StatelessWidget {
             ? theme.colorScheme.primary.withValues(alpha: 0.1)
             : Colors.transparent,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(UiRadius.card)),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 import 'components/glass_section_shell.dart';
@@ -100,7 +101,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             child: Column(
               children: [
                 SegmentedGlassSwitcher<String>(
-                  height: 30.0,
+                  height: UiControlSize.standard,
                   activeColor: primaryAccent,
                   selectedValue: _selectedShape,
                   onSelected: (val) => setState(() => _selectedShape = val),
@@ -111,13 +112,13 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                     SegmentData(value: 'none', label: 'None'),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
                 Row(
                   children: [
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _selectedFill,
                         onSelected: (val) => setState(() => _selectedFill = val),
@@ -128,7 +129,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       flex: 1,
                       child: GlassColorPillButton<Color?>(
@@ -147,7 +148,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
                 Row(
                   children: [
                     Expanded(
@@ -161,7 +162,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         onChanged: (val) => setState(() => _padding = val),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       child: CompactSliderBox(
                         label: 'Radius',
@@ -196,7 +197,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _selectedFont,
                         onSelected: (val) => setState(() => _selectedFont = val),
@@ -207,7 +208,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       flex: 1,
                       child: CompactSliderBox(
@@ -271,7 +272,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                             return Center(
                               child: Icon(
                                 item.icon,
-                                size: 24.0 + (focus * 8.0),
+                                size: UiIconSize.header + (focus * 8.0),
                                 color: iconColor,
                               ),
                             );
@@ -315,18 +316,18 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _strokePattern,
                         onSelected: (val) => setState(() => _strokePattern = val),
                         segments: const [
-                          SegmentData(value: 'solid', label: '━ Solid', style: TextStyle(fontSize: 10.5)),
-                          SegmentData(value: 'dashed', label: '┅ Dash', style: TextStyle(fontSize: 10.5)),
-                          SegmentData(value: 'dotted', label: '┈ Dot', style: TextStyle(fontSize: 10.5)),
+                          SegmentData(value: 'solid', label: '━ Solid', style: TextStyle(fontSize: UiFont.compact)),
+                          SegmentData(value: 'dashed', label: '┅ Dash', style: TextStyle(fontSize: UiFont.compact)),
+                          SegmentData(value: 'dotted', label: '┈ Dot', style: TextStyle(fontSize: UiFont.compact)),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       flex: 1,
                       child: GlassColorPillButton<Color?>(
@@ -345,37 +346,37 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
                 Row(
                   children: [
                     Expanded(
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _startCap,
                         onSelected: (val) => setState(() => _startCap = val),
                         segments: const [
-                          SegmentData(value: 'none', label: 'Start: ⊸ None', style: TextStyle(fontSize: 10.0)),
-                          SegmentData(value: 'circle', label: 'Dot ●', style: TextStyle(fontSize: 10.0)),
+                          SegmentData(value: 'none', label: 'Start: ⊸ None', style: TextStyle(fontSize: UiFont.micro)),
+                          SegmentData(value: 'circle', label: 'Dot ●', style: TextStyle(fontSize: UiFont.micro)),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _endCap,
                         onSelected: (val) => setState(() => _endCap = val),
                         segments: const [
-                          SegmentData(value: 'arrow', label: 'End: ➔ Arrow', style: TextStyle(fontSize: 10.0)),
-                          SegmentData(value: 'diamond', label: 'Diamond ◆', style: TextStyle(fontSize: 10.0)),
+                          SegmentData(value: 'arrow', label: 'End: ➔ Arrow', style: TextStyle(fontSize: UiFont.micro)),
+                          SegmentData(value: 'diamond', label: 'Diamond ◆', style: TextStyle(fontSize: UiFont.micro)),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
                 CompactSliderBox(
                   label: 'Width',
                   value: _strokeWidth,
@@ -402,7 +403,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             child: Column(
               children: [
                 SegmentedGlassSwitcher<String>(
-                  height: 30.0,
+                  height: UiControlSize.standard,
                   activeColor: primaryAccent,
                   selectedValue: _crossingStrategy,
                   onSelected: (val) => setState(() => _crossingStrategy = val),
@@ -412,7 +413,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                     SegmentData(value: 'blend', label: 'Pass-Through'),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
                 CompactSliderBox(
                   label: 'Bundle Gap',
                   value: _bundleGap,

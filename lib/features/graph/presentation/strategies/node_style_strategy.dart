@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/features/graph/models/graph_node.dart';
 import 'package:centrode/features/graph/models/node_style_resolver.dart'
@@ -46,10 +47,10 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
       ).copyWith(
         bgColor: resolver.containerBgColor,
         strokeColor: resolver.containerStrokeColor,
-        strokeWidth: 2,
+        strokeWidth: UiStrokeWidth.thick.toInt(),
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
-        borderRadius: 12.0,
+        borderRadius: UiRadius.panel,
       );
     }
 
@@ -61,10 +62,10 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
       ).copyWith(
         bgColor: resolver.frameBgColor,
         strokeColor: resolver.frameStrokeColor,
-        strokeWidth: 2,
+        strokeWidth: UiStrokeWidth.thick.toInt(),
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
-        borderRadius: 8.0,
+        borderRadius: UiRadius.card,
       );
     }
 

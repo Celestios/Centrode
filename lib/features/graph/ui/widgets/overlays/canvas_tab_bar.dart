@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
@@ -41,7 +42,7 @@ class CanvasTabBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: UiSpacing.tight),
           AddTabButton(tabsController: tabsController),
         ],
       ),

@@ -32,7 +32,7 @@ class TabItem extends StatelessWidget {
       onTap: onTap,
       hoverScale: 1.04,
       pressScale: 0.96,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(UiRadius.card),
       builder: (context, isHovered, isPressed) {
         final preset = GlassPresets.tab(context, isActive: isActive);
         return GlassPanel(
@@ -53,13 +53,13 @@ class TabItem extends StatelessWidget {
                   color: isActive
                       ? activeColor
                       : (isHovered ? primaryColor : inactiveColor),
-                  size: 14,
+                  size: UiIconSize.dense,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: UiSpacing.tight),
                 Text(
                   name,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: UiFont.standard,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                     color: isActive
                         ? activeColor
@@ -67,11 +67,11 @@ class TabItem extends StatelessWidget {
                   ),
                 ),
                 if (canClose) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: UiSpacing.standard),
                   CentrodeIconButton(
                     icon: Icons.close_rounded,
                     onPressed: onClose,
-                    iconSize: 14,
+                    iconSize: UiIconSize.dense,
                     buttonSize: 20,
                     iconColor: isActive
                         ? activeColor.withValues(alpha: 0.6)

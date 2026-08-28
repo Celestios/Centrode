@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 part of '../glass_panel.dart';
 
 /// A self-contained glassmorphic panel that can render via shader or fallback blur.
@@ -262,7 +263,7 @@ class _GlassPanelBody extends StatelessWidget {
       foregroundPainter: _GlassSpecularBorderPainter(
         shape: shape,
         gradient: borderGradient,
-        strokeWidth: 1.0,
+        strokeWidth: UiStrokeWidth.standard,
       ),
       child: surface,
     );

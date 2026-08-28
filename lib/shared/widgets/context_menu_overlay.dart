@@ -47,7 +47,7 @@ class ContextMenuOverlay {
               top: position.dy,
               child: Material(
                 elevation: 4,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(UiRadius.control),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -83,7 +83,7 @@ class _ContextMenuItemWidget extends StatelessWidget {
     return CentrodeButton(
       onTap: onTap,
       enableHover: false,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(UiRadius.control),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Text(label),

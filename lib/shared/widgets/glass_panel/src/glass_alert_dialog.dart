@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
@@ -22,10 +23,10 @@ class GlassAlertDialog extends StatelessWidget {
         backgroundColor: theme.cardColor.withValues(alpha: 0.95),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(UiRadius.panel),
           side: BorderSide(
             color: theme.dividerColor.withValues(alpha: 0.2),
-            width: 1,
+            width: UiStrokeWidth.standard,
           ),
         ),
         title: title,

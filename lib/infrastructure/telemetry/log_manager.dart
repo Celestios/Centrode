@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 library;
 
 import 'dart:async';
@@ -219,7 +220,7 @@ class LogManager {
     _batchTimer?.cancel();
     _flushBuffer();
 
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(UiMotion.fast);
 
     _isolate?.kill(priority: Isolate.immediate);
     _isolateReceivePort?.close();

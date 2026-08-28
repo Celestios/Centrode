@@ -58,7 +58,7 @@ class SearchOverlayWidget extends StatelessWidget {
                   ),
                 if (!isLoading && results.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: UiInsets.container,
                     child: Text(
                       'No matching results',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -100,9 +100,9 @@ class SearchOverlayWidget extends StatelessWidget {
                                     color: verbColor.withValues(alpha: 0.1),
                                     border: Border.all(
                                       color: verbColor.withValues(alpha: 0.4),
-                                      width: 1,
+                                      width: UiStrokeWidth.standard,
                                     ),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(UiRadius.control),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -112,7 +112,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                         size: 10,
                                         color: verbColor,
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: UiSpacing.tight),
                                       Text(
                                         item.relationVerb?.toUpperCase() ??
                                             'RELATION',
@@ -120,13 +120,13 @@ class SearchOverlayWidget extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                           letterSpacing: 1.1,
                                           color: verbColor,
-                                          fontSize: 9,
+                                          fontSize: UiFont.micro,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: UiSpacing.standard),
                                 Expanded(
                                   child: GlassDivider(
                                     orientation: Axis.horizontal,
@@ -171,12 +171,12 @@ class SearchOverlayWidget extends StatelessWidget {
                                 children: [
                                   Icon(
                                     item.icon,
-                                    size: 14,
+                                    size: UiIconSize.dense,
                                     color: isSelected
                                         ? theme.colorScheme.primary
                                         : verbColor.withValues(alpha: 0.7),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: UiSpacing.standard),
                                   _buildNodePreview(fromNode, theme),
                                   Expanded(
                                     child: Container(
@@ -196,7 +196,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                             alignment: Alignment.centerRight,
                                             child: Icon(
                                               Icons.chevron_right_rounded,
-                                              size: 14,
+                                              size: UiIconSize.dense,
                                               color: verbColor.withValues(
                                                 alpha: 0.5,
                                               ),
@@ -213,15 +213,15 @@ class SearchOverlayWidget extends StatelessWidget {
                                                 color: verbColor.withValues(
                                                   alpha: 0.4,
                                                 ),
-                                                width: 1,
+                                                width: UiStrokeWidth.standard,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(4),
+                                                  BorderRadius.circular(UiRadius.control),
                                             ),
                                             child: Text(
                                               item.relationVerb ?? '',
                                               style: TextStyle(
-                                                fontSize: 8,
+                                                fontSize: UiFont.micro,
                                                 fontWeight: FontWeight.bold,
                                                 color: verbColor,
                                               ),
@@ -235,13 +235,13 @@ class SearchOverlayWidget extends StatelessWidget {
                                   ),
                                   _buildNodePreview(toNode, theme),
                                   if (isSelected) ...[
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: UiSpacing.standard),
                                     Text(
                                       'Enter',
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme.colorScheme.primary,
-                                            fontSize: 10,
+                                            fontSize: UiFont.micro,
                                           ),
                                     ),
                                   ],
@@ -268,14 +268,14 @@ class SearchOverlayWidget extends StatelessWidget {
                               children: [
                                 Icon(
                                   item.icon,
-                                  size: 18,
+                                  size: UiIconSize.standard,
                                   color: isSelected
                                       ? theme.colorScheme.primary
                                       : theme.iconTheme.color?.withValues(
                                           alpha: 0.7,
                                         ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: UiSpacing.container),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -296,7 +296,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                         style: theme.textTheme.bodySmall
                                             ?.copyWith(
                                               color: theme.hintColor,
-                                              fontSize: 10,
+                                              fontSize: UiFont.micro,
                                             ),
                                       ),
                                     ],
@@ -307,7 +307,7 @@ class SearchOverlayWidget extends StatelessWidget {
                                     'Enter',
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.primary,
-                                      fontSize: 10,
+                                      fontSize: UiFont.micro,
                                     ),
                                   ),
                               ],
@@ -331,11 +331,11 @@ class SearchOverlayWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: theme.dividerColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(UiRadius.control),
         ),
         child: Text(
           'Unknown',
-          style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: UiFont.micro),
         ),
       );
     }
@@ -359,12 +359,12 @@ class SearchOverlayWidget extends StatelessWidget {
         borderRadius: isCircle
             ? BorderRadius.circular(100)
             : BorderRadius.circular(borderRadius),
-        border: Border.all(color: strokeColor, width: 1),
+        border: Border.all(color: strokeColor, width: UiStrokeWidth.standard),
       ),
       child: Text(
         node.text.isEmpty ? 'Untitled Node' : node.text,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: UiFont.micro,
           fontWeight: FontWeight.w600,
           color: textColor,
           fontFamily: style?.fontFamily,

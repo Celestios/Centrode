@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'relation_painter_dto.dart';
 import '../../../../../presentation/theme/app_theme_manager.dart';
 
@@ -21,7 +22,7 @@ class RelationPainter extends CustomPainter {
   ) {
     final textStyle = TextStyle(
       color: theme.colorScheme.onSurface,
-      fontSize: 10,
+      fontSize: CanvasPainterTokens.relationLabelFontSize,
       fontWeight: FontWeight.w500,
     );
     final textSpan = TextSpan(text: text, style: textStyle);
@@ -31,35 +32,48 @@ class RelationPainter extends CustomPainter {
     );
     textPainter.layout();
 
-    const double paddingX = 8.0;
-    const double paddingY = 4.0;
-    final double w = textPainter.width + paddingX * 2;
-    final double h = textPainter.height + paddingY * 2;
-
-    final rect = Rect.fromCenter(center: pos, width: w, height: h);
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8.0));
-
-    final fillPaint = Paint()
-      ..color = theme.scaffoldBackgroundColor
-      ..style = PaintingStyle.fill;
-    canvas.drawRRect(rrect, fillPaint);
-
-    final strokePaint = Paint()
-      ..color = strokeColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    canvas.drawRRect(rrect, strokePaint);
-
-    textPainter.paint(
-      canvas,
-      pos - Offset(textPainter.width / 2, textPainter.height / 2),
+    final double paddingX = CanvasPainterTokens.relationLabelPaddingX;
+    final double paddingY = CanvasPainterTokens.relationLabelPaddingY;
+    final rect = Rect.fromCenter(
+      center: pos,
+      width: textPainter.width + paddingX * 2,
+      height: textPainter.height + paddingY * 2,
     );
+
+    final bgPaint = Paint()
+      ..color = theme.colorScheme.surface
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect,
+        const Radius.circular(CanvasPainterTokens.relationLabelRadius),
+      ),
+      bgPaint,
+    );
+
+    final borderPaint = Paint()
+      ..color = strokeColor.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 0.5;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect,
+        const Radius.circular(CanvasPainterTokens.relationLabelRadius),
+      ),
+      borderPaint,
+    );
+
+    final textOffset = Offset(
+      pos.dx - textPainter.width / 2,
+      pos.dy - textPainter.height / 2,
+    );
+    textPainter.paint(canvas, textOffset);
   }
 
   Path _verticesToPath(List<Offset> points, {bool close = false}) {
-    if (points.isEmpty) return Path();
     final path = Path();
-    path.moveTo(points.first.dx, points.first.dy);
+    if (points.isEmpty) return path;
+    path.moveTo(points[0].dx, points[0].dy);
     for (int i = 1; i < points.length; i++) {
       path.lineTo(points[i].dx, points[i].dy);
     }
@@ -68,30 +82,15 @@ class RelationPainter extends CustomPainter {
   }
 
   Path _createPatternedPath(List<Offset> points, String pattern) {
-    final Path dest = Path();
-    final double dashLen = pattern == 'dashed' ? 8.0 : 2.0;
-    final double gapLen = pattern == 'dashed' ? 6.0 : 4.0;
+    final double dashLen = pattern == 'dashed'
+        ? CanvasPainterTokens.relationDashWidth
+        : CanvasPainterTokens.relationDotWidth;
+    final double gapLen = pattern == 'dashed'
+        ? CanvasPainterTokens.relationDashSpace
+        : CanvasPainterTokens.relationDotSpace;
 
     final source = _verticesToPath(points);
-    for (final PathMetric metric in source.computeMetrics()) {
-      double distance = 0.0;
-      bool draw = true;
-      while (distance < metric.length) {
-        final double len = draw ? dashLen : gapLen;
-        if (draw) {
-          dest.addPath(
-            metric.extractPath(
-              distance,
-              (distance + len).clamp(0.0, metric.length),
-            ),
-            Offset.zero,
-          );
-        }
-        distance += len;
-        draw = !draw;
-      }
-    }
-    return dest;
+    return PaintGeometry.createDashedPath(source, dashLen, gapLen);
   }
 
   void _drawVariableWidthPoints(

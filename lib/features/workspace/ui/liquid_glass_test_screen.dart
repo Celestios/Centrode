@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
@@ -97,9 +98,9 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                                       Icon(
                                         Icons.star,
                                         color: Colors.white,
-                                        size: 24,
+                                        size: UiIconSize.header,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: UiSpacing.standard),
                                       Text(
                                         'Glass Panel',
                                         style: TextStyle(
@@ -108,11 +109,11 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: UiSpacing.standard),
                                       Icon(
                                         Icons.star,
                                         color: Colors.white,
-                                        size: 24,
+                                        size: UiIconSize.header,
                                       ),
                                     ],
                                   ),
@@ -152,12 +153,12 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                                     color: Colors.white,
                                     size: 30,
                                   ),
-                                  SizedBox(height: 4),
+                                  const SizedBox(height: UiSpacing.tight),
                                   Text(
                                     'ECO',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
+                                      fontSize: UiFont.header,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -195,17 +196,17 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                                   Icon(
                                     Icons.favorite,
                                     color: Colors.pink,
-                                    size: 24,
+                                    size: UiIconSize.header,
                                   ),
                                   Icon(
                                     Icons.favorite,
                                     color: Colors.red,
-                                    size: 20,
+                                    size: UiIconSize.standard,
                                   ),
                                   Icon(
                                     Icons.thumb_up,
                                     color: Colors.blue,
-                                    size: 24,
+                                    size: UiIconSize.header,
                                   ),
                                 ],
                               ),
@@ -242,13 +243,13 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
                                     Icon(
                                       Icons.nights_stay,
                                       color: Colors.white,
-                                      size: 20,
+                                      size: UiIconSize.standard,
                                     ),
                                     Text(
                                       'DARK',
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 8,
+                                        fontSize: UiFont.micro,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -266,7 +267,7 @@ class _LiquidGlassDemoState extends State<LiquidGlassDemo> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: UiInsets.container,
             child: Column(
               children: [
                 Text(

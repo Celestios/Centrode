@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -184,14 +185,14 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
             focusNode: FocusNode(),
             onKeyEvent: _handleKeyEvent,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(UiRadius.control),
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E1E24).withValues(alpha: 0.96),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(UiRadius.control),
                   border: Border.all(
                     color: theme.canvasAccentColor.withValues(alpha: 0.6),
-                    width: 1.2,
+                    width: UiStrokeWidth.thick,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -206,7 +207,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                 final showList = _isExpanded && constraints.maxHeight > 50.0 && constraints.maxWidth > 130.0;
 
                 final inputField = Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: UiInsets.horizontalStandard,
                   child: Center(
                     child: TextField(
                       controller: _textController,
@@ -214,7 +215,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                       readOnly: _isClosing,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: UiFont.standard,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -224,7 +225,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                         border: InputBorder.none,
                         hintText: 'type relation...',
                         hintStyle: TextStyle(
-                          fontSize: 11,
+                          fontSize: UiFont.compact,
                           color: Colors.white38,
                         ),
                       ),
@@ -238,7 +239,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                   children: [
                     if (showList)
                       SizedBox(
-                        height: 26.0,
+                        height: UiControlSize.dense,
                         child: inputField,
                       )
                     else
@@ -336,14 +337,14 @@ class _GroupHeader extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 10, color: color.withValues(alpha: 0.8)),
-          const SizedBox(width: 4),
+          const SizedBox(width: UiSpacing.tight),
           Expanded(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: UiFont.micro,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.6,
                 color: color.withValues(alpha: 0.8),
@@ -391,7 +392,7 @@ class _WordItemRowState extends State<_WordItemRow> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(UiRadius.control),
             color: active
               ? Colors.white.withValues(alpha: 0.15)
               : Colors.transparent,
@@ -406,7 +407,7 @@ class _WordItemRowState extends State<_WordItemRow> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: UiFont.standard,
                     fontWeight: active ? FontWeight.w600 : FontWeight.normal,
                     color: active ? Colors.white : Colors.white.withValues(alpha: 0.75),
                     letterSpacing: 0.2,
@@ -414,7 +415,7 @@ class _WordItemRowState extends State<_WordItemRow> {
                 ),
               ),
               if (widget.badge != null) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: UiSpacing.tight),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
@@ -425,7 +426,7 @@ class _WordItemRowState extends State<_WordItemRow> {
                     widget.badge!,
                     maxLines: 1,
                     style: const TextStyle(
-                      fontSize: 8.5,
+                      fontSize: UiFont.compact,
                       fontWeight: FontWeight.bold,
                       color: Colors.white70,
                     ),

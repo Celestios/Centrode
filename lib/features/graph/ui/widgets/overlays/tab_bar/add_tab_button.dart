@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
@@ -26,7 +27,7 @@ class _AddTabButtonState extends State<AddTabButton> {
   static const double _itemHeight = 32.0;
   static const int _maxVisibleItems = 6;
 
-  static const _duration = Duration(milliseconds: 250);
+  static const _duration = UiMotion.standard;
   static const _closeDelay = Duration(milliseconds: 300);
   static const _curve = Curves.easeOutCubic;
 
@@ -252,7 +253,7 @@ class _AddTabButtonState extends State<AddTabButton> {
             color: _isExpanded
                 ? theme.colorScheme.onSurface.withValues(alpha: 0.22)
                 : Colors.transparent,
-            width: 1.0,
+            width: UiStrokeWidth.standard,
           ),
           boxShadow: _isExpanded
               ? [
@@ -290,22 +291,22 @@ class _AddTabButtonState extends State<AddTabButton> {
                           children: [
                             Icon(
                               Icons.search_rounded,
-                              size: 16,
+                              size: UiIconSize.dense,
                               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: UiSpacing.tight),
                             Expanded(
                               child: TextField(
                                 controller: _searchController,
                                 autofocus: true,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: UiFont.standard,
                                   color: theme.colorScheme.onSurface,
                                 ),
                                 decoration: InputDecoration(
                                   hintText: 'Search or create...',
                                   hintStyle: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: UiFont.standard,
                                     color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                                   ),
                                   isDense: true,
@@ -325,14 +326,14 @@ class _AddTabButtonState extends State<AddTabButton> {
                       ),
                       if (filteredMaps.isNotEmpty) ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: UiInsets.horizontalStandard,
                           child: Divider(
                             height: 1,
                             thickness: 0.6,
                             color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: UiSpacing.tight),
                         Flexible(
                           child: ListView.builder(
                             padding: const EdgeInsets.only(bottom: 4, top: 2),
@@ -363,7 +364,7 @@ class _AddTabButtonState extends State<AddTabButton> {
                 onTap: _createMap,
                 child: GlassPanel(
                   width: 28,
-                  height: 28,
+                  height: UiControlSize.dense,
                   borderRadius: 8,
                   color: theme.cardColor.withValues(alpha: 0.6),
                   padding: const EdgeInsets.all(6),
@@ -374,7 +375,7 @@ class _AddTabButtonState extends State<AddTabButton> {
                   ),
                   child: const Icon(
                     Icons.add_rounded,
-                    size: 14,
+                    size: UiIconSize.dense,
                   ),
                 ),
               ),
@@ -405,11 +406,11 @@ class _AddTabButtonState extends State<AddTabButton> {
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: theme.cardColor.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(UiRadius.card),
                   ),
                   child: Icon(
                     Icons.add_rounded,
-                    size: 14,
+                    size: UiIconSize.dense,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 )

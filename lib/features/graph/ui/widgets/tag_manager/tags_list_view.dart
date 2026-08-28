@@ -292,8 +292,8 @@ class _TagsListViewState extends State<TagsListView> {
             child: Center(
               child: SizedBox(
                 width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                height: UiControlSize.dense,
+                child: CircularProgressIndicator(strokeWidth: UiStrokeWidth.thick),
               ),
             ),
           );
@@ -385,18 +385,18 @@ class _TagsListViewState extends State<TagsListView> {
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 28,
+                      height: UiControlSize.dense,
                       child: TextField(
                         controller: _createController,
                         focusNode: _createFocusNode,
-                        style: const TextStyle(fontSize: 11),
+                        style: const TextStyle(fontSize: UiFont.compact),
                         decoration: InputDecoration(
                           hintText: 'Create tag...',
                           hintStyle: TextStyle(
                             color: theme.colorScheme.onSurface.withValues(
                               alpha: 0.4,
                             ),
-                            fontSize: 11,
+                            fontSize: UiFont.compact,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -405,7 +405,7 @@ class _TagsListViewState extends State<TagsListView> {
                           filled: true,
                           fillColor: Colors.black.withValues(alpha: 0.1),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(UiRadius.control),
                             borderSide: BorderSide.none,
                           ),
                         ),
@@ -414,7 +414,7 @@ class _TagsListViewState extends State<TagsListView> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: UiSpacing.tight),
                   CentrodeButton(
                     onTap: () {
                       final RenderBox? renderBox = _newColorDotKey.currentContext?.findRenderObject() as RenderBox?;
@@ -435,7 +435,7 @@ class _TagsListViewState extends State<TagsListView> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: UiSpacing.tight),
                 ],
               ),
             ),
@@ -449,7 +449,7 @@ class _TagsListViewState extends State<TagsListView> {
                     _searchQuery.isEmpty ? 'No tags yet' : 'No matching tags',
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 11,
+                      fontSize: UiFont.compact,
                     ),
                   ),
                 ),
@@ -459,7 +459,7 @@ class _TagsListViewState extends State<TagsListView> {
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: filteredTags.length,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: UiInsets.verticalTight,
                   itemBuilder: (context, index) {
                     final tag = filteredTags[index];
                     final usageCount = _getTagUsageCount(
@@ -514,7 +514,7 @@ class _TagsListViewState extends State<TagsListView> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: UiSpacing.standard),
 
                             // Tag name / Edit Field
                             Expanded(
@@ -531,7 +531,7 @@ class _TagsListViewState extends State<TagsListView> {
                                             controller: _renameController,
                                             focusNode: _renameFocusNode,
                                             style: const TextStyle(
-                                              fontSize: 12,
+                                              fontSize: UiFont.standard,
                                               fontWeight: FontWeight.bold,
                                             ),
                                             decoration: const InputDecoration(
@@ -551,7 +551,7 @@ class _TagsListViewState extends State<TagsListView> {
                                             _validationError!,
                                             style: const TextStyle(
                                               color: Colors.redAccent,
-                                              fontSize: 8,
+                                              fontSize: UiFont.micro,
                                             ),
                                           ),
                                       ],
@@ -563,7 +563,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         child: Text(
                                           tag.fields.name,
                                           style: const TextStyle(
-                                            fontSize: 12,
+                                            fontSize: UiFont.standard,
                                             fontWeight: FontWeight.w500,
                                           ),
                                           maxLines: 1,
@@ -586,7 +586,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         _validationError = null;
                                       });
                                     },
-                                    iconSize: 14,
+                                    iconSize: UiIconSize.dense,
                                     buttonSize: 24,
                                     enableHover: false,
                                   ),
@@ -594,7 +594,7 @@ class _TagsListViewState extends State<TagsListView> {
                                     icon: Icons.check_rounded,
                                     onPressed: () =>
                                         _submitRename(tag, controller, allTags),
-                                    iconSize: 14,
+                                    iconSize: UiIconSize.dense,
                                     buttonSize: 24,
                                     enableHover: false,
                                     iconColor: Colors.greenAccent,
@@ -608,7 +608,7 @@ class _TagsListViewState extends State<TagsListView> {
                                   CentrodeIconButton(
                                     icon: Icons.edit_rounded,
                                     onPressed: () => _startEditing(tag),
-                                    iconSize: 14,
+                                    iconSize: UiIconSize.dense,
                                     buttonSize: 24,
                                     enableHover: false,
                                     tooltip: 'Rename tag',
@@ -626,7 +626,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         );
                                       }
                                     },
-                                    iconSize: 14,
+                                    iconSize: UiIconSize.dense,
                                     buttonSize: 24,
                                     enableHover: false,
                                     iconColor: Colors.redAccent,
@@ -644,12 +644,12 @@ class _TagsListViewState extends State<TagsListView> {
                                   color: theme.colorScheme.primary.withValues(
                                     alpha: 0.1,
                                   ),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(UiRadius.card),
                                 ),
                                 child: Text(
                                   '$usageCount',
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: UiFont.micro,
                                     fontWeight: FontWeight.bold,
                                     color: theme.colorScheme.primary,
                                   ),

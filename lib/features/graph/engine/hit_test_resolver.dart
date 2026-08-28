@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:ui';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
@@ -167,7 +168,7 @@ class HitTestResolver {
     if (!expandedBox.contains(pCanvas)) return null;
 
     final closeCenter = Offset(area.right - 14, area.top + 14);
-    if (Rect.fromCenter(center: closeCenter, width: 28, height: 28)
+    if (Rect.fromCenter(center: closeCenter, width: 28, height: UiControlSize.dense)
         .contains(pCanvas)) {
       return null;
     }

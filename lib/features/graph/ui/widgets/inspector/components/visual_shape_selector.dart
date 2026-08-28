@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Pattern A: Tactile Grid of Visual Preview Tiles for shapes, routing vectors, and caps.
@@ -25,13 +26,13 @@ class VisualShapeSelector<T> extends StatelessWidget {
         return GestureDetector(
           onTap: () => onSelected(item.value),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
+            duration: UiMotion.fast,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: isSelected
                   ? activeColor.withValues(alpha: 0.22)
                   : Colors.black.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(UiRadius.card),
               border: Border.all(
                 color: isSelected
                     ? activeColor.withValues(alpha: 0.7)
@@ -62,11 +63,11 @@ class VisualShapeSelector<T> extends StatelessWidget {
                           ?.color
                           ?.withValues(alpha: 0.6),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: UiSpacing.tight),
                 Text(
                   item.label,
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: UiFont.compact,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
                         ? activeColor

@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,11 +64,11 @@ class ContextToolbarOverlay extends StatelessWidget {
           cursor: SystemMouseCursors.grab,
           child: Container(
             width: 32,
-            height: 32,
+            height: UiControlSize.standard,
             alignment: Alignment.center,
             child: Icon(
               Icons.drag_handle,
-              size: 20,
+              size: UiIconSize.standard,
               color: Colors.grey.shade600,
             ),
           ),

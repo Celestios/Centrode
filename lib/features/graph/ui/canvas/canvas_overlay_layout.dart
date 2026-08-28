@@ -68,7 +68,7 @@ class CanvasOverlayLayout extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const CanvasToolRibbon(),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: UiSpacing.standard),
                   const Flexible(child: CanvasTabBar()),
                 ],
               ),
@@ -90,30 +90,30 @@ class CanvasOverlayLayout extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    iconSize: 20,
+                    iconSize: UiIconSize.standard,
                     iconColor: primaryColor,
                     enableHover: false,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: UiSpacing.standard),
                   // Middle Search Bar
                   const Expanded(
                     child: Center(
                       child: SearchCommandPalette(),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: UiSpacing.standard),
                   // Right Circular Action Button
                   GlassPanel(
                     borderRadius: 20,
                     width: 40,
-                    height: 40,
+                    height: UiControlSize.tile,
                     padding: EdgeInsets.zero,
                     child: PopupMenuButton<String>(
                       padding: EdgeInsets.zero,
-                      icon: Icon(Icons.more_vert_rounded, color: primaryColor, size: 20),
+                      icon: Icon(Icons.more_vert_rounded, color: primaryColor, size: UiIconSize.standard),
                       tooltip: 'Options Menu',
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(UiRadius.panel),
                       ),
                       onSelected: (action) {
                         if (action == 'force_sync') {
@@ -135,9 +135,9 @@ class CanvasOverlayLayout extends StatelessWidget {
                           value: 'force_sync',
                           child: Row(
                             children: [
-                              Icon(Icons.save_outlined, size: 16),
-                              SizedBox(width: 8),
-                              Text('Force Sync Save', style: TextStyle(fontSize: 12)),
+                              Icon(Icons.save_outlined, size: UiIconSize.dense),
+                              const SizedBox(width: UiSpacing.standard),
+                              Text('Force Sync Save', style: TextStyle(fontSize: UiFont.standard)),
                             ],
                           ),
                         ),
@@ -145,9 +145,9 @@ class CanvasOverlayLayout extends StatelessWidget {
                           value: 'toggle_theme',
                           child: Row(
                             children: [
-                              Icon(Icons.palette_outlined, size: 16),
-                              SizedBox(width: 8),
-                              Text('Toggle Theme', style: TextStyle(fontSize: 12)),
+                              Icon(Icons.palette_outlined, size: UiIconSize.dense),
+                              const SizedBox(width: UiSpacing.standard),
+                              Text('Toggle Theme', style: TextStyle(fontSize: UiFont.standard)),
                             ],
                           ),
                         ),
@@ -176,13 +176,13 @@ class CanvasOverlayLayout extends StatelessWidget {
             valueListenable: session.showLeftPanel,
             builder: (context, leftVisible, _) {
               return AnimatedPositioned(
-                duration: const Duration(milliseconds: 250),
+                duration: UiMotion.standard,
                 curve: Curves.easeOutCubic,
                 top: 112.0,
                 left: leftVisible ? 12.0 : -64.0,
                 width: 52,
                 child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 250),
+                  duration: UiMotion.standard,
                   curve: leftVisible
                       ? const Interval(0.0, 0.4, curve: Curves.easeOut)
                       : const Interval(0.7, 1.0, curve: Curves.easeIn),
@@ -313,9 +313,9 @@ class CanvasOverlayLayout extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const GraphManualWidget(isSquareIconOnly: true),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: UiSpacing.standard),
                   const CanvasToolRibbon(),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: UiSpacing.standard),
                   ExtraRibbonMenuWidget(session: session),
                 ],
               ),
@@ -425,14 +425,14 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
     }
 
     return AnimatedPositioned(
-      duration: const Duration(milliseconds: 250),
+      duration: UiMotion.standard,
       curve: Curves.easeOutCubic,
       top: 112.0,
       left: 76.0,
       width: isOpen ? targetWidth : 0.0,
       height: isOpen ? targetHeight : 0.0,
       child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 250),
+        duration: UiMotion.standard,
         curve: isOpen
             ? const Interval(0.0, 0.4, curve: Curves.easeOut)
             : const Interval(0.7, 1.0, curve: Curves.easeIn),
@@ -440,7 +440,7 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
         child: IgnorePointer(
           ignoring: !isOpen,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(UiRadius.panel),
             child: OverflowBox(
               alignment: Alignment.topLeft,
               minWidth: targetWidth,

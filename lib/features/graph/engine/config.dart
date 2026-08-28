@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
+import 'package:centrode/shared/theme/design_tokens.dart';
 
 abstract final class AppConfig {
   AppConfig._();
@@ -19,8 +20,8 @@ abstract final class AppConfig {
 class _Grid {
   const _Grid();
 
-  final double baseSize = 20.0;
-  final double dotRadius = 1.5;
+  final double baseSize = CanvasTokens.gridBase;
+  final double dotRadius = CanvasTokens.gridDotRadius;
 }
 
 class _Canvas {
@@ -41,50 +42,48 @@ class _Interaction {
   const _Interaction();
 
   final int doubleTapMs = 300;
-  final double doubleTapDistance = 20.0;
+  final double doubleTapDistance = UiSpacing.gutter;
   final double snapDistance = 40.0;
-  final double resizeEdgeWidth = 15.0;
+  final double resizeEdgeWidth = CanvasTokens.edgeResizeHitbox;
   final Size relationLabelHitArea = const Size(100, 40);
-  final double relationTipHitDistance = 24.0;
-  final double relationLineHitThreshold = 8.0;
+  final double relationTipHitDistance = UiSpacing.gutter;
+  final double relationLineHitThreshold = UiSpacing.standard;
 }
 
 class _Node {
   const _Node();
 
-  static const double _referenceFontSize = 14.0;
-
-  final double defaultWidth = 80.0;
-  final double minWidth = 60.0;
-  final double maxWidth = 640.0;
-  final double autoWrapThreshold = 310.0;
-  final double resizeHandleVisualWidth = 5.0;
+  final double defaultWidth = CanvasTokens.nodeDefaultWidth;
+  final double minWidth = CanvasTokens.nodeMinWidth;
+  final double maxWidth = CanvasTokens.nodeMaxWidth;
+  final double autoWrapThreshold = CanvasTokens.autoWrapThreshold;
+  final double resizeHandleVisualWidth = CanvasTokens.handleWidth;
   final double editingBufferWidth = 45.0;
   final int collapsedLineLimit = 3;
   final Size defaultSize = const Size(100, 80);
-  final double defaultFontSize = 14.0;
-  final double minFontSize = 10.0;
+  final double defaultFontSize = CanvasTokens.referenceFontSize;
+  final double minFontSize = UiFont.micro;
   final double maxFontSize = 40.0;
 
   double scaledDefaultWidth(double fontSize) =>
-      defaultWidth * fontSize / _referenceFontSize;
+      defaultWidth * CanvasTokens.fontScale(fontSize);
   double scaledMinWidth(double fontSize) =>
-      minWidth * fontSize / _referenceFontSize;
+      minWidth * CanvasTokens.fontScale(fontSize);
   double scaledMaxWidth(double fontSize) =>
-      maxWidth * fontSize / _referenceFontSize;
+      maxWidth * CanvasTokens.fontScale(fontSize);
   double scaledAutoWrapThreshold(double fontSize) =>
-      autoWrapThreshold * fontSize / _referenceFontSize;
+      autoWrapThreshold * CanvasTokens.fontScale(fontSize);
   double scaledEditingBufferWidth(double fontSize) =>
-      editingBufferWidth * fontSize / _referenceFontSize;
+      editingBufferWidth * CanvasTokens.fontScale(fontSize);
 
   final double metadataSphereOffsetFromRight = 10.0;
   final double metadataSphereOffsetFromTop = 10.0;
   final double metadataSphereRadius = 5.0;
-  final double metadataSphereStrokeWidth = 1.5;
+  final double metadataSphereStrokeWidth = UiStrokeWidth.thick;
   final double metadataSphereHitboxRadius = 12.0;
   final Offset metadataPreviewOffset = const Offset(0, -34);
   final double metadataPreviewWidth = 140.0;
-  final double metadataPreviewBorderRadius = 10.0;
+  final double metadataPreviewBorderRadius = UiRadius.card;
   final double metadataPreviewBlur = 10.0;
   final List<int> defaultTagColors = const [
     0xFF5C6BC0,
@@ -100,7 +99,7 @@ class _Toolbar {
 
   final double singleWidth = 90.0;
   final double multiWidth = 105.0;
-  final double height = 32.0;
+  final double height = UiControlSize.standard;
   final Offset singleOffset = const Offset(-52, 0);
   final Offset multiOffset = const Offset(-52, 0);
 }
@@ -130,17 +129,17 @@ class _Visuals {
 class _Port {
   const _Port();
 
-  final double edgeOffset = 8.0;
-  final double hitRadius = 20.0;
-  final double drawRadius = 4.0;
+  final double edgeOffset = UiSpacing.standard;
+  final double hitRadius = CanvasTokens.portHitRadius;
+  final double drawRadius = CanvasTokens.portDrawRadius;
 }
 
 class _Relation {
   const _Relation();
 
-  final double strokeWidth = 3.0;
-  final double selectedStrokeWidth = 4.0;
-  final double labelFontSize = 10.0;
+  final double strokeWidth = UiStrokeWidth.thick;
+  final double selectedStrokeWidth = UiStrokeWidth.thick;
+  final double labelFontSize = UiFont.micro;
   final Offset startFallback = const Offset(100, 30);
   final Offset endFallback = const Offset(0, 30);
   final double editorVerticalOffset = 15.0;
@@ -151,7 +150,7 @@ class _Relation {
 class _Editor {
   const _Editor();
 
-  final double fontSizeRelation = 10.0;
+  final double fontSizeRelation = UiFont.micro;
 }
 
 class _LiquidGlass {

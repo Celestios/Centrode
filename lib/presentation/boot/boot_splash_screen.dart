@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -118,7 +119,7 @@ class _BootSplashViewState extends State<BootSplashView>
             ),
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: UiInsets.horizontalGutter,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -137,11 +138,11 @@ class _BootSplashViewState extends State<BootSplashView>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: UiSpacing.standard),
                     Text(
                       'The Central Hub for Your Life',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: UiFont.header,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 1.6,
                         color: Colors.white.withValues(alpha: 0.9),
@@ -149,14 +150,14 @@ class _BootSplashViewState extends State<BootSplashView>
                     ),
                     const SizedBox(height: 36),
                     _BootProgressBar(controller: _shimmer, accentColor: accentColor),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: UiSpacing.container),
                     AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
+                      duration: UiMotion.standard,
                       child: Text(
                         _stageText,
                         key: ValueKey(_stageText),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: UiFont.compact,
                           fontWeight: FontWeight.w400,
                           letterSpacing: 0.4,
                           color: Colors.white.withValues(alpha: 0.45),
@@ -177,7 +178,7 @@ class _BootSplashViewState extends State<BootSplashView>
                     : 'v$appVersion • Offline First Knowledge Network',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: UiFont.micro,
                   letterSpacing: 0.5,
                   color: Colors.white.withValues(alpha: 0.25),
                 ),

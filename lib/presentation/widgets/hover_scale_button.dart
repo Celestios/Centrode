@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// A reusable widget that encapsulates mouse hover detection, tap highlight tracking,
@@ -23,7 +24,7 @@ class HoverScaleButton extends StatefulWidget {
     this.onTap,
     this.hoverScale = 1.05,
     this.pressScale = 0.95,
-    this.duration = const Duration(milliseconds: 100),
+    this.duration = UiMotion.fast,
     this.isEnabled = true,
     this.tooltip,
     this.borderRadius,

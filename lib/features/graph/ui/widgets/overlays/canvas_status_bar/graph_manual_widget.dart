@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
@@ -27,13 +28,13 @@ class GraphManualWidget extends StatelessWidget {
           child: AlertDialog(
             backgroundColor: theme.cardColor.withValues(alpha: 0.95),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(UiRadius.panel),
               side: BorderSide(color: primaryColor.withValues(alpha: 0.25)),
             ),
             title: Row(
               children: [
                 Icon(Icons.menu_book_rounded, color: primaryColor),
-                const SizedBox(width: 10),
+                const SizedBox(width: UiSpacing.standard),
                 const Text('Keyboard Shortcuts & Guide'),
               ],
             ),
@@ -62,7 +63,7 @@ class GraphManualWidget extends StatelessWidget {
                     'Intermediate linkage or transition entities.',
                     textColor,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: UiSpacing.container),
                   _buildSectionHeader('Connection Lines', primaryColor),
                   _buildLegendRow(
                     textColor.withValues(alpha: 0.7),
@@ -76,7 +77,7 @@ class GraphManualWidget extends StatelessWidget {
                     'Soft association or conditional dependency.',
                     textColor,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: UiSpacing.container),
                   _buildSectionHeader(
                     'Canvas Interaction Controls',
                     primaryColor,
@@ -88,7 +89,7 @@ class GraphManualWidget extends StatelessWidget {
                     '• Drag Selection: Hold shift and drag selection marquee.',
                     style: TextStyle(
                       color: textColor.withValues(alpha: 0.7),
-                      fontSize: 12,
+                      fontSize: UiFont.standard,
                       height: 1.5,
                     ),
                   ),
@@ -113,7 +114,7 @@ class GraphManualWidget extends StatelessWidget {
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
-          fontSize: 10,
+          fontSize: UiFont.micro,
           fontWeight: FontWeight.bold,
           color: primaryColor,
           letterSpacing: 0.5,
@@ -129,7 +130,7 @@ class GraphManualWidget extends StatelessWidget {
     Color textColor,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: UiInsets.verticalTight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -140,14 +141,14 @@ class GraphManualWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(3),
-              border: Border.all(color: color, width: 1.5),
+              border: Border.all(color: color, width: UiStrokeWidth.thick),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: UiSpacing.standard),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: UiFont.standard),
                 children: [
                   TextSpan(
                     text: '$name: ',
@@ -177,13 +178,13 @@ class GraphManualWidget extends StatelessWidget {
       return GlassPanel(
         borderRadius: 14,
         width: 40,
-        height: 40,
+        height: UiControlSize.tile,
         padding: EdgeInsets.zero,
         onTap: () => _showManualDialog(context, theme, primaryColor, textColor),
         child: Tooltip(
           message: 'Manual & Guide',
           child: Center(
-            child: Icon(Icons.menu_book_rounded, color: primaryColor, size: 18),
+            child: Icon(Icons.menu_book_rounded, color: primaryColor, size: UiIconSize.standard),
           ),
         ),
       );
@@ -196,12 +197,12 @@ class GraphManualWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.menu_book_rounded, color: primaryColor, size: 14),
-          const SizedBox(width: 6),
+          Icon(Icons.menu_book_rounded, color: primaryColor, size: UiIconSize.dense),
+          const SizedBox(width: UiSpacing.tight),
           Text(
             'Manual & Guide',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: UiFont.compact,
               fontWeight: FontWeight.w600,
               color: textColor.withValues(alpha: 0.7),
             ),

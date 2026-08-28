@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 // lib/features/graph/state/states/group_dragging.dart
 part of '../base_interaction_state.dart';
 
@@ -81,7 +82,7 @@ class GroupDragging extends CanvasInteractionState {
 
     // Delayed snap when mouse pauses
     _snapTimer?.cancel();
-    _snapTimer = Timer(const Duration(milliseconds: 150), () {
+    _snapTimer = Timer(UiMotion.fast, () {
       final List<(RawUuid, Offset)> snappedUpdates = [];
       for (final id in nodeIds) {
         final vs = c.nodeViewStates[id];

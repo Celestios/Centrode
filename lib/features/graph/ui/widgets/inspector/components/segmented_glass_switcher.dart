@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 class SegmentData<T> {
@@ -83,10 +84,10 @@ class _SegmentedGlassSwitcherState<T> extends State<SegmentedGlassSwitcher<T>> {
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(UiRadius.card),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.06),
-                width: 0.8,
+                width: UiStrokeWidth.subtle,
               ),
             ),
             child: Stack(
@@ -102,10 +103,10 @@ class _SegmentedGlassSwitcherState<T> extends State<SegmentedGlassSwitcher<T>> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: widget.activeColor.withValues(alpha: _isDragging ? 0.35 : 0.28),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(UiRadius.control),
                       border: Border.all(
                         color: widget.activeColor.withValues(alpha: _isDragging ? 0.75 : 0.5),
-                        width: 0.8,
+                        width: UiStrokeWidth.subtle,
                       ),
                       boxShadow: [
                         BoxShadow(

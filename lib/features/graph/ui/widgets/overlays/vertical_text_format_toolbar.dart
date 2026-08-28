@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/centrode_icon_button.dart';
@@ -161,7 +162,7 @@ class _VerticalTextFormatToolbarState extends State<VerticalTextFormatToolbar> {
             icon: _headingIcon,
             tooltip: _headingTooltip,
             onPressed: _cycleHeading,
-            iconSize: 18,
+            iconSize: UiIconSize.standard,
             buttonSize: 28,
             iconColor: _headingIndex > 0 ? primaryColor : textColor.withValues(alpha: 0.75),
             hoverColor: primaryColor,
@@ -171,7 +172,7 @@ class _VerticalTextFormatToolbarState extends State<VerticalTextFormatToolbar> {
             icon: _listIcon,
             tooltip: _listTooltip,
             onPressed: _cycleList,
-            iconSize: 18,
+            iconSize: UiIconSize.standard,
             buttonSize: 28,
             iconColor: _listIndex > 0 ? primaryColor : textColor.withValues(alpha: 0.75),
             hoverColor: primaryColor,
@@ -181,7 +182,7 @@ class _VerticalTextFormatToolbarState extends State<VerticalTextFormatToolbar> {
             icon: Icons.format_quote_rounded,
             tooltip: 'Blockquote',
             onPressed: widget.onToggleBlockquote,
-            iconSize: 18,
+            iconSize: UiIconSize.standard,
             buttonSize: 28,
             iconColor: textColor.withValues(alpha: 0.75),
             hoverColor: primaryColor,
@@ -191,7 +192,7 @@ class _VerticalTextFormatToolbarState extends State<VerticalTextFormatToolbar> {
             icon: Icons.code_rounded,
             tooltip: 'Code Block',
             onPressed: widget.onToggleCodeBlock,
-            iconSize: 18,
+            iconSize: UiIconSize.standard,
             buttonSize: 28,
             iconColor: textColor.withValues(alpha: 0.75),
             hoverColor: primaryColor,
@@ -208,7 +209,7 @@ class _VerticalTextFormatToolbarState extends State<VerticalTextFormatToolbar> {
             icon: Icons.insert_link_rounded,
             tooltip: 'Insert Link',
             onPressed: widget.onAddHyperlink,
-            iconSize: 18,
+            iconSize: UiIconSize.standard,
             buttonSize: 28,
             iconColor: textColor.withValues(alpha: 0.75),
             hoverColor: primaryColor,

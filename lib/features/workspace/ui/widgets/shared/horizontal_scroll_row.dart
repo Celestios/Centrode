@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 class HorizontalScrollRow extends StatelessWidget {
@@ -11,7 +12,7 @@ class HorizontalScrollRow extends StatelessWidget {
       height: 160,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: UiInsets.horizontalGutter,
         itemCount: children.length,
         itemBuilder: (context, index) {
           return Padding(

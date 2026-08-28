@@ -35,16 +35,16 @@ class StatusMetricsWidget extends StatelessWidget {
                   width: 10,
                   height: 10,
                   child: CircularProgressIndicator(
-                    strokeWidth: 1.5,
+                    strokeWidth: UiStrokeWidth.thick,
                     color: primaryColor,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: UiSpacing.standard),
               ],
               Text(
                 'Nodes: ${queryController.nodeLookup.length}  |  Relations: ${queryController.relationLookup.length}',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: UiFont.compact,
                   color: textColor.withValues(alpha: 0.7),
                 ),
               ),

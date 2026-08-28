@@ -494,7 +494,7 @@ class ContentFactory {
     }
 
     // Compute the plain text representation
-    final plainText = ContentBuilder._computePlainText(blocks);
+    final plainText = ContentBuilder.computePlainText(blocks);
     return Content(text: plainText, blocks: blocks);
   }
 

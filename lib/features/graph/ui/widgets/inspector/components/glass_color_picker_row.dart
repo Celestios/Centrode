@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'glass_color_pill_button.dart';
 
@@ -23,7 +24,7 @@ class GlassColorPickerRow<T> extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: UiInsets.verticalTight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -32,7 +33,7 @@ class GlassColorPickerRow<T> extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 9.5,
+                fontSize: UiFont.compact,
                 fontWeight: FontWeight.w500,
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
@@ -52,9 +53,9 @@ class GlassColorPickerRow<T> extends StatelessWidget {
                       child: GestureDetector(
                         onTap: () => onSelected(opt.value),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 140),
+                          duration: UiMotion.fast,
                           width: 20,
-                          height: 20,
+                          height: UiControlSize.dense,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: opt.isNone ? Colors.transparent : (opt.color ?? Colors.white),

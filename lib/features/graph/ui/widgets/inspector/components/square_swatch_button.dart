@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'glass_color_pill_button.dart';
 
@@ -31,8 +32,8 @@ class SquareSwatchButton<T> extends StatelessWidget {
       tooltip: '$label: ${currentOpt.label}',
       color: const Color(0xFF151820),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.12), width: 0.8),
+        borderRadius: BorderRadius.circular(UiRadius.card),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.12), width: UiStrokeWidth.subtle),
       ),
       offset: const Offset(0, 30),
       onSelected: onSelected,
@@ -41,7 +42,7 @@ class SquareSwatchButton<T> extends StatelessWidget {
           final isSel = opt.value == selectedValue;
           return PopupMenuItem<T>(
             value: opt.value,
-            height: 30,
+            height: UiControlSize.standard,
             child: Row(
               children: [
                 Container(
@@ -52,18 +53,18 @@ class SquareSwatchButton<T> extends StatelessWidget {
                     color: opt.isNone ? Colors.transparent : (opt.color ?? Colors.white),
                     border: Border.all(
                       color: opt.isNone ? Colors.white38 : Colors.white24,
-                      width: 1,
+                      width: UiStrokeWidth.standard,
                     ),
                   ),
                   child: opt.isNone
                       ? const Center(child: Icon(Icons.block_rounded, size: 10, color: Colors.white60))
                       : null,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: UiSpacing.standard),
                 Text(
                   opt.label,
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: UiFont.compact,
                     fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                     color: isSel ? activeColor : Colors.white.withValues(alpha: 0.85),
                   ),
@@ -74,15 +75,15 @@ class SquareSwatchButton<T> extends StatelessWidget {
         }).toList();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
+        duration: UiMotion.fast,
         width: 26,
-        height: 26,
+        height: UiControlSize.dense,
         decoration: BoxDecoration(
           color: currentOpt.isNone ? Colors.black.withValues(alpha: 0.35) : (currentOpt.color ?? Colors.white),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(UiRadius.control),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.25),
-            width: 1.0,
+            width: UiStrokeWidth.standard,
           ),
           boxShadow: !currentOpt.isNone && currentOpt.color != null
               ? [
@@ -112,7 +113,7 @@ class SquareSwatchButton<T> extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 9.5,
+            fontSize: UiFont.compact,
             fontWeight: FontWeight.w500,
             color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           ),

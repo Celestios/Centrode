@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/engine/base_interaction_state.dart';
@@ -24,7 +25,7 @@ class FrameDrawingPainter extends CustomPainter {
       rect,
       baseColor: const Color(0xFFBCAAA4),
       borderRadius: 8.0,
-      strokeWidth: 1.5,
+      strokeWidth: UiStrokeWidth.thick,
       dashWidth: 14.0,
       dashSpace: 8.0,
       badgeText: 'FRAME',

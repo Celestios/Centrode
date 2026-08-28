@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -310,7 +311,7 @@ class NodeWidget extends StatelessWidget {
                       top: (viewState.isExpandedNotifier.value ? 4.0 : 2.0) * scale,
                     ),
                     width: double.infinity,
-                    height: 14.0 * scale,
+                    height: NodeVisualConstants.expandButtonHeight * scale,
                     decoration: BoxDecoration(
                       color: Color(style.textColor).withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(4.0 * scale),
@@ -320,7 +321,7 @@ class NodeWidget extends StatelessWidget {
                         viewState.isExpandedNotifier.value
                             ? Icons.keyboard_double_arrow_up
                             : Icons.keyboard_double_arrow_down,
-                        size: 12.0 * scale,
+                        size: NodeVisualConstants.expandIconSize * scale,
                         color: Color(style.textColor).withValues(alpha: 0.7),
                       ),
                     ),
@@ -331,10 +332,10 @@ class NodeWidget extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(
                       color: Color(style.bgColor).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(UiRadius.control),
                       border: Border.all(
                         color: Color(style.textColor).withValues(alpha: 0.3),
-                        width: 1,
+                        width: UiStrokeWidth.standard,
                       ),
                     ),
                     child: Text(
@@ -418,7 +419,7 @@ class _NodeImageHeaderState extends State<_NodeImageHeader> {
                     errorBuilder: (_, __, ___) => Center(
                       child: Icon(
                         Icons.broken_image_outlined,
-                        size: 24 * widget.scale,
+                        size: UiIconSize.header * widget.scale,
                         color: Colors.white54,
                       ),
                     ),
@@ -427,7 +428,7 @@ class _NodeImageHeaderState extends State<_NodeImageHeader> {
                     child: SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(strokeWidth: UiStrokeWidth.thick),
                     ),
                   ),
           ),
@@ -445,13 +446,13 @@ class _NodeImageHeaderState extends State<_NodeImageHeader> {
                       context: context,
                       builder: (context) => Dialog(
                         backgroundColor: Colors.transparent,
-                        insetPadding: const EdgeInsets.all(16),
+                        insetPadding: UiInsets.container,
                         child: Stack(
                           alignment: Alignment.topRight,
                           children: [
                             InteractiveViewer(
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(UiRadius.panel),
                                 child: Image.file(
                                   file,
                                   fit: BoxFit.contain,

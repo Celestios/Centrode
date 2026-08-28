@@ -1,3 +1,4 @@
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
@@ -18,18 +19,18 @@ class QuickActionsSection extends StatelessWidget {
     final hubController = controller ?? WorkspaceHubController();
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: UiInsets.container,
       child: Column(
         children: [
           _ReturnToMapButton(controller: hubController),
-          const SizedBox(height: 16),
+          const SizedBox(height: UiSpacing.gutter),
           ListTile(
             leading: Icon(
               Icons.folder_open_outlined,
               color: theme.iconTheme.color,
-              size: 20,
+              size: UiIconSize.standard,
             ),
-            title: Text('Open', style: theme.textTheme.bodyMedium),
+            title: Text(UiStrings.common.open, style: theme.textTheme.bodyMedium),
             onTap: () async {
               final result = await FilePicker.platform.pickFiles(
                 type: FileType.custom,
@@ -53,7 +54,7 @@ class QuickActionsSection extends StatelessWidget {
             leading: Icon(
               Icons.upload_outlined,
               color: theme.iconTheme.color,
-              size: 20,
+              size: UiIconSize.standard,
             ),
             title: Text('Import', style: theme.textTheme.bodyMedium),
             onTap: () {},
@@ -96,7 +97,7 @@ class _ReturnToMapButton extends StatelessWidget {
               : null,
           hoverScale: hasOpenMaps ? 1.02 : 1.0,
           pressScale: hasOpenMaps ? 0.98 : 1.0,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(UiRadius.card),
           builder: (context, isHovered, isPressed) {
             return GlassPanel(
               borderRadius: 10,
@@ -125,11 +126,11 @@ class _ReturnToMapButton extends StatelessWidget {
                       color: buttonColor.withValues(
                         alpha: hasOpenMaps ? 1.0 : 0.4,
                       ),
-                      size: 18,
+                      size: UiIconSize.standard,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Text(
-                      'Return to Map',
+                      UiStrings.commands.returnToMap,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: buttonColor.withValues(
                           alpha: hasOpenMaps ? 1.0 : 0.4,
@@ -162,7 +163,7 @@ class _NewMapButton extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(UiRadius.card),
       ),
       child: IconButton(
         icon: Icon(Icons.add, color: theme.colorScheme.primary),

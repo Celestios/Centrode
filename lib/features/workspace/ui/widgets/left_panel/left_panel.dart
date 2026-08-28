@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'quick_actions_section.dart';
 import 'panel_footer_section.dart';
 
@@ -12,12 +13,12 @@ class LeftPanel extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: const BorderRadius.only(
-        topRight: Radius.circular(24),
-        bottomRight: Radius.circular(24),
+        topRight: Radius.circular(UiRadius.panel),
+        bottomRight: Radius.circular(UiRadius.panel),
       ),
       child: GlassPanel(
-        width: 200,
-        borderRadius: 16.0,
+        width: WorkspaceTokens.leftPanelWidth,
+        borderRadius: UiRadius.panel,
         enableBackdrop: false,
         color: isDark
             ? const Color(0xFF141418).withValues(alpha: 0.65)

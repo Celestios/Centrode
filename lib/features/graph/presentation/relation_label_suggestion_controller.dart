@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
@@ -116,7 +117,7 @@ class RelationLabelSuggestionController extends ValueNotifier<RelationSuggestion
       return;
     }
 
-    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
+    _debounceTimer = Timer(UiMotion.fast, () {
       final query = _currentQuery;
       final api = _api;
       if (api != null && query.isNotEmpty) {

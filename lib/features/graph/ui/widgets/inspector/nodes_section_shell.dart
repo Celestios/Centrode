@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
@@ -404,7 +405,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                       child: GlassDropdown<String>(
                         selectedValue: _fontFamily,
                         activeColor: primaryAccent,
-                        height: 32.0,
+                        height: UiControlSize.standard,
                         onSelected: (val) {
                           setState(() => _fontFamily = val);
                           final rs = effectiveRenderState;
@@ -430,7 +431,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     FontSizeUnravelPicker(
                       fontSize: _fontSize,
                       activeColor: primaryAccent,
@@ -450,7 +451,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                   ],
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: UiSpacing.standard),
 
                 // Row 2: Styles [ B | I | U | S ] (flex: 1) | Divider | Alignment [ Left | Center | Right | Justify ] (flex: 1)
                 Row(
@@ -479,7 +480,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               label: 'I',
@@ -501,7 +502,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               label: 'U',
@@ -523,7 +524,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               label: 'S',
@@ -546,9 +547,9 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                       ),
                     ),
                     Container(
-                      width: 0.8,
+                      width: UiStrokeWidth.subtle,
                       height: 18,
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      margin: UiInsets.horizontalStandard,
                       color: Colors.white.withValues(alpha: 0.14),
                     ),
                     Expanded(
@@ -573,7 +574,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               icon: Icons.format_align_center_rounded,
@@ -593,7 +594,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               icon: Icons.format_align_right_rounded,
@@ -613,7 +614,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               icon: Icons.format_align_justify_rounded,
@@ -639,7 +640,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                   ],
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: UiSpacing.standard),
 
                 // Row 3: Visual Case Segmented Switcher (flex: 2) + Direction Buttons (flex: 1)
                 Row(
@@ -647,7 +648,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         selectedValue: _letterCase,
                         activeColor: primaryAccent,
                         onSelected: (val) {
@@ -663,30 +664,30 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                             value: 'normal',
                             label: 'Aa',
                             tooltip: 'Normal: Aa',
-                            style: TextStyle(fontSize: 11.5),
+                            style: TextStyle(fontSize: UiFont.standard),
                           ),
                           SegmentData(
                             value: 'uppercase',
                             label: 'AA',
                             tooltip: 'UPPERCASE: AA',
-                            style: TextStyle(fontSize: 11.5),
+                            style: TextStyle(fontSize: UiFont.standard),
                           ),
                           SegmentData(
                             value: 'lowercase',
                             label: 'aa',
                             tooltip: 'lowercase: aa',
-                            style: TextStyle(fontSize: 11.5),
+                            style: TextStyle(fontSize: UiFont.standard),
                           ),
                           SegmentData(
                             value: 'capitalize',
                             label: 'Ab',
                             tooltip: 'Capitalize: Ab',
-                            style: TextStyle(fontSize: 11.5),
+                            style: TextStyle(fontSize: UiFont.standard),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       flex: 1,
                       child: Row(
@@ -694,18 +695,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                           Expanded(
                             child: SquareToggleButton(
                               label: 'LTR',
-                              labelStyle: const TextStyle(fontSize: 11.0, fontWeight: FontWeight.w600),
+                              labelStyle: const TextStyle(fontSize: UiFont.compact, fontWeight: FontWeight.w600),
                               tooltip: 'Left to Right',
                               isActive: _textDirection == TextDirection.ltr,
                               activeColor: primaryAccent,
                               onTap: () => setState(() => _textDirection = TextDirection.ltr),
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: UiSpacing.tight),
                           Expanded(
                             child: SquareToggleButton(
                               label: 'RTL',
-                              labelStyle: const TextStyle(fontSize: 11.0, fontWeight: FontWeight.w600),
+                              labelStyle: const TextStyle(fontSize: UiFont.compact, fontWeight: FontWeight.w600),
                               tooltip: 'Right to Left',
                               isActive: _textDirection == TextDirection.rtl,
                               activeColor: primaryAccent,
@@ -718,7 +719,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                   ],
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: UiSpacing.standard),
 
                 // Row 4: Three Flat Full-Width Color Swatch Pill Buttons [ text | mark | node bg ]
                 Row(
@@ -751,7 +752,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       child: GlassColorPillButton<String>(
                         label: 'mark',
@@ -782,7 +783,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       child: GlassColorPillButton<Color?>(
                         label: 'node bg',
@@ -895,7 +896,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _fillStyle,
                         onSelected: (val) {
@@ -914,7 +915,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       flex: 1,
                       child: GlassColorPillButton<Color?>(
@@ -936,7 +937,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                   ],
                 ),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
 
                 // Row 3: Dual Compact Sliders (Opacity & Corner Radius)
                 Row(
@@ -960,7 +961,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       child: CompactSliderBox(
                         label: 'Radius',
@@ -1003,7 +1004,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                 rs.updateNodesStyle(
                   nodeIds,
                   (style) => style.copyWith(
-                    strokeWidth: 2,
+                    strokeWidth: UiStrokeWidth.thick.toInt(),
                     strokeColor: strokeInt,
                   ),
                 );
@@ -1017,18 +1018,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _borderStyle,
                         onSelected: (val) => setState(() => _borderStyle = val),
                         segments: const [
-                          SegmentData(value: 'solid', label: '━ Solid', style: TextStyle(fontSize: 10.5)),
-                          SegmentData(value: 'dashed', label: '┅ Dash', style: TextStyle(fontSize: 10.5)),
-                          SegmentData(value: 'dotted', label: '┈ Dot', style: TextStyle(fontSize: 10.5)),
+                          SegmentData(value: 'solid', label: '━ Solid', style: TextStyle(fontSize: UiFont.compact)),
+                          SegmentData(value: 'dashed', label: '┅ Dash', style: TextStyle(fontSize: UiFont.compact)),
+                          SegmentData(value: 'dotted', label: '┈ Dot', style: TextStyle(fontSize: UiFont.compact)),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       flex: 1,
                       child: GlassColorPillButton<Color?>(
@@ -1057,7 +1058,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                   ],
                 ),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
 
                 // Row 2: Dual Compact Sliders (Thickness & Border Opacity)
                 Row(
@@ -1080,7 +1081,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       child: CompactSliderBox(
                         label: 'Opacity',
@@ -1139,7 +1140,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                     Expanded(
                       flex: 2,
                       child: SegmentedGlassSwitcher<String>(
-                        height: 30.0,
+                        height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _shadowMode,
                         onSelected: (val) {
@@ -1169,7 +1170,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Expanded(
                       flex: 1,
                       child: GlassColorPillButton<Color?>(
@@ -1198,7 +1199,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                   ],
                 ),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: UiSpacing.tight),
 
                 // Row 2: Dual Compact Sliders (Blur & Distance)
                 Row(
@@ -1221,7 +1222,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     Expanded(
                       child: CompactSliderBox(
                         label: 'Distance',

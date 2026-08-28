@@ -29,7 +29,7 @@ class GlobalDrawingPanel extends StatelessWidget {
     return LeftRepositoryPanel(
       title: 'BRUSH SETTINGS',
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: UiInsets.container,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -41,7 +41,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: UiSpacing.standard),
             ValueListenableBuilder<String>(
               valueListenable: session.brushTypeNotifier,
               builder: (context, activeType, _) {
@@ -52,16 +52,16 @@ class GlobalDrawingPanel extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: CentrodeButton(
                         onTap: () => session.setBrushType(t.type),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(UiRadius.card),
                         enableHover: false,
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
+                          duration: UiMotion.fast,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(UiRadius.card),
                             color: isActive
                                 ? theme.colorScheme.primary.withValues(
                                     alpha: 0.15,
@@ -73,25 +73,25 @@ class GlobalDrawingPanel extends StatelessWidget {
                                       alpha: 0.4,
                                     )
                                   : theme.dividerColor.withValues(alpha: 0.1),
-                              width: 1,
+                              width: UiStrokeWidth.standard,
                             ),
                           ),
                           child: Row(
                             children: [
                               Icon(
                                 t.icon,
-                                size: 16,
+                                size: UiIconSize.dense,
                                 color: isActive
                                     ? theme.colorScheme.primary
                                     : theme.colorScheme.onSurface.withValues(
                                         alpha: 0.7,
                                       ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: UiSpacing.standard),
                               Text(
                                 t.label,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: UiFont.standard,
                                   fontWeight: isActive
                                       ? FontWeight.bold
                                       : FontWeight.normal,
@@ -110,7 +110,7 @@ class GlobalDrawingPanel extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: UiControlSize.dense),
 
             // ─── BRUSH COLOR ───
             ValueListenableBuilder<String>(
@@ -153,7 +153,7 @@ class GlobalDrawingPanel extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: UiSpacing.gutter),
 
             // ─── THICKNESS ───
             Text(
@@ -163,7 +163,7 @@ class GlobalDrawingPanel extends StatelessWidget {
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: UiSpacing.standard),
             ValueListenableBuilder<double>(
               valueListenable: session.brushThicknessNotifier,
               builder: (context, activeThickness, _) {
@@ -177,9 +177,9 @@ class GlobalDrawingPanel extends StatelessWidget {
                       child: Column(
                         children: [
                           AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
+                            duration: UiMotion.fast,
                             width: 20,
-                            height: 20,
+                            height: UiControlSize.dense,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: isActive
@@ -203,11 +203,11 @@ class GlobalDrawingPanel extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: UiSpacing.tight),
                           Text(
                             '${t.toInt()}px',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: UiFont.micro,
                               fontWeight: isActive
                                   ? FontWeight.bold
                                   : FontWeight.normal,

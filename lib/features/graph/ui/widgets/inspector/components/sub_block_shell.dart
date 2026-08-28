@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Clean sub-block container within a section shell.
@@ -48,7 +49,7 @@ class _SubBlockShellState extends State<SubBlockShell> {
                   Text(
                     displayTitle,
                     style: TextStyle(
-                      fontSize: 11.0,
+                      fontSize: UiFont.compact,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.04,
                       color: widget.accentColor.withValues(alpha: 0.88),
@@ -56,7 +57,7 @@ class _SubBlockShellState extends State<SubBlockShell> {
                   ),
                   if (widget.onReset != null)
                     AnimatedOpacity(
-                      duration: const Duration(milliseconds: 140),
+                      duration: UiMotion.fast,
                       curve: Curves.easeOut,
                       opacity: _isHovered ? 1.0 : 0.0,
                       child: IgnorePointer(
@@ -69,9 +70,9 @@ class _SubBlockShellState extends State<SubBlockShell> {
                               behavior: HitTestBehavior.opaque,
                               onTap: widget.onReset,
                               child: Container(
-                                padding: const EdgeInsets.all(4.0),
+                                padding: UiInsets.tight,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(UiRadius.control),
                                   color: Colors.transparent,
                                 ),
                                 child: Icon(
@@ -93,7 +94,7 @@ class _SubBlockShellState extends State<SubBlockShell> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(UiRadius.card),
                 border: Border.all(
                   color: widget.accentColor.withValues(alpha: 0.14),
                   width: 0.6,

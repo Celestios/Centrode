@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 class SortOption<T> {
@@ -49,26 +50,26 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
             vertical: 6.0,
           ),
           child: SizedBox(
-            height: 32,
+            height: UiControlSize.standard,
             child: TextField(
               controller: searchController,
-              style: const TextStyle(fontSize: 12),
+              style: const TextStyle(fontSize: UiFont.standard),
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: TextStyle(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  fontSize: 12,
+                  fontSize: UiFont.standard,
                 ),
                 prefixIcon: Icon(
                   Icons.search_rounded,
-                  size: 14,
+                  size: UiIconSize.dense,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                contentPadding: UiInsets.verticalStandard,
                 filled: true,
                 fillColor: Colors.black.withValues(alpha: 0.15),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(UiRadius.card),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -96,7 +97,7 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
                 Text(
                   '$itemCount $itemLabel',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: 10,
+                    fontSize: UiFont.micro,
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
@@ -106,17 +107,17 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
                 popUpAnimationStyle: AnimationStyle.noAnimation,
                 icon: Icon(
                   Icons.sort_rounded,
-                  size: 16,
+                  size: UiIconSize.dense,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 112),
                 tooltip: tooltip,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(UiRadius.card),
                   side: BorderSide(
                     color: theme.dividerColor.withValues(alpha: 0.15),
-                    width: 1,
+                    width: UiStrokeWidth.standard,
                   ),
                 ),
                 color: theme.cardColor.withValues(alpha: 0.95),
@@ -126,7 +127,7 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
                     .map(
                       (option) => PopupMenuItem<T>(
                         value: option.value,
-                        height: 30,
+                        height: UiControlSize.standard,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -135,11 +136,11 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
                               size: 13,
                               color: theme.colorScheme.primary,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: UiSpacing.tight),
                             Text(
                               option.label,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
+                                fontSize: UiFont.micro,
                               ),
                             ),
                           ],
@@ -151,7 +152,7 @@ class SearchableSortedListHeader<T> extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: UiSpacing.tight),
       ],
     );
   }

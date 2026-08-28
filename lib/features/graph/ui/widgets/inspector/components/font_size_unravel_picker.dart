@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 
@@ -62,10 +63,10 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                     height: 220,
                     decoration: BoxDecoration(
                       color: const Color(0xFF13161F),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(UiRadius.card),
                       border: Border.all(
                         color: widget.activeColor.withValues(alpha: 0.35),
-                        width: 0.8,
+                        width: UiStrokeWidth.subtle,
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -99,7 +100,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                               child: Text(
                                 '${item.round()}',
                                 style: TextStyle(
-                                  fontSize: 11.0 + (focus * 3.0),
+                                  fontSize: UiFont.compact + (focus * 3.0),
                                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                                   color: isSelected
                                       ? widget.activeColor
@@ -162,17 +163,17 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
       link: _layerLink,
       child: Container(
         width: 72,
-        height: 32,
+        height: UiControlSize.standard,
         decoration: BoxDecoration(
           color: _isOpen
               ? widget.activeColor.withValues(alpha: 0.15)
               : Colors.black.withValues(alpha: 0.28),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(UiRadius.control),
           border: Border.all(
             color: _isOpen
                 ? widget.activeColor.withValues(alpha: 0.6)
                 : Colors.white.withValues(alpha: 0.08),
-            width: 0.8,
+            width: UiStrokeWidth.subtle,
           ),
         ),
         child: Row(
@@ -187,7 +188,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                   child: Text(
                     '${widget.fontSize.round()}',
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: UiFont.standard,
                       fontWeight: FontWeight.w600,
                       color: _isOpen ? widget.activeColor : Colors.white,
                     ),

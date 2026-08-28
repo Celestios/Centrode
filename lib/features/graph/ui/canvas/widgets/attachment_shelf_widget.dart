@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -167,7 +168,7 @@ class _AttachmentChipState extends State<_AttachmentChip> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11.5 * scale,
+                      fontSize: UiFont.standard * scale,
                       fontWeight: FontWeight.w600,
                       color: widget.textColor,
                       decoration: _isHovered ? TextDecoration.underline : TextDecoration.none,

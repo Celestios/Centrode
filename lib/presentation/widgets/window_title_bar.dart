@@ -42,7 +42,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
       borderRadius: 0,
       blur: 16.0,
       color: theme.cardColor.withValues(alpha: 0.65),
-      height: 40,
+      height: UiControlSize.tile,
       shadow: BoxShadow(
         color: theme.dividerColor.withValues(alpha: 0.2),
         blurRadius: 0,
@@ -64,7 +64,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                         Navigator.of(context).pop();
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: UiSpacing.tight),
                     HoverExpandableMenuBar(
                       menuBuilder: (context, menuButtonStyle) {
                         return [
@@ -77,12 +77,12 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.save_outlined,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('Force Sync Save'),
                               ),
                             ],
-                            child: const Text('File', style: TextStyle(fontSize: 12)),
+                            child: const Text('File', style: TextStyle(fontSize: UiFont.standard)),
                           ),
                           SubmenuButton(
                             style: menuButtonStyle,
@@ -94,7 +94,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.menu_open_rounded,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('Toggle Left Sidebar'),
                               ),
@@ -105,7 +105,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.chrome_reader_mode_outlined,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('Toggle Right Inspector'),
                               ),
@@ -116,12 +116,12 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.call_to_action_outlined,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('Toggle Status Bar'),
                               ),
                             ],
-                            child: const Text('View', style: TextStyle(fontSize: 12)),
+                            child: const Text('View', style: TextStyle(fontSize: UiFont.standard)),
                           ),
                           SubmenuButton(
                             style: menuButtonStyle,
@@ -138,7 +138,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.crop_square_rounded,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('Toggle Maximize'),
                               ),
@@ -148,14 +148,14 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.minimize_rounded,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('Minimize Window'),
                               ),
                             ],
                             child: const Text(
                               'Window',
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: UiFont.standard),
                             ),
                           ),
                           SubmenuButton(
@@ -181,12 +181,12 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                                 },
                                 leadingIcon: const Icon(
                                   Icons.info_outline,
-                                  size: 16,
+                                  size: UiIconSize.dense,
                                 ),
                                 child: const Text('About Centrode'),
                               ),
                             ],
-                            child: const Text('Help', style: TextStyle(fontSize: 12)),
+                            child: const Text('Help', style: TextStyle(fontSize: UiFont.standard)),
                           ),
                         ];
                       },
@@ -210,7 +210,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                         onPressed: () => session.showLeftPanel.value =
                             !session.showLeftPanel.value,
                         tooltip: 'Toggle Left Panel',
-                        iconSize: 18,
+                        iconSize: UiIconSize.standard,
                         buttonSize: 30,
                         enableHover: false,
                         iconColor: visible
@@ -219,7 +219,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                       );
                     },
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: UiSpacing.tight),
                   ValueListenableBuilder<bool>(
                     valueListenable: session.showRightPanel,
                     builder: (context, visible, _) {
@@ -228,7 +228,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                         onPressed: () => session.showRightPanel.value =
                             !session.showRightPanel.value,
                         tooltip: 'Toggle Right Panel',
-                        iconSize: 18,
+                        iconSize: UiIconSize.standard,
                         buttonSize: 30,
                         enableHover: false,
                         iconColor: visible
@@ -237,7 +237,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                       );
                     },
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: UiSpacing.tight),
                   ValueListenableBuilder<bool>(
                     valueListenable: session.showBottomPanel,
                     builder: (context, visible, _) {
@@ -246,7 +246,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                         onPressed: () => session.showBottomPanel.value =
                             !session.showBottomPanel.value,
                         tooltip: 'Toggle Bottom Panel',
-                        iconSize: 18,
+                        iconSize: UiIconSize.standard,
                         buttonSize: 30,
                         enableHover: false,
                         iconColor: visible
@@ -255,7 +255,7 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                       );
                     },
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: UiSpacing.container),
                   const WindowControlButtons(),
                 ],
               ),
@@ -323,10 +323,10 @@ class UndoRedoButtons extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(UiRadius.panel),
               border: Border.all(
                 color: theme.dividerColor.withValues(alpha: 0.2),
-                width: 0.8,
+                width: UiStrokeWidth.subtle,
               ),
             ),
             child: Column(
@@ -342,7 +342,7 @@ class UndoRedoButtons extends StatelessWidget {
                   onTap: canUndo ? () => sessionObj.undo() : null,
                   textColor: textColor,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: UiSpacing.tight),
                 HistoryBadgeButton(
                   icon: Icons.redo_rounded,
                   isEnabled: canRedo,
@@ -362,10 +362,10 @@ class UndoRedoButtons extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(UiRadius.card),
             border: Border.all(
               color: theme.dividerColor.withValues(alpha: 0.15),
-              width: 0.8,
+              width: UiStrokeWidth.subtle,
             ),
           ),
           child: Row(
@@ -385,14 +385,14 @@ class UndoRedoButtons extends StatelessWidget {
               HoverScaleButton(
                 onTap: () {},
                 tooltip: 'Version Control\n$undoCount undo(s), $redoCount redo(s) available',
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(UiRadius.control),
                 hoverScale: 1.05,
                 pressScale: 0.95,
                 builder: (context, isHovered, _) => Container(
                   padding: const EdgeInsets.all(2),
                   child: Icon(
                     Icons.history_rounded,
-                    size: 18,
+                    size: UiIconSize.standard,
                     color: (canUndo || canRedo)
                         ? (isHovered
                             ? theme.colorScheme.primary

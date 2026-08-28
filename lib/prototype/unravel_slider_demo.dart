@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -54,7 +55,7 @@ class UnravelSliderDemoApp extends StatelessWidget {
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(vertical: 24),
+              padding: UiInsets.verticalGutter,
               child: UnravelSliderLab(),
             ),
           ),
@@ -93,7 +94,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: UiInsets.horizontalGutter,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +108,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
               color: scheme.primary.withValues(alpha: 0.85),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: UiSpacing.gutter),
           Center(
             child: UnravelSlider<UnravelOption>(
               items: options,
@@ -119,15 +120,15 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
               onSelected: (idx) => setState(() => _selectedIndex = idx),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: UiSpacing.container),
           Row(
             children: [
               Icon(
                 options[_selectedIndex.clamp(0, options.length - 1)].icon,
-                size: 18,
+                size: UiIconSize.standard,
                 color: scheme.primary,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: UiSpacing.standard),
               Text(
                 options[_selectedIndex.clamp(0, options.length - 1)].label.toUpperCase(),
                 style: TextStyle(
@@ -140,36 +141,36 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
               Text(
                 'Selected Index: $_selectedIndex',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: UiFont.standard,
                   fontFeatures: const [FontFeature.tabularFigures()],
                   color: textColor.withValues(alpha: 0.45),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: UiSpacing.gutter),
           Row(
             children: [
               Text(
                 'HANDLE MODE',
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: UiFont.compact,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: UiSpacing.container),
               _modeChip('FREE', !_magnetic, theme, () {
                 setState(() => _magnetic = false);
               }),
-              const SizedBox(width: 6),
+              const SizedBox(width: UiSpacing.tight),
               _modeChip('MAGNETIC', _magnetic, theme, () {
                 setState(() => _magnetic = true);
               }),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: UiSpacing.container),
           _knob(
             label: 'ITEM COUNT',
             value: _itemCount.toDouble(),
@@ -219,26 +220,26 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
     final scheme = theme.colorScheme;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(UiRadius.card),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: UiMotion.fast,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: active
               ? scheme.primary.withValues(alpha: 0.22)
               : Colors.black.withValues(alpha: 0.25),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(UiRadius.card),
           border: Border.all(
             color: active
                 ? scheme.primary.withValues(alpha: 0.65)
                 : Colors.white.withValues(alpha: 0.08),
-            width: 1.1,
+            width: UiStrokeWidth.standard.1,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: UiFont.compact,
             fontWeight: active ? FontWeight.bold : FontWeight.w500,
             color: active
                 ? scheme.primary
@@ -266,7 +267,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 10.5,
+              fontSize: UiFont.compact,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -295,7 +296,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
             display,
             textAlign: TextAlign.right,
             style: TextStyle(
-              fontSize: 11.5,
+              fontSize: UiFont.standard,
               fontFeatures: const [FontFeature.tabularFigures()],
               color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),

@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
@@ -21,7 +22,7 @@ class LeftRepositoryPanel extends StatelessWidget {
       color: theme.cardColor.withValues(alpha: 0.90),
       border: Border.all(
         color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-        width: 1.0,
+        width: UiStrokeWidth.standard,
       ),
       shadow: BoxShadow(
         color: Colors.black.withValues(alpha: 0.20),

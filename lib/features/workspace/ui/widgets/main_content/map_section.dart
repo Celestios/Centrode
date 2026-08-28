@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
@@ -59,26 +60,19 @@ class MapSectionState extends State<MapSection> {
     if (mapsToDelete.isEmpty) return;
 
     final isPlural = mapsToDelete.length > 1;
-    final message = isPlural
-        ? 'Delete ${mapsToDelete.length} selected maps?'
-        : 'Delete "${mapsToDelete.first.name}"?';
+    final message = UiStrings.dialogs.deleteMapMessage(
+      isPlural: isPlural,
+      mapName: mapsToDelete.first.name,
+      count: mapsToDelete.length,
+    );
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showCentrodeConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isPlural ? 'Delete maps' : 'Delete map'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: UiStrings.dialogs.deleteMapTitle(isPlural: isPlural),
+      message: message,
+      confirmLabel: UiStrings.common.delete,
+      cancelLabel: UiStrings.common.cancel,
+      isDestructive: true,
     );
 
     if (confirmed == true) {
@@ -122,7 +116,7 @@ class MapSectionState extends State<MapSection> {
             _deleteMaps(mapsToDelete);
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: UiSpacing.container),
         if (_isLoading)
           const SizedBox(
             height: 120,

@@ -87,12 +87,12 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                   });
                 },
                 tooltip: effectiveCompact ? 'Expand ribbon' : 'Compact ribbon',
-                iconSize: 20,
+                iconSize: UiIconSize.standard,
                 compact: true,
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
               GlassDivider(useGradient: true),
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
             ],
 
             // Track 1: TOOLS (Select, Pan, Connect, Optimize)
@@ -112,9 +112,9 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
             ),
 
             if (!isAndroid) ...[
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
               GlassDivider(useGradient: true),
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
 
               // Track 2: VIEWS (Canvas, Graph, Tasks, Flashcards)
               ValueListenableBuilder<String>(
@@ -132,9 +132,9 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                 },
               ),
 
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
               GlassDivider(useGradient: true),
-              const SizedBox(width: 2),
+              const SizedBox(width: UiSpacing.tight),
 
               // Track 3: Relation Label Display Mode
               ValueListenableBuilder<String>(
@@ -148,7 +148,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                         session.relationLabelModeNotifier.value = _labelModes[nextIndex];
                       },
                       tooltip: 'Relation Label Display: ${_labelTitles[mode]} (Click to cycle)',
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(UiRadius.card),
                       builder: (context, isHovered, isPressed) {
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
@@ -162,14 +162,14 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                                 : (isHovered
                                     ? primaryColor.withValues(alpha: 0.12)
                                     : Colors.transparent),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(UiRadius.card),
                             border: Border.all(
                               color: mode != 'auto'
                                   ? primaryColor.withValues(alpha: 0.55)
                                   : (isHovered
                                       ? primaryColor.withValues(alpha: 0.3)
                                       : Colors.transparent),
-                              width: 1.0,
+                              width: UiStrokeWidth.standard,
                             ),
                             boxShadow: mode != 'auto'
                                 ? [
@@ -186,7 +186,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                             children: [
                               Icon(
                                 _labelIcons[mode] ?? Icons.label_outlined,
-                                size: 16,
+                                size: UiIconSize.dense,
                                 color: mode != 'auto'
                                     ? textColor
                                     : (isHovered ? primaryColor : textColor.withValues(alpha: 0.8)),
@@ -196,7 +196,7 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                                 Text(
                                   _labelTitles[mode] ?? mode,
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: UiFont.compact,
                                     fontWeight: mode != 'auto' ? FontWeight.bold : FontWeight.w500,
                                     color: mode != 'auto'
                                         ? textColor
@@ -254,12 +254,12 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
         icon: Icon(
           Icons.grid_view_rounded,
           color: primaryColor,
-          size: 20,
+          size: UiIconSize.standard,
         ),
         tooltip: 'Extra Ribbon Options',
         offset: const Offset(0, -180),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(UiRadius.panel),
         ),
         color: theme.cardColor,
         onSelected: (value) {
@@ -279,7 +279,7 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
               child: Text(
                 'VIEWS',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: UiFont.micro,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
                 ),
@@ -292,14 +292,14 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
                   children: [
                     Icon(
                       view.icon,
-                      size: 16,
+                      size: UiIconSize.dense,
                       color: view.mode == currentView ? primaryColor : textColor,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: UiSpacing.standard),
                     Text(
                       view.label,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: UiFont.standard,
                         fontWeight: view.mode == currentView ? FontWeight.bold : FontWeight.normal,
                         color: view.mode == currentView ? primaryColor : textColor,
                       ),
@@ -313,7 +313,7 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
               child: Text(
                 'RELATION LABELS',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: UiFont.micro,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
                 ),
@@ -324,9 +324,9 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
                 value: 'label_$mode',
                 child: Row(
                   children: [
-                    Icon(_labelIcons[mode]!, size: 16, color: currentLabelMode == mode ? primaryColor : textColor),
-                    const SizedBox(width: 8),
-                    Text(_labelDisplayTitles[mode]!, style: TextStyle(fontSize: 12, color: currentLabelMode == mode ? primaryColor : textColor)),
+                    Icon(_labelIcons[mode]!, size: UiIconSize.dense, color: currentLabelMode == mode ? primaryColor : textColor),
+                    const SizedBox(width: UiSpacing.standard),
+                    Text(_labelDisplayTitles[mode]!, style: TextStyle(fontSize: UiFont.standard, color: currentLabelMode == mode ? primaryColor : textColor)),
                   ],
                 ),
               ),

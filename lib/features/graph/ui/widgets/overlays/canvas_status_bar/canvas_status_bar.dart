@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'graph_manual_widget.dart';
@@ -46,7 +47,7 @@ class CanvasStatusBar extends StatelessWidget {
                   children: [
                     const ZoomSliderWidget(),
                     if (showMiniMap) ...[
-                      const SizedBox(width: 10),
+                      const SizedBox(width: UiSpacing.standard),
                       const ViewportMiniMapWidget(),
                     ],
                   ],
