@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
@@ -71,7 +72,7 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
             isDark: isDark,
             onPressed: () => windowManager.minimize(),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: UiSpacing.tight),
           _buildHoverButton(
             icon: _isMaximized
                 ? Icons.filter_none_rounded
@@ -87,7 +88,7 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
               _checkMaximizeState();
             },
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: UiSpacing.tight),
           _buildHoverButton(
             icon: Icons.close_rounded,
             color: color,
@@ -118,22 +119,22 @@ class _WindowControlButtonsState extends State<WindowControlButtons>
 
     return HoverScaleButton(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(UiRadius.card),
       hoverScale: 1.0,
       pressScale: 1.0,
       builder: (context, isHovered, isPressed) {
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: UiMotion.fast,
           width: 32,
-          height: 32,
+          height: UiControlSize.standard,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isHovered ? hoverBg : defaultBg,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(UiRadius.card),
           ),
           child: Icon(
             icon,
-            size: 16,
+            size: UiIconSize.dense,
             color: (isHovered && isClose)
                 ? Colors.white
                 : color.withValues(alpha: 0.8),

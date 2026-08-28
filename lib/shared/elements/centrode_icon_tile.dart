@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
+import '../theme/design_tokens.dart';
 
 class CentrodeIconTile extends StatelessWidget {
   final IconData icon;
@@ -25,8 +26,8 @@ class CentrodeIconTile extends StatelessWidget {
 
     return HoverScaleButton(
       onTap: onTap,
-      hoverScale: 1.08,
-      pressScale: 0.94,
+      hoverScale: UiMotion.hoverScale,
+      pressScale: UiMotion.pressScale,
       borderRadius: tileBorderRadius,
       builder: (context, isHovered, isPressed) {
         final iconColor = isHovered
@@ -42,7 +43,7 @@ class CentrodeIconTile extends StatelessWidget {
 
         if (animateIcon) {
           iconWidget = AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
+            duration: UiMotion.standard,
             transitionBuilder: (child, animation) => ScaleTransition(
               scale: animation,
               child: FadeTransition(opacity: animation, child: child),
@@ -58,9 +59,9 @@ class CentrodeIconTile extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+                duration: UiMotion.fast,
                 width: 40,
-                height: 40,
+                height: UiControlSize.tile,
                 decoration: BoxDecoration(
                   borderRadius: tileBorderRadius,
                   gradient: isHovered
@@ -76,7 +77,7 @@ class CentrodeIconTile extends StatelessWidget {
                   border: isHovered
                       ? Border.all(
                           color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                          width: 1.0,
+                          width: UiStrokeWidth.standard,
                         )
                       : null,
                 ),

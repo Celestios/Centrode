@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 import 'glass_divider.dart';
@@ -22,7 +23,7 @@ class RibbonCapsule extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: theme.dividerColor.withValues(alpha: 0.08),
-          width: 0.8,
+          width: UiStrokeWidth.subtle,
         ),
       ),
       child: Row(
@@ -37,7 +38,7 @@ class RibbonCapsule extends StatelessWidget {
                 child: Text(
                   label!,
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: UiFont.micro,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.0,
                     color: theme.colorScheme.primary.withValues(alpha: 0.85),

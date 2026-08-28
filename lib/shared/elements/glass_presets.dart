@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 class GlassPreset {
@@ -49,7 +50,7 @@ class GlassPresets {
   static GlassPreset iconButton(BuildContext context) => GlassPreset(
         borderRadius: 14,
         width: 40,
-        height: 40,
+        height: UiControlSize.tile,
       );
 
   static GlassPreset tab(BuildContext context, {required bool isActive}) =>

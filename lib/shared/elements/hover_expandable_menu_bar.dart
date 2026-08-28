@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -72,20 +73,20 @@ class _HoverExpandableMenuBarState extends State<HoverExpandableMenuBar> {
         onEnter: (_) => _openMenu(),
         onExit: (_) => _scheduleCloseMenu(),
         child: AnimatedCrossFade(
-          duration: const Duration(milliseconds: 200),
+          duration: UiMotion.standard,
           crossFadeState: _isExpanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
           firstChild: Container(
-            padding: const EdgeInsets.all(4),
+            padding: UiInsets.tight,
             child: Icon(
               Icons.menu_rounded,
-              size: 18,
+              size: UiIconSize.standard,
               color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
             ),
           ),
           secondChild: SizedBox(
-            height: 32,
+            height: UiControlSize.standard,
             child: Theme(
               data: theme.copyWith(
                 hoverColor: theme.colorScheme.primary.withValues(alpha: 0.1),

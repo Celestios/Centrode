@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../theme/design_tokens.dart';
 import 'centrode_button.dart';
 
 class CentrodeIconButton extends StatelessWidget {
@@ -21,19 +21,19 @@ class CentrodeIconButton extends StatelessWidget {
     required this.icon,
     this.onPressed,
     this.tooltip,
-    this.iconSize = 18,
+    this.iconSize = UiIconSize.header,
     this.buttonSize,
     this.iconColor,
     this.hoverColor,
     this.borderRadius,
     this.enableHover = true,
-    this.hoverScale = 1.08,
-    this.pressScale = 0.94,
+    this.hoverScale = UiMotion.hoverScale,
+    this.pressScale = UiMotion.pressScale,
     this.compact = false,
   });
 
-  static const defaultIconSize = 18.0;
-  static const defaultBorderRadius = BorderRadius.all(Radius.circular(6));
+  static const defaultIconSize = UiIconSize.header;
+  static const defaultBorderRadius = BorderRadius.all(Radius.circular(UiRadius.control));
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +72,7 @@ class CentrodeIconButton extends StatelessWidget {
     required Color? effectiveIconColor,
   }) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 100),
+      duration: UiMotion.fast,
       width: buttonSize,
       height: buttonSize,
       padding: compact ? EdgeInsets.zero : null,
@@ -91,7 +91,7 @@ class CentrodeIconButton extends StatelessWidget {
         border: isHovered
             ? Border.all(
                 color: effectiveColor.withValues(alpha: 0.3),
-                width: 1.0,
+                width: UiStrokeWidth.standard,
               )
             : Border.all(color: Colors.transparent),
         boxShadow: isHovered

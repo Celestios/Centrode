@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 class LogoHomeButton extends StatelessWidget {
@@ -16,7 +17,7 @@ class LogoHomeButton extends StatelessWidget {
           vertical: 3,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(UiRadius.panel),
         ),
       ),
       onPressed: onPressed,
@@ -37,7 +38,7 @@ class LogoHomeButton extends StatelessWidget {
               painter: _HomePolygonPainter(),
             ),
           ),
-          const SizedBox(width: 2),
+          const SizedBox(width: UiSpacing.tight),
           ShaderMask(
             shaderCallback: (bounds) => LinearGradient(
               colors: [

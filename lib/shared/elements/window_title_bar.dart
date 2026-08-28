@@ -20,7 +20,7 @@ class WindowTitleBar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      height: 38,
+      height: UiControlSize.tile,
       color: theme.colorScheme.surface,
       child: Stack(
         alignment: Alignment.center,
@@ -37,7 +37,7 @@ class WindowTitleBar extends StatelessWidget {
                     style: TextStyle(
                       color: theme.textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.w800,
-                      fontSize: 12,
+                      fontSize: UiFont.standard,
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -46,7 +46,7 @@ class WindowTitleBar extends StatelessWidget {
                     style: TextStyle(
                       color: theme.textTheme.bodySmall?.color,
                       fontWeight: FontWeight.w400,
-                      fontSize: 12,
+                      fontSize: UiFont.standard,
                       letterSpacing: 0.5,
                     ),
                   ),

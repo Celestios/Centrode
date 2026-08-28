@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'centrode_button.dart';
 
@@ -26,7 +27,7 @@ class HistoryBadgeButton extends StatelessWidget {
     return CentrodeButton(
       onTap: isEnabled ? onTap : null,
       tooltip: tooltip,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(UiRadius.control),
       enableHover: isEnabled,
       child: Padding(
         padding: const EdgeInsets.all(2),
@@ -35,7 +36,7 @@ class HistoryBadgeButton extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 18,
+              size: UiIconSize.standard,
               color: !isEnabled
                   ? textColor.withValues(alpha: 0.25)
                   : textColor.withValues(alpha: 0.85),
@@ -47,19 +48,19 @@ class HistoryBadgeButton extends StatelessWidget {
                 child: IgnorePointer(
                   child: AnimatedScale(
                     scale: count > 0 ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 200),
+                    duration: UiMotion.standard,
                     curve: Curves.easeOutBack,
                     child: AnimatedOpacity(
                       opacity: count > 0 ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 150),
+                      duration: UiMotion.fast,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(UiRadius.card),
                           border: Border.all(
                             color: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
-                            width: 0.8,
+                            width: UiStrokeWidth.subtle,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -75,7 +76,7 @@ class HistoryBadgeButton extends StatelessWidget {
                         ),
                         child: Center(
                           child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
+                            duration: UiMotion.standard,
                             transitionBuilder: (Widget child, Animation<double> animation) {
                               return FadeTransition(
                                 opacity: animation,
@@ -89,7 +90,7 @@ class HistoryBadgeButton extends StatelessWidget {
                               '$count',
                               key: ValueKey<int>(count),
                               style: TextStyle(
-                                fontSize: 8,
+                                fontSize: UiFont.micro,
                                 fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.onPrimary,
                               ),

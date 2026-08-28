@@ -1,3 +1,4 @@
+import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 typedef SegmentItem<T> = ({
@@ -75,17 +76,17 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(UiRadius.panel),
           border: Border.all(
             color: theme.dividerColor.withValues(alpha: 0.08),
-            width: 0.8,
+            width: UiStrokeWidth.subtle,
           ),
         ),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
+              duration: UiMotion.standard,
               curve: Curves.easeOutCubic,
               left: safeIndex * itemWidth,
               top: 0,
@@ -93,11 +94,11 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
               width: itemWidth,
               child: AnimatedScale(
                 scale: _isPressed ? 1.14 : 1.0,
-                duration: const Duration(milliseconds: 150),
+                duration: UiMotion.fast,
                 curve: Curves.easeOutBack,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(UiRadius.card),
                     gradient: LinearGradient(
                       colors: [
                         primaryColor.withValues(alpha: _isPressed ? 0.58 : 0.45),
@@ -108,7 +109,7 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                     ),
                     border: Border.all(
                       color: primaryColor.withValues(alpha: _isPressed ? 0.9 : 0.65),
-                      width: 1.2,
+                      width: UiStrokeWidth.thick,
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -128,7 +129,7 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                 for (int i = 0; i < widget.items.length; i++) ...[
                   SizedBox(
                     width: itemWidth,
-                    height: 28,
+                    height: UiControlSize.dense,
                     child: Tooltip(
                       message: widget.items[i].tooltip ?? widget.items[i].label,
                       child: Row(
@@ -136,19 +137,19 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                         children: [
                           Icon(
                             widget.items[i].icon,
-                            size: 16,
+                            size: UiIconSize.dense,
                             color: i == safeIndex
                                 ? textColor
                                 : textColor.withValues(alpha: 0.75),
                           ),
                           if (!widget.isCompact) ...[
-                            const SizedBox(width: 4),
+                            const SizedBox(width: UiSpacing.tight),
                             Flexible(
                               child: Text(
                                 widget.items[i].label,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: UiFont.compact,
                                   fontWeight: i == safeIndex ? FontWeight.bold : FontWeight.w500,
                                   color: i == safeIndex
                                       ? textColor

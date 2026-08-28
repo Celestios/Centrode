@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../../presentation/widgets/hover_scale_button.dart';
+import '../theme/design_tokens.dart';
 
 class CentrodeButton extends StatelessWidget {
   final Widget? child;
@@ -22,9 +22,9 @@ class CentrodeButton extends StatelessWidget {
     this.builder,
     this.onTap,
     this.enableHover = true,
-    this.hoverScale = 1.08,
-    this.pressScale = 0.94,
-    this.duration = const Duration(milliseconds: 100),
+    this.hoverScale = UiMotion.hoverScale,
+    this.pressScale = UiMotion.pressScale,
+    this.duration = UiMotion.fast,
     this.borderRadius,
     this.tooltip,
     this.isEnabled = true,
@@ -34,10 +34,10 @@ class CentrodeButton extends StatelessWidget {
          'Either child or builder must be provided',
        );
 
-  static const defaultHoverScale = 1.05;
-  static const defaultPressScale = 0.95;
-  static const defaultDuration = Duration(milliseconds: 100);
-  static const defaultBorderRadius = BorderRadius.all(Radius.circular(10));
+  static const defaultHoverScale = UiMotion.hoverScale;
+  static const defaultPressScale = UiMotion.pressScale;
+  static const defaultDuration = UiMotion.fast;
+  static const defaultBorderRadius = BorderRadius.all(Radius.circular(UiRadius.card));
 
   @override
   Widget build(BuildContext context) {
