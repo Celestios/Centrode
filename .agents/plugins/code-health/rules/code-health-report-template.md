@@ -52,12 +52,12 @@ The output format for the /code-health workflow. All audit reports must follow t
 | `parse_v1()` | lib/features/graph/store/parser.dart | Low | 0 | Yes | Graph may miss dynamic calls |
 
 ## Deep Audit Findings
-| File | Principle | Tension | Severity | Confidence | Finding | What Would Confirm |
-|------|-----------|---------|----------|------------|---------|-------------------|
-| [file link] | SRP | SRP vs Cohesion | 🔴 Critical | High | ... | N/A |
-| [file link] | DRY | DRY vs SRP | 🟡 Warning | Medium | ... | Read sibling files for duplication |
-| [file link] | OCP | OCP vs KISS | 🔵 Info | Low | ... | Run `query` on pattern |
+| Target / Symbol | Principle | Tension | Severity | Confidence | Finding | What Would Confirm |
+|---|---|---|---|---|---|---|
+| [`lib/utils/foo.dart:L10-L25`](file:///d:/Projects/Open/flutter/code/centrode/lib/utils/foo.dart#L10-L25)<br>`Foo.bar` | SRP | SRP vs Cohesion | 🔴 Critical | High | ... | N/A |
+| [`lib/models/baz.dart:L40-L60`](file:///d:/Projects/Open/flutter/code/centrode/lib/models/baz.dart#L40-L60)<br>`Baz.save` | DRY | DRY vs SRP | 🟡 Warning | Medium | ... | Read sibling files for duplication |
+| [`rust/src/domain/node.rs:L12-L30`](file:///d:/Projects/Open/flutter/code/centrode/rust/src/domain/node.rs#L12-L30)<br>`Node::render` | OCP | OCP vs KISS | 🔵 Info | Low | ... | Run `query` on pattern |
 
 ## Recommended Actions
-[Prioritized list of refactoring tasks, grouped by phase: Immediate / This Sprint / This Quarter]
+[Prioritized list of remediation targets and violation scopes to be handed off to `/implementer` or `/bug-fixer` workflows]
 ```

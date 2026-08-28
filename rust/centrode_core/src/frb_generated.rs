@@ -2096,7 +2096,8 @@ fn wire__crate__bridge__api__AppHandle_init_embedder_model_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
-            let api_weights_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_weights_bytes = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
+            let api_unpacked_model_path = <Option<String>>::sse_decode(&mut deserializer);
             let api_tokenizer_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
             let api_config_bytes = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -2120,6 +2121,7 @@ fn wire__crate__bridge__api__AppHandle_init_embedder_model_impl(
                         let output_ok = crate::bridge::api::AppHandle::init_embedder_model(
                             &*api_that_guard,
                             api_weights_bytes,
+                            api_unpacked_model_path,
                             api_tokenizer_bytes,
                             api_config_bytes,
                         )?;
@@ -2983,6 +2985,8 @@ fn wire__crate__bridge__api__AppHandle_search_similar_labels_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
             >>::sse_decode(&mut deserializer);
             let api_query = <String>::sse_decode(&mut deserializer);
+            let api_category = <Option<String>>::sse_decode(&mut deserializer);
+            let api_language = <Option<String>>::sse_decode(&mut deserializer);
             let api_limit = <usize>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
@@ -3008,6 +3012,8 @@ fn wire__crate__bridge__api__AppHandle_search_similar_labels_impl(
                         let output_ok = crate::bridge::api::AppHandle::search_similar_labels(
                             &*api_that_guard,
                             api_query,
+                            api_category,
+                            api_language,
                             api_limit,
                         )
                         .await?;

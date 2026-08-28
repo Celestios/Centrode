@@ -24,22 +24,11 @@ When examining or modifying a block of code (especially helper functions, state 
    - If the code you are examining is located in a UI component, but similar non-UI behaviors are not, this is an **Asymmetry Violation**.
 
 2. **The "What Else is Here?" Test**
-   - Look at the surrounding functions in the class. Do they share the exact same layer of abstraction?
-   - If a class contains UI-painting logic and database-access logic, the symmetry is broken. The class is doing too much.
+## 4. Verification & Smell Detection
 
-3. **The DRY Cross-Reference**
-   - Use arch-mcp's `query` tool to search for methods with similar names across the codebase.
-   - If two classes in different directories implement the same helper logic, extract it into a shared utility or inherit from a common base.
+Verify that:
+- Sibling classes follow identical blueprints, method signatures, and lifecycle hooks.
+- Similar non-UI behaviors are not embedded inside UI widgets.
+- Shared helpers are clustered in the same architectural space without redundant duplication.
 
-4. **Symmetric Refactoring**
-   - When fixing an asymmetry, DO NOT just move the offending code to a generic `utils` file.
-   - Move it to the class that already handles the symmetric sibling to preserve organizational balance.
-
-5. **Pattern Consistency Check**
-   - Use arch-mcp's `query` tool to find all classes tagged with the same design pattern.
-   - Verify they all follow the same structural blueprint (same method signatures, same lifecycle hooks, same extension points).
-
-## Chain of Verification
-
-Before finalizing any refactor, state your symmetry check:
-`"I found [function] in [Class A]. Its logical siblings are located in [Class B]. Therefore, I will move [function] to [Class B] to preserve symmetry."`
+When an asymmetry or improper duplication is detected, format the finding according to the schema defined in [code-audit-checklist.md](.agents/plugins/code-health/rules/code-audit-checklist.md).

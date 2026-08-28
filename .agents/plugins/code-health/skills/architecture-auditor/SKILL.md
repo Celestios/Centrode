@@ -40,6 +40,4 @@ When auditing code for architectural compliance, you MUST use the `view_file` to
 
 ## Verification Protocol
 
-Before modifying a file, output an architectural tag indicating its abstraction level (e.g., `[Tier 1: Presentation & Interface]`, `[Tier 2: Interaction & Controllers]`, `[Tier 3: Core Domain & Storage]`).
-
-If you detect violations, you MUST NOT proceed with feature work until the leak is refactored into the correct layer or the user explicitly overrides the constraint.
+When an architectural boundary violation or SOLID leak is detected, format the finding according to the schema defined in [code-audit-checklist.md](.agents/plugins/code-health/rules/code-audit-checklist.md).

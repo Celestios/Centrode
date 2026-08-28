@@ -3,10 +3,7 @@ import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/centrode_icon_button.dart';
 import 'package:centrode/shared/elements/glass_divider.dart';
 
-class VerticalTextFormatToolbar extends StatelessWidget {
-  final VoidCallback onToggleBold;
-  final VoidCallback onToggleItalic;
-  final VoidCallback onToggleUnderline;
+class VerticalTextFormatToolbar extends StatefulWidget {
   final VoidCallback onToggleHeader1;
   final VoidCallback onToggleHeader2;
   final VoidCallback onToggleHeader3;
@@ -16,21 +13,10 @@ class VerticalTextFormatToolbar extends StatelessWidget {
   final VoidCallback onToggleOrderedList;
   final VoidCallback onClearBlockFormat;
   final VoidCallback onAddHyperlink;
-  final ValueChanged<String>? onSelectFontFamily;
-  final VoidCallback onCycleTextColor;
-  final VoidCallback onToggleHighlight;
-  final VoidCallback onCycleHighlightColor;
-  final VoidCallback onCycleTextAlign;
-  final TextAlign currentTextAlign;
-  final VoidCallback onIncreaseFontSize;
-  final VoidCallback onDecreaseFontSize;
   final Widget? dragHandle;
 
   const VerticalTextFormatToolbar({
     super.key,
-    required this.onToggleBold,
-    required this.onToggleItalic,
-    required this.onToggleUnderline,
     required this.onToggleHeader1,
     required this.onToggleHeader2,
     required this.onToggleHeader3,
@@ -40,16 +26,107 @@ class VerticalTextFormatToolbar extends StatelessWidget {
     required this.onToggleOrderedList,
     required this.onClearBlockFormat,
     required this.onAddHyperlink,
-    required this.onSelectFontFamily,
-    required this.onCycleTextColor,
-    required this.onToggleHighlight,
-    required this.onCycleHighlightColor,
-    required this.onCycleTextAlign,
-    this.currentTextAlign = TextAlign.center,
-    required this.onIncreaseFontSize,
-    required this.onDecreaseFontSize,
     this.dragHandle,
   });
+
+  @override
+  State<VerticalTextFormatToolbar> createState() => _VerticalTextFormatToolbarState();
+}
+
+class _VerticalTextFormatToolbarState extends State<VerticalTextFormatToolbar> {
+  int _headingIndex = 0; // 0: None/Normal, 1: H1, 2: H2, 3: H3
+  int _listIndex = 0;    // 0: None, 1: Bullet, 2: Numbered
+
+  void _cycleHeading() {
+    setState(() {
+      _headingIndex = (_headingIndex + 1) % 4;
+    });
+    switch (_headingIndex) {
+      case 1:
+        widget.onToggleHeader1();
+        break;
+      case 2:
+        widget.onToggleHeader2();
+        break;
+      case 3:
+        widget.onToggleHeader3();
+        break;
+      case 0:
+      default:
+        widget.onClearBlockFormat();
+        break;
+    }
+  }
+
+  void _cycleList() {
+    setState(() {
+      _listIndex = (_listIndex + 1) % 3;
+    });
+    switch (_listIndex) {
+      case 1:
+        widget.onToggleBulletList();
+        break;
+      case 2:
+        widget.onToggleOrderedList();
+        break;
+      case 0:
+      default:
+        widget.onClearBlockFormat();
+        break;
+    }
+  }
+
+  IconData get _headingIcon {
+    switch (_headingIndex) {
+      case 1:
+        return Icons.looks_one_rounded;
+      case 2:
+        return Icons.looks_two_rounded;
+      case 3:
+        return Icons.looks_3_rounded;
+      case 0:
+      default:
+        return Icons.title_rounded;
+    }
+  }
+
+  String get _headingTooltip {
+    switch (_headingIndex) {
+      case 1:
+        return 'Heading: H1';
+      case 2:
+        return 'Heading: H2';
+      case 3:
+        return 'Heading: H3';
+      case 0:
+      default:
+        return 'Heading';
+    }
+  }
+
+  IconData get _listIcon {
+    switch (_listIndex) {
+      case 1:
+        return Icons.format_list_bulleted_rounded;
+      case 2:
+        return Icons.format_list_numbered_rounded;
+      case 0:
+      default:
+        return Icons.format_list_bulleted_rounded;
+    }
+  }
+
+  String get _listTooltip {
+    switch (_listIndex) {
+      case 1:
+        return 'List: Bullet';
+      case 2:
+        return 'List: Numbered';
+      case 0:
+      default:
+        return 'List (Bullet / Numbered)';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,292 +145,76 @@ class VerticalTextFormatToolbar extends StatelessWidget {
         blurRadius: 10,
         offset: const Offset(0, 4),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (dragHandle != null) dragHandle!,
-                if (dragHandle != null) GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: Icons.format_bold_rounded,
-                  tooltip: 'Bold',
-                  onPressed: onToggleBold,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.format_italic_rounded,
-                  tooltip: 'Italic',
-                  onPressed: onToggleItalic,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.format_underlined_rounded,
-                  tooltip: 'Underline',
-                  onPressed: onToggleUnderline,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-
-                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: Icons.looks_one_rounded,
-                  tooltip: 'H1',
-                  onPressed: onToggleHeader1,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.looks_two_rounded,
-                  tooltip: 'H2',
-                  onPressed: onToggleHeader2,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.looks_3_rounded,
-                  tooltip: 'H3',
-                  onPressed: onToggleHeader3,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-
-                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: Icons.format_list_bulleted_rounded,
-                  tooltip: 'Bullet List',
-                  onPressed: onToggleBulletList,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.format_list_numbered_rounded,
-                  tooltip: 'Numbered List',
-                  onPressed: onToggleOrderedList,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.format_quote_rounded,
-                  tooltip: 'Blockquote',
-                  onPressed: onToggleBlockquote,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-              ],
-            ),
-            GlassDivider(orientation: Axis.vertical, height: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 2)),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CentrodeIconButton(
-                  icon: Icons.text_fields_rounded,
-                  tooltip: 'Normal Text',
-                  onPressed: onClearBlockFormat,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.insert_link_rounded,
-                  tooltip: 'Insert Link',
-                  onPressed: onAddHyperlink,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-
-                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: Icons.code_rounded,
-                  tooltip: 'Code Block',
-                  onPressed: onToggleCodeBlock,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-
-                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: Icons.font_download_rounded,
-                  tooltip: 'Font Family',
-                  onPressed: () => _showFontPicker(context, textColor),
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.palette_outlined,
-                  tooltip: 'Text Color',
-                  onPressed: onCycleTextColor,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.highlight_rounded,
-                  tooltip: 'Highlight',
-                  onPressed: onToggleHighlight,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.color_lens_outlined,
-                  tooltip: 'Highlight Color',
-                  onPressed: onCycleHighlightColor,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-
-                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: Icons.add_circle_outline_rounded,
-                  tooltip: 'Font Size +',
-                  onPressed: onIncreaseFontSize,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-                CentrodeIconButton(
-                  icon: Icons.remove_circle_outline_rounded,
-                  tooltip: 'Font Size -',
-                  onPressed: onDecreaseFontSize,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-
-                GlassDivider(orientation: Axis.horizontal, width: 20, height: 1, margin: const EdgeInsets.symmetric(vertical: 2)),
-
-                CentrodeIconButton(
-                  icon: _getAlignIcon(currentTextAlign),
-                  tooltip: 'Text Align',
-                  onPressed: onCycleTextAlign,
-                  iconSize: 18,
-                  buttonSize: 28,
-                  iconColor: textColor.withValues(alpha: 0.75),
-                  hoverColor: primaryColor,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getAlignIcon(TextAlign align) {
-    switch (align) {
-      case TextAlign.left:
-        return Icons.format_align_left_rounded;
-      case TextAlign.right:
-        return Icons.format_align_right_rounded;
-      default:
-        return Icons.format_align_center_rounded;
-    }
-  }
-
-  void _showFontPicker(BuildContext context, Color textColor) {
-    final fonts = ['System', 'Inter', 'Roboto', 'Consolas'];
-    final overlay = Overlay.of(context);
-    final renderBox = context.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (context) => Stack(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () => entry.remove(),
-              child: Container(color: Colors.transparent),
+          if (widget.dragHandle != null) widget.dragHandle!,
+          if (widget.dragHandle != null)
+            GlassDivider(
+              orientation: Axis.horizontal,
+              width: 20,
+              height: 1,
+              margin: const EdgeInsets.symmetric(vertical: 2),
             ),
+
+          CentrodeIconButton(
+            icon: _headingIcon,
+            tooltip: _headingTooltip,
+            onPressed: _cycleHeading,
+            iconSize: 18,
+            buttonSize: 28,
+            iconColor: _headingIndex > 0 ? primaryColor : textColor.withValues(alpha: 0.75),
+            hoverColor: primaryColor,
           ),
-          Positioned(
-            left: position.dx + renderBox.size.width + 4,
-            top: position.dy,
-            child: Material(
-              elevation: 8,
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 120,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: fonts.map((font) {
-                    final displayName = font == 'System' ? 'Default' : font;
-                    return InkWell(
-                      onTap: () {
-                        onSelectFontFamily?.call(font);
-                        entry.remove();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        child: Text(
-                          displayName,
-                          style: TextStyle(
-                            fontFamily: font == 'System' ? null : font,
-                            fontSize: 13,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+
+          CentrodeIconButton(
+            icon: _listIcon,
+            tooltip: _listTooltip,
+            onPressed: _cycleList,
+            iconSize: 18,
+            buttonSize: 28,
+            iconColor: _listIndex > 0 ? primaryColor : textColor.withValues(alpha: 0.75),
+            hoverColor: primaryColor,
+          ),
+
+          CentrodeIconButton(
+            icon: Icons.format_quote_rounded,
+            tooltip: 'Blockquote',
+            onPressed: widget.onToggleBlockquote,
+            iconSize: 18,
+            buttonSize: 28,
+            iconColor: textColor.withValues(alpha: 0.75),
+            hoverColor: primaryColor,
+          ),
+
+          CentrodeIconButton(
+            icon: Icons.code_rounded,
+            tooltip: 'Code Block',
+            onPressed: widget.onToggleCodeBlock,
+            iconSize: 18,
+            buttonSize: 28,
+            iconColor: textColor.withValues(alpha: 0.75),
+            hoverColor: primaryColor,
+          ),
+
+          GlassDivider(
+            orientation: Axis.horizontal,
+            width: 20,
+            height: 1,
+            margin: const EdgeInsets.symmetric(vertical: 2),
+          ),
+
+          CentrodeIconButton(
+            icon: Icons.insert_link_rounded,
+            tooltip: 'Insert Link',
+            onPressed: widget.onAddHyperlink,
+            iconSize: 18,
+            buttonSize: 28,
+            iconColor: textColor.withValues(alpha: 0.75),
+            hoverColor: primaryColor,
           ),
         ],
       ),
     );
-    overlay.insert(entry);
   }
-
 }

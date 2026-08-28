@@ -335,9 +335,16 @@ class RustGraphApi implements GraphApi {
   @override
   Future<List<String>> searchSimilarLabels({
     required String query,
+    String? category,
+    String? language,
     required BigInt limit,
   }) =>
-      _call((api) => api.searchSimilarLabels(query: query, limit: limit));
+      _call((api) => api.searchSimilarLabels(
+            query: query,
+            category: category,
+            language: language,
+            limit: limit,
+          ));
 
   @override
   Future<Float32List> embedText({required String text}) =>
@@ -345,12 +352,14 @@ class RustGraphApi implements GraphApi {
 
   @override
   Future<void> initEmbedderModel({
-    required Uint8List weightsBytes,
+    Uint8List? weightsBytes,
+    String? unpackedModelPath,
     required Uint8List tokenizerBytes,
     Uint8List? configBytes,
   }) =>
       _call((api) => api.initEmbedderModel(
             weightsBytes: weightsBytes,
+            unpackedModelPath: unpackedModelPath,
             tokenizerBytes: tokenizerBytes,
             configBytes: configBytes,
           ));

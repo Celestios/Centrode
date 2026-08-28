@@ -156,7 +156,8 @@ abstract class AppHandle implements RustOpaqueInterface {
   });
 
   Future<void> initEmbedderModel({
-    required List<int> weightsBytes,
+    Uint8List? weightsBytes,
+    String? unpackedModelPath,
     required List<int> tokenizerBytes,
     Uint8List? configBytes,
   });
@@ -221,6 +222,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<List<String>> searchSimilarLabels({
     required String query,
+    String? category,
+    String? language,
     required BigInt limit,
   });
 

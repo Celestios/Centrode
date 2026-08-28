@@ -516,8 +516,18 @@ impl AppHandle {
         self.service.repo.dictionaries.store_embedding(&text_payload).await
     }
 
-    pub async fn search_similar_labels(&self, query: String, limit: usize) -> anyhow::Result<Vec<String>> {
-        self.service.repo.dictionaries.search_similar_labels(&query, limit).await
+    pub async fn search_similar_labels(
+        &self,
+        query: String,
+        category: Option<String>,
+        language: Option<String>,
+        limit: usize,
+    ) -> anyhow::Result<Vec<String>> {
+        self.service
+            .repo
+            .dictionaries
+            .search_similar_labels(&query, category, language, limit)
+            .await
     }
 
     pub async fn predict_relation_labels(
@@ -544,12 +554,14 @@ impl AppHandle {
 
     pub fn init_embedder_model(
         &self,
-        weights_bytes: Vec<u8>,
+        weights_bytes: Option<Vec<u8>>,
+        unpacked_model_path: Option<String>,
         tokenizer_bytes: Vec<u8>,
         config_bytes: Option<Vec<u8>>,
     ) -> anyhow::Result<()> {
-        EmbeddingService::init_model(
-            &weights_bytes,
+        EmbeddingService::init_model_with_cache(
+            weights_bytes.as_deref(),
+            unpacked_model_path.as_deref(),
             &tokenizer_bytes,
             config_bytes.as_deref(),
         )

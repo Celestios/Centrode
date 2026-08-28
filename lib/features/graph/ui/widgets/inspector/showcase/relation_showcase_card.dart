@@ -166,7 +166,6 @@ class RelationPathPainter extends CustomPainter {
       path.lineTo(end.dx, end.dy);
     } else if (routingStrategy == 'curved') {
       final dx = end.dx - start.dx;
-      final dy = end.dy - start.dy;
       final cx1 = start.dx + dx * 0.35;
       final cy1 = start.dy - 18.0 * curveTension;
       final cx2 = start.dx + dx * 0.65;

@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
+use std::sync::OnceLock;
 
 use crate::domain::id::TypedRecordId;
 use crate::domain::styles::RelationStyle;
@@ -13,6 +14,90 @@ use centrode_daemon::EngineManager;
 use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 use surrealdb::Surreal;
+
+const KNOWLEDGE_LEXICON_BIN: &[u8] = include_bytes!("../../../../assets/models/multilingual_5lang/knowledge_lexicon.bin");
+
+#[derive(Debug, Clone)]
+pub struct OntologyIndex {
+    pub by_lang_and_cat: HashMap<(String, String), Vec<String>>,
+}
+
+pub fn get_official_ontology_index() -> &'static OntologyIndex {
+    static INDEX: OnceLock<OntologyIndex> = OnceLock::new();
+    INDEX.get_or_init(|| {
+        let bytes = KNOWLEDGE_LEXICON_BIN;
+        if bytes.len() < 20 || &bytes[0..8] != b"CTRDONTO" {
+            return OntologyIndex { by_lang_and_cat: HashMap::new() };
+        }
+        let mut offset = 8;
+        let _version = u32::from_le_bytes(bytes[offset..offset+4].try_into().unwrap());
+        offset += 4;
+        let num_entries = u32::from_le_bytes(bytes[offset..offset+4].try_into().unwrap()) as usize;
+        offset += 4;
+        let _dim = u32::from_le_bytes(bytes[offset..offset+4].try_into().unwrap());
+        offset += 4;
+
+        let mut map: HashMap<(String, String), Vec<String>> = HashMap::new();
+        for _ in 0..num_entries {
+            if offset + 18 > bytes.len() { break; }
+            let lang_raw = &bytes[offset..offset+4];
+            let lang = std::str::from_utf8(lang_raw).unwrap_or("en").trim_matches('\0').to_string();
+            offset += 4;
+
+            let cat_raw = &bytes[offset..offset+12];
+            let cat = std::str::from_utf8(cat_raw).unwrap_or("relation").trim_matches('\0').to_string();
+            offset += 12;
+
+            let text_len = u16::from_le_bytes(bytes[offset..offset+2].try_into().unwrap()) as usize;
+            offset += 2;
+
+            if offset + text_len > bytes.len() { break; }
+            let text = std::str::from_utf8(&bytes[offset..offset+text_len]).unwrap_or("").to_string();
+            offset += text_len;
+
+            map.entry((lang, cat)).or_default().push(text);
+        }
+        OntologyIndex { by_lang_and_cat: map }
+    })
+}
+
+pub fn damerau_levenshtein(s1: &str, s2: &str) -> usize {
+    let v1: Vec<char> = s1.chars().collect();
+    let v2: Vec<char> = s2.chars().collect();
+    let len1 = v1.len();
+    let len2 = v2.len();
+
+    if len1 == 0 {
+        return len2;
+    }
+    if len2 == 0 {
+        return len1;
+    }
+
+    let mut d = vec![vec![0usize; len2 + 1]; len1 + 1];
+
+    for i in 0..=len1 {
+        d[i][0] = i;
+    }
+    for j in 0..=len2 {
+        d[0][j] = j;
+    }
+
+    for i in 1..=len1 {
+        for j in 1..=len2 {
+            let cost = if v1[i - 1].eq_ignore_ascii_case(&v2[j - 1]) { 0 } else { 1 };
+            d[i][j] = (d[i - 1][j] + 1)
+                .min(d[i][j - 1] + 1)
+                .min(d[i - 1][j - 1] + cost);
+
+            if i > 1 && j > 1 && v1[i - 1].eq_ignore_ascii_case(&v2[j - 2]) && v1[i - 2].eq_ignore_ascii_case(&v2[j - 1]) {
+                d[i][j] = d[i][j].min(d[i - 2][j - 2] + 1);
+            }
+        }
+    }
+
+    d[len1][len2]
+}
 
 #[derive(Clone)]
 pub struct SurrealDictionaryRepository {
@@ -219,31 +304,43 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         Ok(())
     }
 
-    async fn search_similar_labels(&self, query: &str, limit: usize) -> Result<Vec<String>> {
+    async fn search_similar_labels(
+        &self,
+        query: &str,
+        category: Option<String>,
+        language: Option<String>,
+        limit: usize,
+    ) -> Result<Vec<String>> {
         let clean = query.trim();
         if clean.is_empty() {
             return Ok(vec![]);
         }
 
         let query_vec = EmbeddingService::embed_text(clean);
-
-        // 1. Collect all candidates
         let mut candidates = HashSet::new();
 
-        // Built-in ontology verbs
-        for &v in &["contradicts", "depends_on", "supports", "causes", "part_of", "leads_to", "blocks"] {
-            candidates.insert(v.to_string());
+        let lang = language.as_deref().unwrap_or("en");
+        let target_category = category.as_deref().unwrap_or("relation");
+
+        // 1. Official Knowledge Graph Ontology & Spelling Lexicon (Indexed lookup)
+        let index = get_official_ontology_index();
+        if let Some(words) = index.by_lang_and_cat.get(&(lang.to_string(), target_category.to_string())) {
+            for word in words {
+                candidates.insert(word.clone());
+            }
         }
 
-        // Map relations
-        if let Ok(mut res) = self.db.query("SELECT fields.verb as verb FROM IRelation").await {
-            if let Ok(map_rels) = res.take::<Vec<Value>>(0) {
-                for val in map_rels {
-                    if let Value::Object(obj) = val {
-                        if let Some(Value::String(verb)) = obj.get("verb") {
-                            let v = verb.trim();
-                            if !v.is_empty() && v != "default" {
-                                candidates.insert(v.to_string());
+        // 2. Dynamic map relations (if category is relation)
+        if target_category == "relation" {
+            if let Ok(mut res) = self.db.query("SELECT fields.verb as verb FROM IRelation").await {
+                if let Ok(map_rels) = res.take::<Vec<Value>>(0) {
+                    for val in map_rels {
+                        if let Value::Object(obj) = val {
+                            if let Some(Value::String(verb)) = obj.get("verb") {
+                                let v = verb.trim();
+                                if !v.is_empty() && v != "default" {
+                                    candidates.insert(v.to_string());
+                                }
                             }
                         }
                     }
@@ -251,7 +348,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             }
         }
 
-        // Stored vocabulary embeddings
+        // 3. Stored vocabulary embeddings
         if let Ok(records) = self.db.select::<Vec<Value>>(TableKind::VectorEmbedding.table_name()).await {
             for val in records {
                 if let Ok(emb) = VectorEmbedding::from_value(val) {
@@ -260,19 +357,49 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             }
         }
 
+        let query_norm = clean.replace('_', " ").replace('-', " ");
+        let query_lower = query_norm.to_lowercase();
+
         let mut scored: Vec<(String, f32)> = Vec::new();
         for candidate in candidates {
             if candidate.eq_ignore_ascii_case(clean) {
                 continue;
             }
+            let cand_norm = candidate.replace('_', " ").replace('-', " ");
+            let cand_lower = cand_norm.to_lowercase();
+
+            // 1. Semantic Embedding Similarity (BERT unit vector dot product)
             let cand_vec = EmbeddingService::embed_text(&candidate);
-            let score = EmbeddingService::cosine_similarity(&query_vec, &cand_vec);
-            if score > 0.15 {
-                scored.push((candidate, score));
+            let neural_sim = EmbeddingService::cosine_similarity(&query_vec, &cand_vec);
+
+            // 2. Fuzzy Typo & Edit Distance Similarity
+            let edit_dist = damerau_levenshtein(&query_lower, &cand_lower);
+            let max_len = query_lower.chars().count().max(cand_lower.chars().count());
+            let edit_sim = if max_len > 0 {
+                1.0 - (edit_dist as f32 / max_len as f32)
+            } else {
+                0.0
+            };
+
+            // 3. Prefix, Substring, and Typo Boost
+            let prefix_bonus = if cand_lower.starts_with(&query_lower) {
+                0.35
+            } else if cand_lower.contains(&query_lower) {
+                0.20
+            } else if edit_dist <= 2 {
+                0.30 // strong boost for 1-2 character typos (e.g. "becuse" -> "because", "cuases" -> "causes")
+            } else {
+                0.0
+            };
+
+            let hybrid_score = (0.5 * neural_sim + 0.5 * edit_sim + prefix_bonus).min(1.0);
+
+            if hybrid_score > 0.20 || edit_dist <= 2 {
+                scored.push((candidate, hybrid_score));
             }
         }
 
-        // Sort descending by cosine similarity
+        // Sort descending by hybrid similarity score
         scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
         scored.truncate(limit);
 
@@ -298,37 +425,19 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         }
 
         let lang = language.as_deref().unwrap_or("en");
+        let index = get_official_ontology_index();
+        let empty_list = Vec::new();
+        let candidates = index.by_lang_and_cat.get(&(lang.to_string(), "relation".to_string())).unwrap_or(&empty_list);
 
-        // Canonical relation vocabulary according to target language
-        let candidates: &[&str] = match lang {
-            "fa" => &[
-                "علت", "منجر_به", "وابسته_به", "نیاز_به", "مخالف", "رد_می‌کند",
-                "پشتیبانی_می‌کند", "بخشی_از", "متعلق_به", "مانع", "مرتبط_با", "اثرگذار_بر"
-            ],
-            "es" => &[
-                "causa", "produce", "depende_de", "requiere", "contradice", "opone",
-                "apoya", "respalda", "parte_de", "pertenece_a", "bloquea", "relacionado_con"
-            ],
-            "ar" => &[
-                "سبب", "يؤدي_إلى", "يعتمد_على", "يتطلب", "يعارض", "يناقض",
-                "يدعم", "يساند", "جزء_من", "ينتمي_إلى", "يمنع", "مرتبط_بـ"
-            ],
-            "zh" => &[
-                "导致", "引起", "依赖", "需要", "反对", "矛盾",
-                "支持", "部分", "属于", "阻止", "相关", "影响"
-            ],
-            _ => &[
-                "causes", "leads_to", "depends_on", "requires", "contradicts", "opposes",
-                "supports", "reinforces", "part_of", "belongs_to", "blocks", "prevents",
-                "related_to", "influences"
-            ],
-        };
+        if candidates.is_empty() {
+            return Ok(vec![]);
+        }
 
         let context_prompt = format!("{} -> {}", src, tgt);
         let context_vec = EmbeddingService::embed_text(&context_prompt);
 
         let mut scored: Vec<(String, f32)> = Vec::new();
-        for &cand in candidates {
+        for cand in candidates {
             let cand_vec = EmbeddingService::embed_text(cand);
             let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
             scored.push((cand.to_string(), score));

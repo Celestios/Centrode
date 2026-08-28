@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:centrode/shared/logging.dart';
@@ -228,23 +229,52 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _log.info('TabSession initialized successfully');
     notifyListeners();
 
-    // Initialize native Candle embedding engine in background
-    unawaited(() async {
-      try {
-        final modelBytes = await rootBundle.load('assets/models/multilingual_5lang/model.safetensors');
-        final tokBytes = await rootBundle.load('assets/models/multilingual_5lang/tokenizer.json');
-        final cfgBytes = await rootBundle.load('assets/models/multilingual_5lang/config.json');
+    // Initialize native Candle embedding engine once in background (with persistent disk unpack)
+    unawaited(_initEmbedderOnce(handle, _log));
+  }
 
-        await handle.initEmbedderModel(
-          weightsBytes: modelBytes.buffer.asUint8List(),
-          tokenizerBytes: tokBytes.buffer.asUint8List(),
-          configBytes: cfgBytes.buffer.asUint8List(),
-        );
-        _log.info('Native Candle 5-language multilingual embedder initialized');
-      } catch (e) {
-        _log.warning('Candle embedder asset load failed, using deterministic subword fallback: $e');
+  static bool _embedderInitialized = false;
+  static Completer<void>? _embedderInitCompleter;
+
+  static Future<void> _initEmbedderOnce(RustGraphApi api, Logger log) async {
+    if (_embedderInitialized) return;
+    if (_embedderInitCompleter != null) return _embedderInitCompleter!.future;
+    final completer = Completer<void>();
+    _embedderInitCompleter = completer;
+
+    try {
+      final tokBytes = await rootBundle.load('assets/models/multilingual_5lang/tokenizer.json');
+      final cfgBytes = await rootBundle.load('assets/models/multilingual_5lang/config.json');
+
+      final unpackedPath = p.join(
+        await AppPaths.dataDirectory,
+        'models',
+        'multilingual_5lang',
+        'model_unpacked.safetensors',
+      );
+
+      Uint8List? modelBytes;
+      if (!File(unpackedPath).existsSync()) {
+        log.info('Unpacked embedder model not found on disk. Loading bundled Q4 asset for one-time unpack...');
+        final bundleModel = await rootBundle.load('assets/models/multilingual_5lang/model.safetensors');
+        modelBytes = bundleModel.buffer.asUint8List();
+      } else {
+        log.info('Found existing pre-unpacked embedder model on disk at $unpackedPath');
       }
-    }());
+
+      await api.initEmbedderModel(
+        weightsBytes: modelBytes,
+        unpackedModelPath: unpackedPath,
+        tokenizerBytes: tokBytes.buffer.asUint8List(),
+        configBytes: cfgBytes.buffer.asUint8List(),
+      );
+      _embedderInitialized = true;
+      log.info('Native Candle multilingual embedder ready');
+      completer.complete();
+    } catch (e) {
+      log.warning('Candle embedder asset load failed: $e');
+      completer.completeError(e);
+    }
   }
 
   bool get canUndo => commandProcessor.canUndo;

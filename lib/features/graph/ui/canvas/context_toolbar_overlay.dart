@@ -22,7 +22,7 @@ class ContextToolbarConstants {
   static const double panelCollapsedWidth = 76.0;
   static const double defaultMargin = 12.0;
   static const double topThreshold = 112.0;
-  static const double textToolbarWidth = 76.0;
+  static const double textToolbarWidth = 40.0;
   static const double textToolbarHeight = 430.0;
   static const double visualToolbarWidth = 48.0;
   static const double toolbarStackWidth = 520.0;
@@ -99,14 +99,14 @@ class ContextToolbarOverlay extends StatelessWidget {
         listenables.add(vs.positionNotifier);
         selectedViewStates.add(vs);
       } else {
-        try {
-          final rel = queryController.relations.firstWhere((r) => r.id == id);
+        final rel = renderState.getRelation(id);
+        if (rel != null) {
           selectedRelations.add(rel);
           final sourceVs = renderState.viewStates[rel.fromNodeId];
           final targetVs = renderState.viewStates[rel.toNodeId];
           if (sourceVs != null) listenables.add(sourceVs.positionNotifier);
           if (targetVs != null) listenables.add(targetVs.positionNotifier);
-        } catch (_) {}
+        }
       }
     }
 
@@ -238,15 +238,6 @@ class ContextToolbarOverlay extends StatelessWidget {
       left: toolbarLeft,
       top: toolbarTop,
       child: VerticalTextFormatToolbar(
-        onToggleBold: () {
-          renderState.applyFormatCallback?.call(TextFormatType.bold);
-        },
-        onToggleItalic: () {
-          renderState.applyFormatCallback?.call(TextFormatType.italic);
-        },
-        onToggleUnderline: () {
-          renderState.applyFormatCallback?.call(TextFormatType.underline);
-        },
         onToggleHeader1: () {
           renderState.toggleHeadingCallback?.call(TextFormatType.heading1);
         },
@@ -270,42 +261,6 @@ class ContextToolbarOverlay extends StatelessWidget {
         },
         onClearBlockFormat: () {
           renderState.clearBlockFormatCallback?.call();
-        },
-        onSelectFontFamily: (fontFamily) {
-          renderState.setFontFamilyCallback?.call(fontFamily);
-        },
-        onCycleTextColor: () {
-          renderState.cycleTextColorCallback?.call();
-        },
-        onToggleHighlight: () {
-          renderState.toggleHighlightCallback?.call();
-        },
-        onCycleHighlightColor: () {
-          renderState.cycleHighlightColorCallback?.call();
-        },
-        onCycleTextAlign: () {
-          renderState.cycleTextAlignCallback?.call();
-        },
-        currentTextAlign: renderState.currentTextAlignNotifier.value,
-        onIncreaseFontSize: () {
-          interactionController.updateNodeStyle(editedId, (style) {
-            return style.copyWith(
-              fontSize: (style.fontSize + 2.0).clamp(
-                AppConfig.node.minFontSize,
-                AppConfig.node.maxFontSize,
-              ),
-            );
-          });
-        },
-        onDecreaseFontSize: () {
-          interactionController.updateNodeStyle(editedId, (style) {
-            return style.copyWith(
-              fontSize: (style.fontSize - 2.0).clamp(
-                AppConfig.node.minFontSize,
-                AppConfig.node.maxFontSize,
-              ),
-            );
-          });
         },
         onAddHyperlink: () async {
           final url = await showDialog<String>(

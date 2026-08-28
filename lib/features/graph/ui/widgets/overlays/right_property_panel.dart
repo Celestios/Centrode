@@ -361,6 +361,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                                     NodesSectionShell(
                                       isGlobal: isNothingSelected,
                                       selectedCount: nodeCount,
+                                      renderState: renderState,
                                     ),
                                   if (isNothingSelected || relationCount > 0)
                                     RelationsSectionShell(

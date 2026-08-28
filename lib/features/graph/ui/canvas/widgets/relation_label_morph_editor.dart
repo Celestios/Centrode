@@ -30,13 +30,15 @@ class RelationLabelMorphEditor extends StatefulWidget {
 }
 
 class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
-  static const double _collapsedWidth = 100.0;
-  static const double _collapsedHeight = 28.0;
+  static const double _collapsedWidth = 110.0;
+  static const double _collapsedHeight = 32.0;
   static const double _expandedWidth = 200.0;
   static const double _expandedHeight = 230.0;
 
-  static const _duration = Duration(milliseconds: 220);
-  static const _curve = Curves.easeOutCubic;
+  static const _openDuration = Duration(milliseconds: 260);
+  static const _closeDuration = Duration(milliseconds: 360);
+  static const _openCurve = Curves.easeOutCubic;
+  static const _closeCurve = Curves.easeInOutCubic;
 
   late final TextEditingController _textController;
   late final FocusNode _focusNode;
@@ -53,6 +55,8 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     _focusNode = FocusNode();
 
     _textController.addListener(_onQueryChanged);
+
+    widget.uiController.commitActiveEditCallback = _handleCommit;
 
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus && !_isClosing) {
@@ -76,6 +80,9 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
   @override
   void dispose() {
     _closeTimer?.cancel();
+    if (widget.uiController.editorState.commitActiveEditCallback == _handleCommit) {
+      widget.uiController.commitActiveEditCallback = null;
+    }
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -113,7 +120,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     });
 
     _closeTimer?.cancel();
-    _closeTimer = Timer(_duration, () {
+    _closeTimer = Timer(_closeDuration, () {
       if (!mounted) return;
       widget.uiController.cancelActiveEdit();
     });
@@ -153,69 +160,91 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     final left = widget.labelCenter.dx - (currentWidth / 2);
     final top = widget.labelCenter.dy - (_collapsedHeight / 2);
 
+    final duration = _isClosing ? _closeDuration : _openDuration;
+    final curve = _isClosing ? _closeCurve : _openCurve;
+
     return AnimatedPositioned(
-      duration: _duration,
-      curve: _curve,
+      duration: duration,
+      curve: curve,
       left: left,
       top: top,
       width: currentWidth,
       height: currentHeight,
-      child: KeyboardListener(
-        focusNode: FocusNode(),
-        onKeyEvent: _handleKeyEvent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E24).withValues(alpha: 0.96),
+      child: TapRegion(
+        onTapOutside: (_) {
+          if (!_isClosing) {
+            _handleCommit();
+          }
+        },
+        child: AnimatedOpacity(
+          duration: duration,
+          curve: _isClosing ? Curves.easeInQuad : Curves.easeOutCubic,
+          opacity: _isClosing ? 0.0 : 1.0,
+          child: KeyboardListener(
+            focusNode: FocusNode(),
+            onKeyEvent: _handleKeyEvent,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: theme.canvasAccentColor.withValues(alpha: 0.6),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E24).withValues(alpha: 0.96),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: theme.canvasAccentColor.withValues(alpha: 0.6),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final showList = constraints.maxHeight > 45.0;
+                final showList = _isExpanded && constraints.maxHeight > 50.0 && constraints.maxWidth > 130.0;
+
+                final inputField = Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Center(
+                    child: TextField(
+                      controller: _textController,
+                      focusNode: _focusNode,
+                      readOnly: _isClosing,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        border: InputBorder.none,
+                        hintText: 'type relation...',
+                        hintStyle: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white38,
+                        ),
+                      ),
+                      onSubmitted: (val) => _handleCommit(val),
+                    ),
+                  ),
+                );
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(
-                      height: 26.0,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: TextField(
-                          controller: _textController,
-                          focusNode: _focusNode,
-                          readOnly: _isClosing,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                            border: InputBorder.none,
-                            hintText: 'type relation...',
-                            hintStyle: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white38,
-                            ),
-                          ),
-                          onSubmitted: (val) => _handleCommit(val),
-                        ),
+                    if (showList)
+                      SizedBox(
+                        height: 26.0,
+                        child: inputField,
+                      )
+                    else
+                      Expanded(
+                        child: inputField,
                       ),
-                    ),
                     if (showList) ...[
                       const Divider(height: 1, thickness: 0.5, color: Colors.white24),
                       Expanded(
@@ -283,7 +312,9 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
 
@@ -306,13 +337,17 @@ class _GroupHeader extends StatelessWidget {
         children: [
           Icon(icon, size: 10, color: color.withValues(alpha: 0.8)),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.6,
-              color: color.withValues(alpha: 0.8),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.6,
+                color: color.withValues(alpha: 0.8),
+              ),
             ),
           ),
         ],
@@ -358,20 +393,24 @@ class _WordItemRowState extends State<_WordItemRow> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             color: active
-                ? Colors.white.withValues(alpha: 0.15)
-                : Colors.transparent,
+              ? Colors.white.withValues(alpha: 0.15)
+              : Colors.transparent,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                widget.word,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                  color: active ? Colors.white : Colors.white.withValues(alpha: 0.75),
-                  letterSpacing: 0.2,
+              Flexible(
+                child: Text(
+                  widget.word,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                    color: active ? Colors.white : Colors.white.withValues(alpha: 0.75),
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ),
               if (widget.badge != null) ...[
@@ -384,6 +423,7 @@ class _WordItemRowState extends State<_WordItemRow> {
                   ),
                   child: Text(
                     widget.badge!,
+                    maxLines: 1,
                     style: const TextStyle(
                       fontSize: 8.5,
                       fontWeight: FontWeight.bold,

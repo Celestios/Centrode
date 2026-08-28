@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/features/graph/models/models.dart';
 import '../components/node_shape_definitions.dart';
 import 'showcase_painters.dart';
 
@@ -158,17 +159,7 @@ class NodeShowcaseCard extends StatelessWidget {
       align = TextAlign.justify;
     }
 
-    String displayedTopic = topicText;
-    if (letterCase == 'uppercase') {
-      displayedTopic = displayedTopic.toUpperCase();
-    } else if (letterCase == 'lowercase') {
-      displayedTopic = displayedTopic.toLowerCase();
-    } else if (letterCase == 'capitalize') {
-      displayedTopic = displayedTopic.split(' ').map((word) {
-        if (word.isEmpty) return word;
-        return word[0].toUpperCase() + word.substring(1).toLowerCase();
-      }).join(' ');
-    }
+    final displayedTopic = ContentBuilder.applyLetterCase(topicText, letterCase);
 
     final previewTextStyle = TextStyle(
       fontFamily: effectiveFontFamily,

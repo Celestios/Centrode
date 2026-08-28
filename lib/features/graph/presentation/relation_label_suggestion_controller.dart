@@ -40,15 +40,11 @@ class RelationSuggestionState {
 }
 
 class RelationLabelSuggestionController extends ValueNotifier<RelationSuggestionState> {
-  static const List<String> _builtinOntologyVerbs = [
-    'contradicts',
-    'depends_on',
-    'supports',
-    'causes',
-    'part_of',
-    'leads_to',
-    'blocks',
-  ];
+  static const Map<String, List<String>> _ontologyVerbsByLanguage = {};
+
+  // Built-in candidate ontology verbs temporarily disabled
+  List<String> get _currentLanguageOntologyVerbs =>
+      _ontologyVerbsByLanguage[value.language] ?? const [];
 
   final MlApi? _api;
   final GraphDataQuery _queryController;
@@ -103,26 +99,42 @@ class RelationLabelSuggestionController extends ValueNotifier<RelationSuggestion
     });
   }
 
+  Timer? _debounceTimer;
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
   void onQueryChanged(String text) {
     _currentQuery = text.trim();
+    _debounceTimer?.cancel();
     if (_currentQuery.isEmpty) {
       _neuralAutocompleteVerbs = [];
       _recomputeState();
       return;
     }
 
-    final query = _currentQuery;
-    final api = _api;
-    if (api != null) {
-      api.searchSimilarLabels(query: query, limit: BigInt.from(5)).then((results) {
-        if (_currentQuery == query) {
-          _neuralAutocompleteVerbs = results;
-          _recomputeState();
-        }
-      });
-    } else {
-      _recomputeState();
-    }
+    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
+      final query = _currentQuery;
+      final api = _api;
+      if (api != null && query.isNotEmpty) {
+        api.searchSimilarLabels(
+          query: query,
+          category: 'relation',
+          language: value.language,
+          limit: BigInt.from(5),
+        ).then((results) {
+          if (_currentQuery == query) {
+            _neuralAutocompleteVerbs = results;
+            _recomputeState();
+          }
+        });
+      }
+    });
+
+    _recomputeState();
   }
 
   void _recomputeState() {
@@ -133,11 +145,11 @@ class RelationLabelSuggestionController extends ValueNotifier<RelationSuggestion
         ? _rawContextualVerbs
         : _rawContextualVerbs.where((v) => v.toLowerCase().contains(query)).toList();
 
-    // Group 2: Autocomplete & Synonyms
+    // Group 2: Autocomplete & Synonyms (scoped to active map language)
     final g1Set = g1.toSet();
     final pool = <String>{
       ..._neuralAutocompleteVerbs,
-      ..._builtinOntologyVerbs,
+      ..._currentLanguageOntologyVerbs,
     }.where((v) => !g1Set.contains(v)).toList();
 
     final List<String> g2;

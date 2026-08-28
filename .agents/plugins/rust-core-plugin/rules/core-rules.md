@@ -11,4 +11,4 @@ pattern: "rust/**/*.rs"
   - Encapsulate operations that modify graph data using the **Command Pattern** (optimistic execution and rollback).
   - Use **Strategy Patterns** for styling to decouple rendering algorithms from domain elements.
 - **Data Boundaries**: Maintain a strict boundary between **Domain Truth** (persistent database data) and **View State** (volatile UI state).
-- **Pre-Deployment Focus**: Do NOT focus on semantic versioning or automated tests until explicitly instructed.
+- **Test-Driven Rigor**: Follow TDD principles — ensure tests exist for domain entities and commands.

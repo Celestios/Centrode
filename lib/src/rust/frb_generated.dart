@@ -280,7 +280,8 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateBridgeApiAppHandleInitEmbedderModel({
     required AppHandle that,
-    required List<int> weightsBytes,
+    Uint8List? weightsBytes,
+    String? unpackedModelPath,
     required List<int> tokenizerBytes,
     Uint8List? configBytes,
   });
@@ -359,6 +360,8 @@ abstract class RustLibApi extends BaseApi {
   Future<List<String>> crateBridgeApiAppHandleSearchSimilarLabels({
     required AppHandle that,
     required String query,
+    String? category,
+    String? language,
     required BigInt limit,
   });
 
@@ -1920,7 +1923,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateBridgeApiAppHandleInitEmbedderModel({
     required AppHandle that,
-    required List<int> weightsBytes,
+    Uint8List? weightsBytes,
+    String? unpackedModelPath,
     required List<int> tokenizerBytes,
     Uint8List? configBytes,
   }) {
@@ -1932,7 +1936,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          sse_encode_list_prim_u_8_loose(weightsBytes, serializer);
+          sse_encode_opt_list_prim_u_8_strict(weightsBytes, serializer);
+          sse_encode_opt_String(unpackedModelPath, serializer);
           sse_encode_list_prim_u_8_loose(tokenizerBytes, serializer);
           sse_encode_opt_list_prim_u_8_strict(configBytes, serializer);
           pdeCallFfi(
@@ -1947,7 +1952,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateBridgeApiAppHandleInitEmbedderModelConstMeta,
-        argValues: [that, weightsBytes, tokenizerBytes, configBytes],
+        argValues: [
+          that,
+          weightsBytes,
+          unpackedModelPath,
+          tokenizerBytes,
+          configBytes,
+        ],
         apiImpl: this,
       ),
     );
@@ -1956,7 +1967,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateBridgeApiAppHandleInitEmbedderModelConstMeta =>
       const TaskConstMeta(
         debugName: "AppHandle_init_embedder_model",
-        argNames: ["that", "weightsBytes", "tokenizerBytes", "configBytes"],
+        argNames: [
+          "that",
+          "weightsBytes",
+          "unpackedModelPath",
+          "tokenizerBytes",
+          "configBytes",
+        ],
       );
 
   @override
@@ -2500,6 +2517,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Future<List<String>> crateBridgeApiAppHandleSearchSimilarLabels({
     required AppHandle that,
     required String query,
+    String? category,
+    String? language,
     required BigInt limit,
   }) {
     return handler.executeNormal(
@@ -2511,6 +2530,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_String(query, serializer);
+          sse_encode_opt_String(category, serializer);
+          sse_encode_opt_String(language, serializer);
           sse_encode_usize(limit, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
@@ -2524,7 +2545,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateBridgeApiAppHandleSearchSimilarLabelsConstMeta,
-        argValues: [that, query, limit],
+        argValues: [that, query, category, language, limit],
         apiImpl: this,
       ),
     );
@@ -2533,7 +2554,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateBridgeApiAppHandleSearchSimilarLabelsConstMeta =>
       const TaskConstMeta(
         debugName: "AppHandle_search_similar_labels",
-        argNames: ["that", "query", "limit"],
+        argNames: ["that", "query", "category", "language", "limit"],
       );
 
   @override
@@ -11661,12 +11682,14 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
   );
 
   Future<void> initEmbedderModel({
-    required List<int> weightsBytes,
+    Uint8List? weightsBytes,
+    String? unpackedModelPath,
     required List<int> tokenizerBytes,
     Uint8List? configBytes,
   }) => RustLib.instance.api.crateBridgeApiAppHandleInitEmbedderModel(
     that: this,
     weightsBytes: weightsBytes,
+    unpackedModelPath: unpackedModelPath,
     tokenizerBytes: tokenizerBytes,
     configBytes: configBytes,
   );
@@ -11760,10 +11783,14 @@ class AppHandleImpl extends RustOpaque implements AppHandle {
 
   Future<List<String>> searchSimilarLabels({
     required String query,
+    String? category,
+    String? language,
     required BigInt limit,
   }) => RustLib.instance.api.crateBridgeApiAppHandleSearchSimilarLabels(
     that: this,
     query: query,
+    category: category,
+    language: language,
     limit: limit,
   );
 

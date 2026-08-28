@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/models/models.dart';
+import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/ui/canvas/text/text_format_models.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 import 'components/glass_section_shell.dart';
 import 'components/sub_block_shell.dart';
 import 'components/segmented_glass_switcher.dart';
-import 'components/inline_property_row.dart';
 import 'components/glass_dropdown.dart';
 import 'components/square_icon_group.dart';
 import 'components/glass_color_pill_button.dart';
@@ -16,11 +20,13 @@ import 'showcase/node_showcase_card.dart';
 class NodesSectionShell extends StatefulWidget {
   final bool isGlobal;
   final int selectedCount;
+  final NodeRenderState? renderState;
 
   const NodesSectionShell({
     super.key,
     this.isGlobal = true,
     this.selectedCount = 0,
+    this.renderState,
   });
 
   @override
@@ -28,6 +34,15 @@ class NodesSectionShell extends StatefulWidget {
 }
 
 class _NodesSectionShellState extends State<NodesSectionShell> {
+  static const Map<String, int?> _highlightColorMap = {
+    'none': null,
+    'yellow': 0xFFFFE600,
+    'cyan': 0xFF00E5FF,
+    'green': 0xFF00FF66,
+    'pink': 0xFFFF007A,
+    'orange': 0xFFFF8800,
+  };
+
   // State variables for Text formatting (Subsection 1)
   String _fontFamily = 'outfit';
   double _fontSize = 13.0;
@@ -65,10 +80,231 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
   double _shadowDistance = 4.0;
   Color? _shadowColor;
 
+  String? _lastSelectionSignature;
+
+  NodeRenderState _getRenderState(BuildContext context) =>
+      widget.renderState ?? context.watch<NodeRenderState>();
+
+  List<UiNode> _getSelectedNodes(NodeRenderState renderState) {
+    return renderState.selectedEntities
+        .map((id) => renderState.getNode(id))
+        .whereType<UiNode>()
+        .toList();
+  }
+
+  bool _areNodeAppearancesEqual(List<UiNode> nodes) {
+    if (nodes.isEmpty) return true;
+    final firstStyle = nodes.first.style;
+    for (int i = 1; i < nodes.length; i++) {
+      final s = nodes[i].style;
+      if (firstStyle != s) {
+        if (firstStyle == null || s == null) return false;
+        if (firstStyle.shape != s.shape ||
+            firstStyle.fontFamily != s.fontFamily ||
+            firstStyle.fontSize != s.fontSize ||
+            firstStyle.textColor != s.textColor ||
+            firstStyle.bgColor != s.bgColor ||
+            firstStyle.borderRadius != s.borderRadius ||
+            firstStyle.strokeWidth != s.strokeWidth ||
+            firstStyle.strokeColor != s.strokeColor ||
+            firstStyle.shadowBlur != s.shadowBlur ||
+            firstStyle.shadowColor != s.shadowColor ||
+            firstStyle.shadowOffsetY != s.shadowOffsetY) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  void _syncFromSelection(List<UiNode> nodes, ThemeData theme) {
+    if (nodes.isEmpty) {
+      _resetToDefaults(theme);
+      return;
+    }
+
+    if (nodes.length > 1 && !_areNodeAppearancesEqual(nodes)) {
+      // Multiple nodes with different presets: keep state as-is
+      return;
+    }
+
+    final node = nodes.first;
+    final style = node.style;
+    if (style != null) {
+      // Text
+      _fontFamily = style.fontFamily.isNotEmpty ? style.fontFamily : 'outfit';
+      _fontSize = style.fontSize > 0 ? style.fontSize : 13.0;
+      _textColor = style.textColor != 0 ? Color(style.textColor) : Colors.white;
+
+      // Body
+      _nodeShape = style.shape.isNotEmpty ? style.shape : 'rounded';
+      _cornerRadius = style.borderRadius >= 0 ? style.borderRadius : 12.0;
+      if (style.bgColor == 0) {
+        _fillStyle = 'outline';
+        _nodeBgColor = null;
+        _fillTint = null;
+      } else {
+        final col = Color(style.bgColor);
+        final alphaVal = ((style.bgColor >> 24) & 0xFF);
+        _opacity = (alphaVal / 255.0 * 100).clamp(10.0, 100.0);
+        _nodeBgColor = col.withAlpha(255);
+        _fillTint = col.withAlpha(255);
+        _fillStyle = alphaVal < 240 ? 'glass' : 'solid';
+      }
+
+      // Border
+      _borderWidth = style.strokeWidth.toDouble();
+      if (style.strokeColor != 0) {
+        final sc = Color(style.strokeColor);
+        final sAlpha = ((style.strokeColor >> 24) & 0xFF);
+        _borderOpacity = (sAlpha / 255.0 * 100).clamp(0.0, 100.0);
+        _borderColor = sc.withAlpha(255);
+      } else {
+        _borderColor = null;
+        _borderOpacity = 60.0;
+      }
+
+      // Shadow
+      _shadowBlur = style.shadowBlur;
+      _shadowDistance = style.shadowOffsetY;
+      if (style.shadowColor != 0) {
+        _shadowColor = Color(style.shadowColor);
+        if (_shadowDistance == 0 && _shadowBlur > 0) {
+          _shadowMode = 'glow';
+        } else if (_shadowBlur <= 6 && _shadowBlur > 0) {
+          _shadowMode = 'crisp';
+        } else if (_shadowBlur > 6) {
+          _shadowMode = 'soft';
+        } else {
+          _shadowMode = 'none';
+        }
+      } else {
+        _shadowColor = null;
+        _shadowMode = 'none';
+      }
+    }
+
+    // Text formatting from content
+    final content = node.content;
+    if (content.blocks.isNotEmpty) {
+      final firstBlock = content.blocks.first;
+      _textAlign = firstBlock.attrs?.textAlign ?? 'center';
+      final allInlines = content.blocks.expand((b) => b.content);
+      _isBold = allInlines.any((i) => i.marks?.any((m) => m.markType == MarkType.bold) == true);
+      _isItalic = allInlines.any((i) => i.marks?.any((m) => m.markType == MarkType.italic) == true);
+      _hasUnderline = allInlines.any((i) => i.marks?.any((m) => m.markType == MarkType.underline) == true);
+      _isStrikethrough = allInlines.any((i) => i.marks?.any((m) => m.markType == MarkType.strikethrough) == true);
+
+      TextMark? hlMark;
+      for (final inline in allInlines) {
+        if (inline.marks != null) {
+          for (final m in inline.marks!) {
+            if (m.markType == MarkType.highlight) {
+              hlMark = m;
+              break;
+            }
+          }
+          if (hlMark != null) break;
+        }
+      }
+
+      if (hlMark?.attrs?.color != null) {
+        final c = hlMark!.attrs!.color!;
+        _highlightColor = _highlightColorMap.entries
+            .firstWhere(
+              (e) => e.value == c,
+              orElse: () => const MapEntry('none', null),
+            )
+            .key;
+      } else {
+        _highlightColor = 'none';
+      }
+    }
+  }
+
+  void _resetToDefaults(ThemeData theme) {
+    _fontFamily = 'outfit';
+    _fontSize = 13.0;
+    _textColor = Colors.white;
+    _highlightColor = 'none';
+    _nodeBgColor = null;
+    _isBold = false;
+    _isItalic = false;
+    _isStrikethrough = false;
+    _letterCase = 'normal';
+    _letterSpacing = 0.0;
+    _lineHeight = 1.2;
+    _hasUnderline = false;
+    _underlineStyle = 'solid';
+    _underlineColor = const Color(0xFF00E5FF);
+    _textAlign = 'center';
+    _textDirection = TextDirection.ltr;
+    _nodeShape = 'rounded';
+    _fillStyle = 'glass';
+    _fillTint = null;
+    _opacity = 85.0;
+    _cornerRadius = 12.0;
+    _borderWidth = 1.5;
+    _borderStyle = 'solid';
+    _borderOpacity = 60.0;
+    _borderColor = null;
+    _shadowMode = 'none';
+    _shadowBlur = 14.0;
+    _shadowDistance = 4.0;
+    _shadowColor = null;
+  }
+
+  int _computeNodeBgColor(ThemeData theme) {
+    final base = _fillTint ?? _nodeBgColor ?? theme.cardColor;
+    if (_fillStyle == 'solid') {
+      return base.withValues(alpha: (_opacity / 100).clamp(0.05, 1.0)).toARGB32();
+    } else if (_fillStyle == 'glass') {
+      return base.withValues(alpha: (0.5 * (_opacity / 100)).clamp(0.05, 0.95)).toARGB32();
+    } else {
+      return 0x00000000;
+    }
+  }
+
+  int _computeNodeStrokeColor(ThemeData theme) {
+    final base = _borderColor ?? theme.colorScheme.primary;
+    return base.withValues(alpha: (_borderOpacity / 100).clamp(0.0, 1.0)).toARGB32();
+  }
+
+  int _computeNodeShadowColor(ThemeData theme) {
+    if (_shadowMode == 'none') return 0x00000000;
+    final base = _shadowColor ?? (_shadowMode == 'glow' ? theme.colorScheme.primary : Colors.black);
+    return base.toARGB32();
+  }
+
+  List<ColorPillOption<Color?>> _buildGlassColorOptions(Color primaryAccent) => [
+    const ColorPillOption(value: null, label: 'Auto (Glass)', isNone: true),
+    ColorPillOption(value: primaryAccent, color: primaryAccent, label: 'Accent'),
+    const ColorPillOption(value: Color(0xFF1E293B), color: Color(0xFF1E293B), label: 'Slate'),
+    const ColorPillOption(value: Color(0xFF0F172A), color: Color(0xFF0F172A), label: 'Midnight'),
+    const ColorPillOption(value: Color(0xFF1E1B4B), color: Color(0xFF1E1B4B), label: 'Indigo'),
+    const ColorPillOption(value: Color(0xFF064E3B), color: Color(0xFF064E3B), label: 'Emerald'),
+    const ColorPillOption(value: Color(0xFF701A75), color: Color(0xFF701A75), label: 'Fuchsia'),
+    const ColorPillOption(value: Color(0xFF7C2D12), color: Color(0xFF7C2D12), label: 'Rust'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryAccent = theme.colorScheme.primary;
+    final effectiveRenderState = _getRenderState(context);
+
+    final selectedNodes = _getSelectedNodes(effectiveRenderState);
+
+    final currentSignature = selectedNodes.isEmpty
+        ? '__EMPTY__'
+        : selectedNodes
+            .map((n) => '${n.id}_${n.style?.hashCode}_${n.content.hashCode}')
+            .join(';');
+
+    if (_lastSelectionSignature != currentSignature) {
+      _lastSelectionSignature = currentSignature;
+      _syncFromSelection(selectedNodes, theme);
+    }
 
     final selectedShapeIndex = kAvailableNodeShapes
         .indexWhere((s) => s.id == _nodeShape)
@@ -139,6 +375,24 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                 _textAlign = 'center';
                 _textDirection = TextDirection.ltr;
               });
+              final rs = effectiveRenderState;
+              final nodes = _getSelectedNodes(rs);
+              final nodeIds = nodes.map((n) => n.id).toList();
+              if (nodeIds.isNotEmpty) {
+                rs.updateNodesStyle(
+                  nodeIds,
+                  (style) => style.copyWith(
+                    fontFamily: 'outfit',
+                    fontSize: 13.0,
+                    textColor: Colors.white.toARGB32(),
+                    bgColor: theme.cardColor.toARGB32(),
+                  ),
+                );
+                for (final node in nodes) {
+                  final resetContent = node.content.resetFormatting();
+                  rs.commitEntityText(node.id, resetContent);
+                }
+              }
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +405,20 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         selectedValue: _fontFamily,
                         activeColor: primaryAccent,
                         height: 32.0,
-                        onSelected: (val) => setState(() => _fontFamily = val),
+                        onSelected: (val) {
+                          setState(() => _fontFamily = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            rs.updateNodesStyle(
+                              nodeIds,
+                              (style) => style.copyWith(fontFamily: val),
+                            );
+                            if (rs.activeEditId != null) {
+                              rs.setFontFamilyCallback?.call(val);
+                            }
+                          }
+                        },
                         items: const [
                           GlassDropdownItem(value: 'outfit', label: 'Outfit'),
                           GlassDropdownItem(value: 'inter', label: 'Inter'),
@@ -167,7 +434,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                     FontSizeUnravelPicker(
                       fontSize: _fontSize,
                       activeColor: primaryAccent,
-                      onChanged: (val) => setState(() => _fontSize = val),
+                      onChanged: (val) {
+                        final clamped = val.clamp(AppConfig.node.minFontSize, AppConfig.node.maxFontSize);
+                        setState(() => _fontSize = clamped);
+                        final rs = effectiveRenderState;
+                        final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                        if (nodeIds.isNotEmpty) {
+                          rs.updateNodesStyle(
+                            nodeIds,
+                            (style) => style.copyWith(fontSize: clamped),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -187,7 +465,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Bold',
                               isActive: _isBold,
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _isBold = !_isBold),
+                              onTap: () {
+                                final next = !_isBold;
+                                setState(() => _isBold = next);
+                                final rs = effectiveRenderState;
+                                if (rs.activeEditId != null) {
+                                  rs.applyFormatCallback?.call(TextFormatType.bold);
+                                }
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.toggleMark(MarkType.bold, forceState: next);
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 2),
@@ -198,7 +487,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Italic',
                               isActive: _isItalic,
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _isItalic = !_isItalic),
+                              onTap: () {
+                                final next = !_isItalic;
+                                setState(() => _isItalic = next);
+                                final rs = effectiveRenderState;
+                                if (rs.activeEditId != null) {
+                                  rs.applyFormatCallback?.call(TextFormatType.italic);
+                                }
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.toggleMark(MarkType.italic, forceState: next);
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 2),
@@ -209,7 +509,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Underline',
                               isActive: _hasUnderline,
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _hasUnderline = !_hasUnderline),
+                              onTap: () {
+                                final next = !_hasUnderline;
+                                setState(() => _hasUnderline = next);
+                                final rs = effectiveRenderState;
+                                if (rs.activeEditId != null) {
+                                  rs.applyFormatCallback?.call(TextFormatType.underline);
+                                }
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.toggleMark(MarkType.underline, forceState: next);
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 2),
@@ -220,7 +531,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Strikethrough',
                               isActive: _isStrikethrough,
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _isStrikethrough = !_isStrikethrough),
+                              onTap: () {
+                                final next = !_isStrikethrough;
+                                setState(() => _isStrikethrough = next);
+                                final rs = effectiveRenderState;
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.toggleMark(MarkType.strikethrough, forceState: next);
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                              },
                             ),
                           ),
                         ],
@@ -241,7 +560,17 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Align Left',
                               isActive: _textAlign == 'left',
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _textAlign = 'left'),
+                              onTap: () {
+                                setState(() => _textAlign = 'left');
+                                final rs = effectiveRenderState;
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.setTextAlign('left');
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                                if (rs.activeEditId != null) {
+                                  rs.currentTextAlignNotifier.value = TextAlign.left;
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 2),
@@ -251,7 +580,17 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Align Center',
                               isActive: _textAlign == 'center',
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _textAlign = 'center'),
+                              onTap: () {
+                                setState(() => _textAlign = 'center');
+                                final rs = effectiveRenderState;
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.setTextAlign('center');
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                                if (rs.activeEditId != null) {
+                                  rs.currentTextAlignNotifier.value = TextAlign.center;
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 2),
@@ -261,7 +600,17 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Align Right',
                               isActive: _textAlign == 'right',
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _textAlign = 'right'),
+                              onTap: () {
+                                setState(() => _textAlign = 'right');
+                                final rs = effectiveRenderState;
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.setTextAlign('right');
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                                if (rs.activeEditId != null) {
+                                  rs.currentTextAlignNotifier.value = TextAlign.right;
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 2),
@@ -271,7 +620,17 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                               tooltip: 'Justify',
                               isActive: _textAlign == 'justify',
                               activeColor: primaryAccent,
-                              onTap: () => setState(() => _textAlign = 'justify'),
+                              onTap: () {
+                                setState(() => _textAlign = 'justify');
+                                final rs = effectiveRenderState;
+                                for (final node in _getSelectedNodes(rs)) {
+                                  final newContent = node.content.setTextAlign('justify');
+                                  rs.commitEntityText(node.id, newContent);
+                                }
+                                if (rs.activeEditId != null) {
+                                  rs.currentTextAlignNotifier.value = TextAlign.justify;
+                                }
+                              },
                             ),
                           ),
                         ],
@@ -291,7 +650,14 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         height: 30.0,
                         selectedValue: _letterCase,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _letterCase = val),
+                        onSelected: (val) {
+                          setState(() => _letterCase = val);
+                          final rs = effectiveRenderState;
+                          for (final node in _getSelectedNodes(rs)) {
+                            final newContent = node.content.transformLetterCase(val);
+                            rs.commitEntityText(node.id, newContent);
+                          }
+                        },
                         segments: const [
                           SegmentData(
                             value: 'normal',
@@ -362,7 +728,17 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         label: 'text',
                         selectedValue: _textColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _textColor = val),
+                        onSelected: (val) {
+                          setState(() => _textColor = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            rs.updateNodesStyle(
+                              nodeIds,
+                              (style) => style.copyWith(textColor: val.toARGB32()),
+                            );
+                          }
+                        },
                         options: [
                           const ColorPillOption(value: Colors.white, color: Colors.white, label: 'White'),
                           const ColorPillOption(value: Color(0xFFD0D4E0), color: Color(0xFFD0D4E0), label: 'Silver'),
@@ -381,7 +757,21 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         label: 'mark',
                         selectedValue: _highlightColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _highlightColor = val),
+                        onSelected: (val) {
+                          setState(() => _highlightColor = val);
+                          final int? colorInt = _highlightColorMap[val];
+                          final rs = effectiveRenderState;
+                          for (final node in _getSelectedNodes(rs)) {
+                            final newContent = node.content.setHighlightColor(colorInt);
+                            rs.commitEntityText(node.id, newContent);
+                          }
+                          if (rs.activeEditId != null) {
+                            final hexStr = colorInt != null
+                                ? '#${colorInt.toRadixString(16).padLeft(8, '0').substring(2)}'
+                                : null;
+                            rs.toggleHighlightCallback?.call(colorUrl: hexStr);
+                          }
+                        },
                         options: const [
                           ColorPillOption(value: 'none', label: 'None', isNone: true),
                           ColorPillOption(value: 'yellow', color: Color(0xFFFFE600), label: 'Yellow'),
@@ -398,17 +788,19 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         label: 'node bg',
                         selectedValue: _nodeBgColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _nodeBgColor = val),
-                        options: [
-                          const ColorPillOption(value: null, label: 'Auto (Glass)', isNone: true),
-                          ColorPillOption(value: primaryAccent, color: primaryAccent, label: 'Accent'),
-                          const ColorPillOption(value: Color(0xFF1E293B), color: Color(0xFF1E293B), label: 'Slate'),
-                          const ColorPillOption(value: Color(0xFF0F172A), color: Color(0xFF0F172A), label: 'Midnight'),
-                          const ColorPillOption(value: Color(0xFF1E1B4B), color: Color(0xFF1E1B4B), label: 'Indigo'),
-                          const ColorPillOption(value: Color(0xFF064E3B), color: Color(0xFF064E3B), label: 'Emerald'),
-                          const ColorPillOption(value: Color(0xFF701A75), color: Color(0xFF701A75), label: 'Fuchsia'),
-                          const ColorPillOption(value: Color(0xFF7C2D12), color: Color(0xFF7C2D12), label: 'Rust'),
-                        ],
+                        onSelected: (val) {
+                          setState(() => _nodeBgColor = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final bgInt = (val ?? theme.cardColor).toARGB32();
+                            rs.updateNodesStyle(
+                              nodeIds,
+                              (style) => style.copyWith(bgColor: bgInt),
+                            );
+                          }
+                        },
+                        options: _buildGlassColorOptions(primaryAccent),
                       ),
                     ),
                   ],
@@ -429,6 +821,19 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                 _opacity = 85.0;
                 _cornerRadius = 12.0;
               });
+              final rs = effectiveRenderState;
+              final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+              if (nodeIds.isNotEmpty) {
+                final bgInt = _computeNodeBgColor(theme);
+                rs.updateNodesStyle(
+                  nodeIds,
+                  (style) => style.copyWith(
+                    shape: 'rounded',
+                    borderRadius: 12.0,
+                    bgColor: bgInt,
+                  ),
+                );
+              }
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,9 +850,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                           items: kAvailableNodeShapes,
                           selectedIndex: selectedShapeIndex,
                           onSelected: (idx) {
+                            final newShape = kAvailableNodeShapes[idx].id;
                             setState(() {
-                              _nodeShape = kAvailableNodeShapes[idx].id;
+                              _nodeShape = newShape;
                             });
+                            final rs = effectiveRenderState;
+                            final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                            if (nodeIds.isNotEmpty) {
+                              rs.updateNodesStyle(nodeIds, (s) => s.copyWith(shape: newShape));
+                            }
                           },
                           theme: UnravelSliderThemeData(
                             accentColor: primaryAccent,
@@ -487,7 +898,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         height: 30.0,
                         activeColor: primaryAccent,
                         selectedValue: _fillStyle,
-                        onSelected: (val) => setState(() => _fillStyle = val),
+                        onSelected: (val) {
+                          setState(() => _fillStyle = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final bgInt = _computeNodeBgColor(theme);
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(bgColor: bgInt));
+                          }
+                        },
                         segments: const [
                           SegmentData(value: 'solid', label: 'Solid'),
                           SegmentData(value: 'glass', label: 'Glass'),
@@ -502,17 +921,16 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         label: 'tint',
                         selectedValue: _fillTint,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _fillTint = val),
-                        options: [
-                          const ColorPillOption(value: null, label: 'Auto (Glass)', isNone: true),
-                          ColorPillOption(value: primaryAccent, color: primaryAccent, label: 'Accent'),
-                          const ColorPillOption(value: Color(0xFF1E293B), color: Color(0xFF1E293B), label: 'Slate'),
-                          const ColorPillOption(value: Color(0xFF0F172A), color: Color(0xFF0F172A), label: 'Midnight'),
-                          const ColorPillOption(value: Color(0xFF1E1B4B), color: Color(0xFF1E1B4B), label: 'Indigo'),
-                          const ColorPillOption(value: Color(0xFF064E3B), color: Color(0xFF064E3B), label: 'Emerald'),
-                          const ColorPillOption(value: Color(0xFF701A75), color: Color(0xFF701A75), label: 'Fuchsia'),
-                          const ColorPillOption(value: Color(0xFF7C2D12), color: Color(0xFF7C2D12), label: 'Rust'),
-                        ],
+                        onSelected: (val) {
+                          setState(() => _fillTint = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final bgInt = _computeNodeBgColor(theme);
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(bgColor: bgInt));
+                          }
+                        },
+                        options: _buildGlassColorOptions(primaryAccent),
                       ),
                     ),
                   ],
@@ -531,7 +949,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         max: 100,
                         unit: '%',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _opacity = val),
+                        onChanged: (val) {
+                          setState(() => _opacity = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final bgInt = _computeNodeBgColor(theme);
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(bgColor: bgInt));
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -543,7 +969,14 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         max: 24,
                         unit: 'px',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _cornerRadius = val),
+                        onChanged: (val) {
+                          setState(() => _cornerRadius = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(borderRadius: val));
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -563,6 +996,18 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                 _borderOpacity = 60.0;
                 _borderColor = null;
               });
+              final rs = effectiveRenderState;
+              final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+              if (nodeIds.isNotEmpty) {
+                final strokeInt = _computeNodeStrokeColor(theme);
+                rs.updateNodesStyle(
+                  nodeIds,
+                  (style) => style.copyWith(
+                    strokeWidth: 2,
+                    strokeColor: strokeInt,
+                  ),
+                );
+              }
             },
             child: Column(
               children: [
@@ -590,7 +1035,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         label: 'color',
                         selectedValue: _borderColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _borderColor = val),
+                        onSelected: (val) {
+                          setState(() => _borderColor = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final strokeInt = _computeNodeStrokeColor(theme);
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(strokeColor: strokeInt));
+                          }
+                        },
                         options: [
                           const ColorPillOption(value: null, label: 'Accent', isNone: true),
                           const ColorPillOption(value: Colors.white, color: Colors.white, label: 'White'),
@@ -617,7 +1070,14 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         max: 8,
                         unit: 'px',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _borderWidth = val),
+                        onChanged: (val) {
+                          setState(() => _borderWidth = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(strokeWidth: val.round()));
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -629,7 +1089,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         max: 100,
                         unit: '%',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _borderOpacity = val),
+                        onChanged: (val) {
+                          setState(() => _borderOpacity = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final strokeInt = _computeNodeStrokeColor(theme);
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(strokeColor: strokeInt));
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -649,6 +1117,19 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                 _shadowDistance = 4.0;
                 _shadowColor = null;
               });
+              final rs = effectiveRenderState;
+              final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+              if (nodeIds.isNotEmpty) {
+                rs.updateNodesStyle(
+                  nodeIds,
+                  (style) => style.copyWith(
+                    shadowColor: 0x00000000,
+                    shadowBlur: 0.0,
+                    shadowOffsetY: 0.0,
+                    shadowOffsetX: 0.0,
+                  ),
+                );
+              }
             },
             child: Column(
               children: [
@@ -661,7 +1142,25 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         height: 30.0,
                         activeColor: primaryAccent,
                         selectedValue: _shadowMode,
-                        onSelected: (val) => setState(() => _shadowMode = val),
+                        onSelected: (val) {
+                          setState(() => _shadowMode = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final shadowInt = _computeNodeShadowColor(theme);
+                            final blur = val == 'none' ? 0.0 : _shadowBlur;
+                            final dy = (val == 'none' || val == 'glow') ? 0.0 : _shadowDistance;
+                            rs.updateNodesStyle(
+                              nodeIds,
+                              (s) => s.copyWith(
+                                shadowColor: shadowInt,
+                                shadowBlur: blur,
+                                shadowOffsetY: dy,
+                                shadowOffsetX: 0.0,
+                              ),
+                            );
+                          }
+                        },
                         segments: const [
                           SegmentData(value: 'none', label: 'None'),
                           SegmentData(value: 'soft', label: 'Soft'),
@@ -677,7 +1176,15 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         label: 'glow',
                         selectedValue: _shadowColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _shadowColor = val),
+                        onSelected: (val) {
+                          setState(() => _shadowColor = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            final shadowInt = _computeNodeShadowColor(theme);
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(shadowColor: shadowInt));
+                          }
+                        },
                         options: [
                           const ColorPillOption(value: null, label: 'Accent', isNone: true),
                           const ColorPillOption(value: Color(0xFF00E5FF), color: Color(0xFF00E5FF), label: 'Cyan'),
@@ -704,7 +1211,14 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         max: 32,
                         unit: 'px',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _shadowBlur = val),
+                        onChanged: (val) {
+                          setState(() => _shadowBlur = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(shadowBlur: val));
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -716,7 +1230,14 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
                         max: 16,
                         unit: 'px',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _shadowDistance = val),
+                        onChanged: (val) {
+                          setState(() => _shadowDistance = val);
+                          final rs = effectiveRenderState;
+                          final nodeIds = _getSelectedNodes(rs).map((n) => n.id).toList();
+                          if (nodeIds.isNotEmpty) {
+                            rs.updateNodesStyle(nodeIds, (s) => s.copyWith(shadowOffsetY: val));
+                          }
+                        },
                       ),
                     ),
                   ],

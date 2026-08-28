@@ -57,25 +57,34 @@ TARGET FILES:
 {FILE_PATH_LIST}
 
 RULES & REFERENCES:
-- file://{PATH_TO_RULES_1}
-- file://{PATH_TO_RULES_2}
+- file://.agents/plugins/code-health/rules/code-audit-checklist.md
+- file://.agents/plugins/code-health/rules/design-tensions-reference.md
+- file://.agents/plugins/code-health/rules/abstraction-levels.md
+- file://.agents/skills/design/symmetrical-design/SKILL.md
+- file://{LANGUAGE_SPECIFIC_RULES}
 
 MASTER AGENT CUSTOM INSTRUCTIONS & SPECIFICATIONS:
 {CUSTOM_MASTER_NOTES_AND_CONTEXT_FILLED_ENTIRELY_BY_MASTER_AGENT}
 
 INSTRUCTIONS:
 1. Use `view_file` to inspect the full source code of every assigned file.
-2. Evaluate assigned dimensions in contrast — analyze how principles trade off against each other.
-3. DO NOT propose remedies, fixes, or refactored code. Report ONLY what is broken.
-4. Output a JSON array of findings only.
+2. Read the referenced rule documents (`code-audit-checklist.md`, `design-tensions-reference.md`, `abstraction-levels.md`, and `symmetrical-design/SKILL.md`).
+3. Evaluate assigned dimensions in contrast — analyze how principles trade off against each other using Symmetry as the mediating meta-principle.
+4. DO NOT propose remedies, fixes, or refactored code. Report ONLY what is broken.
+5. Output a JSON array of findings only.
 
 OUTPUT FORMAT:
 [
   {
     "file": "relative/path/to/file.dart",
+    "line_range": "L10-L25",
     "symbol": "ClassName.methodName",
-    "rule": "Violated Principle Name",
-    "issue": "Description of the broken contract or violation"
+    "principle": "Violated Principle Name",
+    "tension": "e.g. SRP vs Cohesion (if applicable)",
+    "severity": "Critical | Warning | Info",
+    "confidence": "High | Medium | Low",
+    "finding": "Description of the broken contract or violation",
+    "what_would_confirm": "Additional check needed if confidence is Medium/Low"
   }
 ]
 ```
@@ -85,5 +94,5 @@ OUTPUT FORMAT:
 ## 4. Synthesis & Handoff
 
 1. Collect JSON array findings from all subagents across all batches.
-2. Deduplicate findings and compile the consolidated Code Health Report.
+2. Deduplicate findings and compile the consolidated Code Health Report using `.agents/plugins/code-health/rules/code-health-report-template.md`.
 3. Hand off the clean findings list directly to chat or downstream fix workflows (`/implementer` or `/bug-fixer`).

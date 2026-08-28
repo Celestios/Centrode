@@ -48,7 +48,7 @@ This workflow coordinates detailed visual UI designs, motion mapping, database s
   - **Design symmetry**: Adhere to [symmetrical-design](.agents/skills/design/symmetrical-design/SKILL.md) guidelines (symmetrical commands, file structures, lifecycles).
   - **Persistence schemas**: Model SurrealDB tables, fields, transaction queries, and trait representations (no manual edits to `schema.surql`) according to [persistence-schemas](.agents/skills/design/persistence-schemas/SKILL.md).
   - **Gesture & Interaction FSM**: Map gesture recognizers, event bubbling hierarchies, and state machine transitions using [gesture-interaction-fsm](.agents/skills/design/gesture-interaction-fsm/SKILL.md).
-  - **Package & Package Format (.cent)**: Model data zip compression archives, directory hierarchies, and file-system serialization structures using [package-format-cent](.agents/skills/design/package-format-cent/SKILL.md).
+  - **Package & Package Format (.celi)**: Model data zip compression archives, directory hierarchies, and file-system serialization structures using [package-format-celi](.agents/skills/design/package-format-celi/SKILL.md).
   - **Physics & Layout Simulation**: Define force-directed canvas node math, link forces, and boundary restrictions using [physics-layout-simulation](.agents/skills/design/physics-layout-simulation/SKILL.md).
   - **Telemetry & Diagnostics**: Define structured warning/error logs, metrics hooks, and tracing schemas using [telemetry-diagnostics](.agents/skills/design/telemetry-diagnostics/SKILL.md).
 

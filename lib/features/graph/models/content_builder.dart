@@ -124,13 +124,17 @@ class ContentBuilder {
 
   /// Build the Content object.
   Content build() {
-    final text = _computePlainText(_blocks);
+    final text = computePlainText(_blocks);
     return Content(text: text, blocks: _blocks);
   }
 
-  static String _computePlainText(List<ContentBlock> blocks) {
-    return ContentExtensions.computePlainText(blocks);
-  }
+  /// Helper to convert a list of blocks to plain text.
+  static String computePlainText(List<ContentBlock> blocks) =>
+      ContentFactory.computePlainText(blocks);
+
+  /// Transforms text to uppercase, lowercase, capitalize, or normal casing.
+  static String applyLetterCase(String text, String letterCase) =>
+      ContentFactory.applyLetterCase(text, letterCase);
 
   /// Clear all blocks and start fresh.
   void clear() {
@@ -570,5 +574,175 @@ class ContentFactory {
   /// Create empty Content.
   static Content empty() {
     return const Content(text: '', blocks: []);
+  }
+
+  /// Transforms text to uppercase, lowercase, capitalize, or normal casing.
+  static String applyLetterCase(String text, String letterCase) {
+    switch (letterCase) {
+      case 'uppercase':
+        return text.toUpperCase();
+      case 'lowercase':
+        return text.toLowerCase();
+      case 'capitalize':
+        return text.split(' ').map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        }).join(' ');
+      case 'normal':
+      default:
+        return text;
+    }
+  }
+
+  /// Helper to convert a list of blocks to plain text.
+  static String computePlainText(List<ContentBlock> blocks) {
+    final buffer = StringBuffer();
+    for (final block in blocks) {
+      for (final inline in block.content) {
+        buffer.write(inline.text);
+      }
+      buffer.writeln();
+    }
+    final result = buffer.toString();
+    return result.endsWith('\n')
+        ? result.substring(0, result.length - 1)
+        : result;
+  }
+}
+
+/// Rich text AST transformation extensions on [Content].
+extension ContentTransformExtensions on Content {
+  Content toggleMark(MarkType markType, {bool? forceState, MarkAttrs? attrs}) {
+    bool willAdd;
+    if (forceState != null) {
+      willAdd = forceState;
+    } else {
+      bool allHaveMark = true;
+      for (final block in blocks) {
+        for (final inline in block.content) {
+          if (inline.marks == null || !inline.marks!.any((m) => m.markType == markType)) {
+            allHaveMark = false;
+            break;
+          }
+        }
+      }
+      willAdd = !allHaveMark;
+    }
+
+    final newBlocks = blocks.map((block) {
+      final newInlines = block.content.map((inline) {
+        final currentMarks = List<TextMark>.from(inline.marks ?? []);
+        if (!willAdd) {
+          currentMarks.removeWhere((m) => m.markType == markType);
+        } else {
+          if (!currentMarks.any((m) => m.markType == markType)) {
+            currentMarks.add(TextMark(markType: markType, attrs: attrs));
+          } else if (attrs != null) {
+            final idx = currentMarks.indexWhere((m) => m.markType == markType);
+            currentMarks[idx] = TextMark(markType: markType, attrs: attrs);
+          }
+        }
+        return InlineElement(
+          inlineType: inline.inlineType,
+          text: inline.text,
+          marks: currentMarks.isEmpty ? null : currentMarks,
+        );
+      }).toList();
+
+      return ContentBlock(
+        blockType: block.blockType,
+        content: newInlines,
+        attrs: block.attrs,
+      );
+    }).toList();
+
+    return Content(text: text, blocks: newBlocks);
+  }
+
+  Content setTextAlign(String align) {
+    final newBlocks = blocks.map((block) {
+      final currentAttrs = block.attrs;
+      final newAttrs = BlockAttrs(
+        level: currentAttrs?.level,
+        language: currentAttrs?.language,
+        textAlign: align,
+      );
+      return ContentBlock(
+        blockType: block.blockType,
+        content: block.content,
+        attrs: newAttrs,
+      );
+    }).toList();
+
+    return Content(text: text, blocks: newBlocks);
+  }
+
+  Content transformLetterCase(String letterCase) {
+    final newBlocks = blocks.map((block) {
+      final newInlines = block.content.map((inline) {
+        return InlineElement(
+          inlineType: inline.inlineType,
+          text: ContentBuilder.applyLetterCase(inline.text, letterCase),
+          marks: inline.marks,
+        );
+      }).toList();
+
+      return ContentBlock(
+        blockType: block.blockType,
+        content: newInlines,
+        attrs: block.attrs,
+      );
+    }).toList();
+
+    final newPlainText = ContentBuilder.computePlainText(newBlocks);
+    return Content(text: newPlainText, blocks: newBlocks);
+  }
+
+  Content setHighlightColor(int? colorValue) {
+    final newBlocks = blocks.map((block) {
+      final newInlines = block.content.map((inline) {
+        final currentMarks = List<TextMark>.from(inline.marks ?? []);
+        currentMarks.removeWhere((m) => m.markType == MarkType.highlight);
+        if (colorValue != null) {
+          currentMarks.add(TextMark(
+            markType: MarkType.highlight,
+            attrs: MarkAttrs(color: colorValue),
+          ));
+        }
+        return InlineElement(
+          inlineType: inline.inlineType,
+          text: inline.text,
+          marks: currentMarks.isEmpty ? null : currentMarks,
+        );
+      }).toList();
+
+      return ContentBlock(
+        blockType: block.blockType,
+        content: newInlines,
+        attrs: block.attrs,
+      );
+    }).toList();
+
+    return Content(text: text, blocks: newBlocks);
+  }
+
+  Content resetFormatting() {
+    final newBlocks = blocks.map((block) {
+      final newInlines = block.content.map((inline) {
+        return InlineElement(
+          inlineType: inline.inlineType,
+          text: inline.text,
+          marks: null,
+        );
+      }).toList();
+
+      return ContentBlock(
+        blockType: BlockType.paragraph,
+        content: newInlines,
+        attrs: const BlockAttrs(textAlign: 'center'),
+      );
+    }).toList();
+
+    return Content(text: text, blocks: newBlocks);
   }
 }

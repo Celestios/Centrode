@@ -79,7 +79,7 @@ pub trait DictionaryRepository: Send + Sync {
     fn list_custom_words(&self) -> impl std::future::Future<Output = Result<Vec<CustomWord>>> + Send;
     fn remove_custom_word(&self, word: &str) -> impl std::future::Future<Output = Result<()>> + Send;
     fn store_embedding(&self, text_payload: &str) -> impl std::future::Future<Output = Result<()>> + Send;
-    fn search_similar_labels(&self, query: &str, limit: usize) -> impl std::future::Future<Output = Result<Vec<String>>> + Send;
+    fn search_similar_labels(&self, query: &str, category: Option<String>, language: Option<String>, limit: usize) -> impl std::future::Future<Output = Result<Vec<String>>> + Send;
     fn detect_map_language(&self, node_texts: &[String]) -> String;
     fn predict_relation_labels(&self, source_text: &str, target_text: &str, language: Option<String>, limit: usize) -> impl std::future::Future<Output = Result<Vec<String>>> + Send;
 }

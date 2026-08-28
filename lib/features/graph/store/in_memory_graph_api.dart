@@ -537,7 +537,12 @@ class InMemoryGraphApi implements GraphApi {
   }
 
   @override
-  Future<List<String>> searchSimilarLabels({required String query, required BigInt limit}) async {
+  Future<List<String>> searchSimilarLabels({
+    required String query,
+    String? category,
+    String? language,
+    required BigInt limit,
+  }) async {
     return const [];
   }
 
@@ -563,7 +568,8 @@ class InMemoryGraphApi implements GraphApi {
 
   @override
   Future<void> initEmbedderModel({
-    required Uint8List weightsBytes,
+    Uint8List? weightsBytes,
+    String? unpackedModelPath,
     required Uint8List tokenizerBytes,
     Uint8List? configBytes,
   }) async {}
