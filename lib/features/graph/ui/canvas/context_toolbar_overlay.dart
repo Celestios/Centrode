@@ -9,6 +9,7 @@ import 'package:centrode/features/graph/presentation/viewport_state.dart';
 import 'package:centrode/features/graph/engine/config.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 import 'package:centrode/features/graph/engine/interaction_engine.dart';
+import 'package:centrode/features/graph/engine/base_interaction_state.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/ui/widgets/overlays/vertical_context_toolbar.dart';
 import 'package:centrode/features/graph/presentation/strategies/relation_style_strategy.dart';
@@ -85,6 +86,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         : renderState.toolbarOffsetNotifier;
 
     final List<Listenable> listenables = [
+      interactionController.state,
       offsetNotifier,
       viewportController.transformController,
       renderState.activeTextSelectionNotifier,
@@ -117,6 +119,10 @@ class ContextToolbarOverlay extends StatelessWidget {
     return ListenableBuilder(
       listenable: Listenable.merge(listenables),
       builder: (context, _) {
+        if (interactionController.state.value is RelationTipDragging) {
+          return const SizedBox.shrink();
+        }
+
         final isEditing = renderState.activeEditId != null;
 
         final double screenWidth = MediaQuery.of(context).size.width;

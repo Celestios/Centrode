@@ -5,6 +5,7 @@ import '../../store/graph_data_query_controller.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
+import '../../engine/base_interaction_state.dart';
 import '../../engine/drawing_interceptor.dart';
 import '../../presentation/workspace_tabs_controller.dart';
 import '../../models/models.dart';
@@ -338,9 +339,13 @@ class CanvasOverlayLayout extends StatelessWidget {
           ),
 
         ListenableBuilder(
-          listenable: renderState.selectionState,
+          listenable: Listenable.merge([
+            renderState.selectionState,
+            interactionController.state,
+          ]),
           builder: (context, _) {
-            if (renderState.selectedEntities.isEmpty) {
+            if (renderState.selectedEntities.isEmpty ||
+                interactionController.state.value is RelationTipDragging) {
               return const SizedBox.shrink();
             }
             return ContextToolbarOverlay(
