@@ -129,13 +129,16 @@ class _ReturnToMapButton extends StatelessWidget {
                       size: UiIconSize.standard,
                     ),
                     const SizedBox(width: UiSpacing.standard),
-                    Text(
-                      UiStrings.commands.returnToMap,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: buttonColor.withValues(
-                          alpha: hasOpenMaps ? 1.0 : 0.4,
+                    Flexible(
+                      child: Text(
+                        UiStrings.commands.returnToMap,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: buttonColor.withValues(
+                            alpha: hasOpenMaps ? 1.0 : 0.4,
+                          ),
+                          fontWeight: FontWeight.w600,
                         ),
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
@@ -9,6 +11,7 @@ class LeftPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ClipRRect(

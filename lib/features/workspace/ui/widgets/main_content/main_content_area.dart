@@ -26,7 +26,7 @@ class MainContentArea extends StatelessWidget {
           Positioned.fill(
             child: Column(
               children: [
-                SizedBox(height: 48 + statusBarHeight),
+                SizedBox(height: WorkspaceTokens.topBarHeight + statusBarHeight),
                 const Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(top: 16),
@@ -37,14 +37,14 @@ class MainContentArea extends StatelessWidget {
               ],
             ),
           ),
-          Positioned(
-            top: statusBarHeight,
-            left: 0,
-            right: 0,
-            height: 48,
-            child: Stack(
-              children: [
-                if (isAndroid)
+          if (isAndroid)
+            Positioned(
+              top: statusBarHeight,
+              left: 0,
+              right: 0,
+              height: WorkspaceTokens.topBarHeight,
+              child: Stack(
+                children: [
                   Positioned(
                     left: 8,
                     top: 8,
@@ -59,42 +59,42 @@ class MainContentArea extends StatelessWidget {
                       enableHover: false,
                     ),
                   ),
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.home_rounded, color: titleColor, size: UiIconSize.dense),
-                      const SizedBox(width: UiSpacing.tight),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'CENTRODE',
-                              style: TextStyle(
-                                color: titleColor,
-                                fontWeight: FontWeight.w800,
-                                fontSize: UiFont.standard,
-                                letterSpacing: 1.5,
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.home_rounded, color: titleColor, size: UiIconSize.dense),
+                        const SizedBox(width: UiSpacing.tight),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'CENTRODE',
+                                style: TextStyle(
+                                  color: titleColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: UiFont.standard,
+                                  letterSpacing: 1.5,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: '  Workspace Hub',
-                              style: TextStyle(
-                                color: subtitleColor,
-                                fontWeight: FontWeight.w400,
-                                fontSize: UiFont.standard,
-                                letterSpacing: 0.5,
+                              TextSpan(
+                                text: '  Workspace Hub',
+                                style: TextStyle(
+                                  color: subtitleColor,
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: UiFont.standard,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

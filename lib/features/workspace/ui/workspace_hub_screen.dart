@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
-import 'package:window_manager/window_manager.dart';
 import 'widgets/left_panel/left_panel.dart';
 import 'widgets/main_content/main_content_area.dart';
 import 'package:centrode/shared/elements/elements.dart';
@@ -28,11 +27,13 @@ class WorkspaceHubScreen extends StatelessWidget {
           if (isDesktop)
             const Positioned(
               top: 0,
-              left: 0,
+              left: WorkspaceTokens.leftPanelWidth,
               right: 0,
               child: CentrodeWindowTitleBar(
-                height: 48,
+                title: 'Workspace Hub',
+                height: WorkspaceTokens.topBarHeight,
                 enableGlass: false,
+                backgroundColor: Colors.transparent,
               ),
             ),
         ],

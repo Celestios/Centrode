@@ -15,6 +15,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
   final bool showWindowControls;
   final double height;
   final bool enableGlass;
+  final Color? backgroundColor;
 
   const CentrodeWindowTitleBar({
     super.key,
@@ -25,6 +26,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
     this.showWindowControls = true,
     this.height = UiControlSize.tile,
     this.enableGlass = true,
+    this.backgroundColor,
   });
 
   @override
@@ -86,7 +88,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
       return GlassPanel(
         borderRadius: UiRadius.none,
         blur: 16.0,
-        color: theme.cardColor.withValues(alpha: 0.65),
+        color: backgroundColor ?? theme.cardColor.withValues(alpha: 0.65),
         height: height,
         shadow: BoxShadow(
           color: theme.dividerColor.withValues(alpha: 0.2),
@@ -99,7 +101,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
 
     return Container(
       height: height,
-      color: theme.colorScheme.surface,
+      color: backgroundColor ?? theme.colorScheme.surface,
       child: content,
     );
   }
