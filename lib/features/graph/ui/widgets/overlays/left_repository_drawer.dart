@@ -63,6 +63,21 @@ class LeftRepositoryDrawer extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(height: 1),
+          CentrodeIconTile(
+            icon: activePanel == LeftPanelType.relations
+                ? Icons.arrow_back_rounded
+                : Icons.hub_outlined,
+            animateIcon: true,
+            tileBorderRadius: const BorderRadius.all(Radius.circular(12)),
+            onTap: () {
+              onPanelChanged(
+                activePanel == LeftPanelType.relations
+                    ? LeftPanelType.none
+                    : LeftPanelType.relations,
+              );
+            },
+          ),
         ],
       ),
     );

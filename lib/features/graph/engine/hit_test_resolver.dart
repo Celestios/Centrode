@@ -93,6 +93,7 @@ class HitTestResolver {
     );
 
     var result =
+        _resolveActiveEditorHit(pCanvas, ctx) ??
         _resolveOptAreaClose(pCanvas, ctx) ??
         _resolveOptAreaResize(pCanvas, ctx) ??
         _resolveRelationTips(pCanvas, ctx, selectedEntities) ??
@@ -139,6 +140,44 @@ class HitTestResolver {
     }
 
     return finalResult;
+  }
+
+  PointerHitResult? _resolveActiveEditorHit(
+    Offset pCanvas,
+    InteractionContext ctx,
+  ) {
+    final activeEditId = ctx.getActiveEditId();
+    if (activeEditId == null) return null;
+
+    final rel = ctx.getRelation(activeEditId);
+    if (rel != null) {
+      final cached = ctx.relationEngine.cache[rel.id];
+      if (cached != null) {
+        final labelPos = Offset(cached.labelPosition.x, cached.labelPosition.y);
+        final editorRect = Rect.fromLTWH(
+          labelPos.dx - 100.0,
+          labelPos.dy - 16.0,
+          200.0,
+          230.0,
+        );
+        if (editorRect.contains(pCanvas)) {
+          return PointerHitResult(
+            type: HitTestType.relationLabel,
+            hitEntityId: rel.id,
+          );
+        }
+      }
+    }
+
+    final nodeVs = ctx.nodeViewStates[activeEditId];
+    if (nodeVs != null && nodeVs.rect.contains(pCanvas)) {
+      return PointerHitResult(
+        type: HitTestType.body,
+        hitNodeId: activeEditId,
+      );
+    }
+
+    return null;
   }
 
   PointerHitResult? _resolveOptAreaClose(

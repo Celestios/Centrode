@@ -63,12 +63,6 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     widget.uiController.hideFloatingToolbar();
     widget.uiController.commitActiveEditCallback = _handleCommit;
 
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus && !_isClosing) {
-        _handleCommit();
-      }
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       setState(() {
@@ -114,7 +108,8 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
             ? flatList[_selectedIndex]
             : _textController.text.trim());
 
-    if (text.isNotEmpty && text != widget.relation.verb) {
+    if (text.isNotEmpty && (text != widget.relation.verb || widget.relation.verb == 'default')) {
+      widget.relation.verb = text;
       widget.onCommit(text);
       widget.suggestionController.resolveAndApplyOntologyStyle(
         relationId: widget.relation.id,
@@ -123,6 +118,8 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
       );
     }
 
+    widget.interactionContext.onSelectEntity(widget.relation.id);
+
     setState(() {
       _textController.text = text;
       _isExpanded = false;
@@ -130,10 +127,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     });
 
     _closeTimer?.cancel();
-    _closeTimer = Timer(_closeDuration, () {
-      if (!mounted) return;
-      widget.uiController.cancelActiveEdit();
-    });
+    widget.uiController.cancelActiveEdit();
   }
 
   void _handleKeyEvent(KeyEvent event) {

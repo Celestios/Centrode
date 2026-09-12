@@ -1,1 +1,1 @@
-enum LeftPanelType { none, tags, templates, draw }
+enum LeftPanelType { none, tags, templates, draw, relations }

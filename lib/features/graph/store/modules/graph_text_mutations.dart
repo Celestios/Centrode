@@ -28,9 +28,12 @@ class GraphTextMutations {
         ? originalTextOrContent
         : (originalTextOrContent is String
               ? ContentFactory.fromText(originalTextOrContent)
-              : (node?.content ?? ContentFactory.empty()));
+              : (node?.content ??
+                  (rel != null
+                      ? ContentFactory.fromText(rel.verb)
+                      : ContentFactory.empty())));
 
-    _log.info('Committing text for $id: "${newContent.text}"');
+    _log.info('Committing text for $id: "${newContent.text}" (old: "${oldContent.text}", isRel: ${rel != null})');
 
     if (node != null && _contentEquals(oldContent, newContent)) {
       return;

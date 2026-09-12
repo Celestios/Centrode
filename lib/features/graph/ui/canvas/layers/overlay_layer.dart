@@ -15,7 +15,6 @@ import '../painters/marquee_painter.dart';
 import '../painters/opt_area_painter.dart';
 import '../painters/persistent_opt_area_painter.dart';
 import '../painters/frame_drawing_painter.dart';
-
 export '../painters/temp_relation_painter.dart';
 export '../painters/marquee_painter.dart';
 export '../painters/opt_area_painter.dart';

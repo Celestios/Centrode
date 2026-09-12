@@ -24,11 +24,18 @@ pub fn get_official_ontology_index() -> &'static OntologyIndex {
     static INDEX: OnceLock<OntologyIndex> = OnceLock::new();
     INDEX.get_or_init(|| {
         let mut map: HashMap<(String, String), Vec<String>> = HashMap::new();
-        if let Some(rels) = crate::services::knowledge_graph_engine::KnowledgeGraphEngine::with_global(|engine| {
-            engine.relation_names.clone()
+        if let Some((en_labels, fa_labels)) = crate::services::knowledge_graph_engine::KnowledgeGraphEngine::with_global(|engine| {
+            let mut en = Vec::with_capacity(engine.ontology.len() * 2);
+            let mut fa = Vec::with_capacity(engine.ontology.len());
+            for entry in &engine.ontology {
+                en.push(entry.en_label.clone());
+                en.push(entry.name.clone());
+                fa.push(entry.fa_label.clone());
+            }
+            (en, fa)
         }) {
-            map.insert(("en".to_string(), "relation".to_string()), rels.clone());
-            map.insert(("fa".to_string(), "relation".to_string()), rels);
+            map.insert(("en".to_string(), "relation".to_string()), en_labels);
+            map.insert(("fa".to_string(), "relation".to_string()), fa_labels);
         }
         OntologyIndex { by_lang_and_cat: map }
     })
@@ -154,7 +161,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         // 2. Query global system database (centrode:system)
         if let Ok(sys_db) = EngineManager::system_db().await {
             let sys_res: Vec<Value> = sys_db
-                .query("SELECT style FROM IRelation WHERE fields.verb = $verb AND fields.style != NONE LIMIT 1")
+                .query("SELECT style FROM IRelation WHERE (verb = $verb OR verb.name = $verb OR verb.en_label = $verb OR verb.fa_label = $verb OR verb.label = $verb OR fields.verb = $verb) AND (style != NONE OR fields.style != NONE) LIMIT 1")
                 .bind(("verb", verb.to_string()))
                 .await?
                 .take(0)?;
@@ -179,15 +186,29 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         // 1. Load system defaults from centrode:system IRelation table
         if let Ok(sys_db) = EngineManager::system_db().await {
             let sys_res: Vec<Value> = sys_db
-                .query("SELECT fields.verb as verb, fields.style as style FROM IRelation WHERE fields.style != NONE")
+                .query("SELECT verb, style, fields.verb as f_verb, fields.style as f_style FROM IRelation WHERE style != NONE OR fields.style != NONE")
                 .await?
                 .take(0)?;
 
             for val in sys_res {
                 if let Value::Object(obj) = val {
-                    if let (Some(Value::String(verb)), Some(style_val)) = (obj.get("verb"), obj.get("style")) {
-                        if let Ok(style) = RelationStyle::from_value(style_val.clone()) {
-                            results.insert(verb.clone(), style);
+                    let verb_str = match obj.get("verb").or_else(|| obj.get("f_verb")) {
+                        Some(Value::String(s)) => Some(s.clone()),
+                        Some(Value::Object(v_obj)) => {
+                            if let Some(Value::String(lbl)) = v_obj.get("en_label") {
+                                Some(lbl.clone())
+                            } else if let Some(Value::String(name)) = v_obj.get("name") {
+                                Some(name.clone())
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
+                    };
+                    let style_val = obj.get("style").or_else(|| obj.get("f_style"));
+                    if let (Some(verb), Some(s_val)) = (verb_str, style_val) {
+                        if let Ok(style) = RelationStyle::from_value(s_val.clone()) {
+                            results.insert(verb, style);
                         }
                     }
                 }
@@ -295,7 +316,38 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         let lang = language.as_deref().unwrap_or("en");
         let target_category = category.as_deref().unwrap_or("relation");
 
-        // 1. Official Knowledge Graph Ontology & Spelling Lexicon (Indexed lookup)
+        // 1. Canonical Knowledge Graph Ontology from centrode:system IRelation
+        if target_category == "relation" {
+            if let Ok(sys_db) = EngineManager::system_db().await {
+                if let Ok(mut res) = sys_db.query("SELECT verb FROM IRelation WHERE verb != NONE").await {
+                    if let Ok(sys_rels) = res.take::<Vec<Value>>(0) {
+                        for val in sys_rels {
+                            if let Value::Object(obj) = val {
+                                if let Some(Value::Object(v_obj)) = obj.get("verb") {
+                                    match lang {
+                                        "fa" => {
+                                            if let Some(Value::String(fa)) = v_obj.get("fa_label") {
+                                                candidates.insert(fa.clone());
+                                            }
+                                        }
+                                        _ => {
+                                            if let Some(Value::String(en)) = v_obj.get("en_label") {
+                                                candidates.insert(en.clone());
+                                            }
+                                            if let Some(Value::String(name)) = v_obj.get("name") {
+                                                candidates.insert(name.clone());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 1b. Knowledge Graph Ontology & Spelling Lexicon (in-memory index lookup)
         let index = get_official_ontology_index();
         if let Some(words) = index.by_lang_and_cat.get(&(lang.to_string(), target_category.to_string())) {
             for word in words {
@@ -398,6 +450,100 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         }
 
         let lang = language.as_deref().unwrap_or("en");
+
+        // 1. Primary: Query canonical relation verb objects from centrode:system SurrealDB
+        if let Ok(sys_db) = EngineManager::system_db().await {
+            let sys_res: Vec<Value> = sys_db
+                .query("SELECT verb FROM IRelation WHERE verb != NONE")
+                .await?
+                .take(0)?;
+
+            if !sys_res.is_empty() {
+                let context_prompt = format!("{} {}", src, tgt);
+                let context_vec = EmbeddingService::embed_text(&context_prompt);
+
+                let mut candidates: Vec<(String, f32)> = Vec::with_capacity(sys_res.len());
+                for val in sys_res {
+                    if let Value::Object(obj) = val {
+                        if let Some(Value::Object(verb_obj)) = obj.get("verb") {
+                            let en_template = match verb_obj.get("en_template") {
+                                Some(Value::String(s)) => s.as_str(),
+                                _ => "{head} {tail}",
+                            };
+                            let fa_template = match verb_obj.get("fa_template") {
+                                Some(Value::String(s)) => s.as_str(),
+                                _ => en_template,
+                            };
+                            let en_label = match verb_obj.get("en_label") {
+                                Some(Value::String(s)) => s.clone(),
+                                _ => match verb_obj.get("name") {
+                                    Some(Value::String(s)) => s.clone(),
+                                    _ => String::new(),
+                                },
+                            };
+                            let fa_label = match verb_obj.get("fa_label") {
+                                Some(Value::String(s)) => s.clone(),
+                                _ => en_label.clone(),
+                            };
+
+                            let templated = match lang {
+                                "fa" => fa_template.replace("{head}", src).replace("{tail}", tgt),
+                                _ => en_template.replace("{head}", src).replace("{tail}", tgt),
+                            };
+                            let cand_vec = EmbeddingService::embed_text(&templated);
+                            let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
+                            let label = match lang {
+                                "fa" => fa_label,
+                                _ => en_label,
+                            };
+                            if !label.is_empty() {
+                                candidates.push((label, score));
+                            }
+                        }
+                    }
+                }
+
+                if !candidates.is_empty() {
+                    candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
+                    candidates.truncate(limit);
+                    return Ok(candidates.into_iter().map(|(lbl, _)| lbl).collect());
+                }
+            }
+        }
+
+        // Fallback: in-memory KnowledgeGraphEngine if available
+        if let Some(scored_candidates) = crate::services::knowledge_graph_engine::KnowledgeGraphEngine::with_global(|engine| {
+            if engine.ontology.is_empty() {
+                return vec![];
+            }
+
+            let context_prompt = format!("{} {}", src, tgt);
+            let context_vec = EmbeddingService::embed_text(&context_prompt);
+
+            let mut candidates: Vec<(String, f32)> = Vec::with_capacity(engine.ontology.len());
+            for entry in &engine.ontology {
+                let templated = match lang {
+                    "fa" => entry.fa_template.replace("{head}", src).replace("{tail}", tgt),
+                    _ => entry.en_template.replace("{head}", src).replace("{tail}", tgt),
+                };
+                let cand_vec = EmbeddingService::embed_text(&templated);
+                let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
+                let label = match lang {
+                    "fa" => entry.fa_label.clone(),
+                    _ => entry.en_label.clone(),
+                };
+                candidates.push((label, score));
+            }
+
+            candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
+            candidates.truncate(limit);
+            candidates.into_iter().map(|(lbl, _)| lbl).collect()
+        }) {
+            if !scored_candidates.is_empty() {
+                return Ok(scored_candidates);
+            }
+        }
+
         let index = get_official_ontology_index();
         let empty_list = Vec::new();
         let candidates = index.by_lang_and_cat.get(&(lang.to_string(), "relation".to_string())).unwrap_or(&empty_list);
@@ -406,7 +552,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             return Ok(vec![]);
         }
 
-        let context_prompt = format!("{} -> {}", src, tgt);
+        let context_prompt = format!("{} {}", src, tgt);
         let context_vec = EmbeddingService::embed_text(&context_prompt);
 
         let mut scored: Vec<(String, f32)> = Vec::new();
@@ -416,7 +562,6 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             scored.push((cand.to_string(), score));
         }
 
-        // Sort descending by semantic similarity to contextual connection
         scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
         scored.truncate(limit);
 

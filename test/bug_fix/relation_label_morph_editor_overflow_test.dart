@@ -168,4 +168,81 @@ void main() {
 
     await tester.pumpAndSettle();
   });
+
+  testWidgets('choosing a suggestion label in morph menu commits the selected word',
+      (tester) async {
+    final mockUiController = MockNodeRenderState();
+    final mockEditorState = MockEditorState();
+    final mockSuggestionController = MockRelationLabelSuggestionController();
+    final mockInteractionContext = MockInteractionContext();
+
+    when(() => mockUiController.editorState).thenReturn(mockEditorState);
+    when(() => mockSuggestionController.value).thenReturn(
+      const RelationSuggestionState(
+        language: 'en',
+        contextualVerbs: ['causes', 'supports'],
+        autocompleteVerbs: ['contradicts'],
+        mapVerbs: {'leads_to': 2},
+        flatList: ['causes', 'supports', 'contradicts', 'leads_to'],
+      ),
+    );
+    final relation = InfoUiRelation(
+      id: RawUuid.fromString('00000000-0000-0000-0000-000000000001'),
+      fromNodeId: RawUuid.fromString('00000000-0000-0000-0000-000000000002'),
+      fromNodeTable: 'INode',
+      toNodeId: RawUuid.fromString('00000000-0000-0000-0000-000000000003'),
+      toNodeTable: 'INode',
+      verb: 'default',
+    );
+
+    when(() => mockSuggestionController.resolveAndApplyOntologyStyle(
+      relationId: relation.id,
+      verb: 'causes',
+      interactionContext: mockInteractionContext,
+    )).thenAnswer((_) async {});
+
+    String? committedVerb;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(color: Colors.transparent),
+              ),
+              RelationLabelMorphEditor(
+                relation: relation,
+                labelCenter: const Offset(200, 200),
+                suggestionController: mockSuggestionController,
+                uiController: mockUiController,
+                interactionContext: mockInteractionContext,
+                onCommit: (verb) {
+                  committedVerb = verb;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Expand the editor
+    await tester.pumpAndSettle();
+
+    // Verify 'causes' suggestion is rendered
+    expect(find.text('causes'), findsOneWidget);
+
+    // Tap on 'causes'
+    await tester.tap(find.text('causes'));
+    await tester.pumpAndSettle();
+
+    // Verify that 'causes' was committed
+    expect(committedVerb, 'causes');
+    verify(() => mockSuggestionController.resolveAndApplyOntologyStyle(
+      relationId: relation.id,
+      verb: 'causes',
+      interactionContext: mockInteractionContext,
+    )).called(1);
+  });
 }

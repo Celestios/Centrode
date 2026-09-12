@@ -20,6 +20,7 @@ import 'context_toolbar_overlay.dart';
 import 'package:centrode/features/graph/ui/widgets/tag_manager/global_tags_manager_panel.dart';
 import 'package:centrode/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart';
 import 'package:centrode/features/graph/ui/widgets/drawing_manager/global_drawing_panel.dart';
+import 'package:centrode/features/graph/ui/widgets/relation_manager/global_relations_manager_panel.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/presentation/widgets/search/search_command_palette.dart';
@@ -137,7 +138,7 @@ class CanvasOverlayLayout extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(Icons.save_outlined, size: UiIconSize.dense),
-                              const SizedBox(width: UiSpacing.standard),
+                              SizedBox(width: UiSpacing.standard),
                               Text('Force Sync Save', style: TextStyle(fontSize: UiFont.standard)),
                             ],
                           ),
@@ -147,7 +148,7 @@ class CanvasOverlayLayout extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(Icons.palette_outlined, size: UiIconSize.dense),
-                              const SizedBox(width: UiSpacing.standard),
+                              SizedBox(width: UiSpacing.standard),
                               Text('Toggle Theme', style: TextStyle(fontSize: UiFont.standard)),
                             ],
                           ),
@@ -482,6 +483,8 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
         return const GlobalTemplatesManagerPanel();
       case LeftPanelType.draw:
         return const GlobalDrawingPanel();
+      case LeftPanelType.relations:
+        return const GlobalRelationsManagerPanel();
       case LeftPanelType.none:
         return const SizedBox.shrink();
     }

@@ -41,12 +41,6 @@ class RelationSuggestionState {
 }
 
 class RelationLabelSuggestionController extends ValueNotifier<RelationSuggestionState> {
-  static const Map<String, List<String>> _ontologyVerbsByLanguage = {};
-
-  // Built-in candidate ontology verbs temporarily disabled
-  List<String> get _currentLanguageOntologyVerbs =>
-      _ontologyVerbsByLanguage[value.language] ?? const [];
-
   final MlApi? _api;
   final GraphDataQuery _queryController;
   final UiRelation _relation;
@@ -150,7 +144,6 @@ class RelationLabelSuggestionController extends ValueNotifier<RelationSuggestion
     final g1Set = g1.toSet();
     final pool = <String>{
       ..._neuralAutocompleteVerbs,
-      ..._currentLanguageOntologyVerbs,
     }.where((v) => !g1Set.contains(v)).toList();
 
     final List<String> g2;

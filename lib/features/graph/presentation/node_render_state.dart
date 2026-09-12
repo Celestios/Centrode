@@ -148,6 +148,8 @@ class NodeRenderState extends ChangeNotifier
         if (node != null) {
           final vs = viewStates[id];
           if (vs != null) vs.lineCountNotifier.value = node.lineCount;
+        } else {
+          relationDataNotifier.notifyListeners();
         }
         break;
       case GraphUpdateType.style:

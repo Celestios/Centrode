@@ -9,6 +9,7 @@ import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/models/left_panel_type.dart';
+import 'package:centrode/features/graph/presentation/drag_state.dart';
 import 'package:centrode/presentation/theme/graph_theme.dart';
 
 class MockWorkspaceTabsController extends Mock
@@ -72,6 +73,10 @@ void main() {
     when(
       () => mockSession.showBottomPanel,
     ).thenReturn(ValueNotifier<bool>(false));
+    when(() => mockSession.canUndo).thenReturn(false);
+    when(() => mockSession.canRedo).thenReturn(false);
+    when(() => mockSession.undoCount).thenReturn(0);
+    when(() => mockSession.redoCount).thenReturn(0);
     when(() => mockSession.initialize(any())).thenAnswer((_) async {});
     when(() => mockSession.addListener(any())).thenAnswer((_) {});
     when(() => mockSession.removeListener(any())).thenAnswer((_) {});
@@ -101,6 +106,7 @@ void main() {
     when(() => mockQuery.nodeLookup).thenReturn({});
     when(() => mockQuery.relationLookup).thenReturn({});
     when(() => mockQuery.isLoading).thenReturn(false);
+    when(() => mockQuery.isLoadingNotifier).thenReturn(ValueNotifier(false));
     when(() => mockQuery.errorMessage).thenReturn(null);
 
     // Stub renderState properties
@@ -115,6 +121,8 @@ void main() {
     when(() => mockRenderState.zOrder).thenReturn([]);
     when(() => mockRenderState.selectedEntities).thenReturn({});
     when(() => mockRenderState.activeEditId).thenReturn(null);
+    when(() => mockRenderState.activeEditIdNotifier).thenReturn(ValueNotifier(null));
+    when(() => mockRenderState.dragState).thenReturn(DragState());
     when(() => mockRenderState.nodeShowingFloatingToolbar).thenReturn(null);
     when(() => mockRenderState.toolbarOffsetNotifier).thenReturn(ValueNotifier(Offset.zero));
     when(() => mockRenderState.multiToolbarOffsetNotifier).thenReturn(ValueNotifier(Offset.zero));

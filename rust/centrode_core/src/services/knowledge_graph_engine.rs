@@ -31,6 +31,29 @@ pub struct RelationPrediction {
     pub score: f32,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RelationOntologyEntry {
+    pub name: String,
+    pub en_label: String,
+    pub fa_label: String,
+    pub en_template: String,
+    pub fa_template: String,
+    pub inverse: Option<String>,
+    pub category: Option<String>,
+    pub description: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Deserialize)]
+struct RelationsOntologyFile {
+    #[serde(default)]
+    pub num_relations: usize,
+    #[serde(default)]
+    pub dim: usize,
+    #[serde(default)]
+    pub relations: Vec<RelationOntologyEntry>,
+}
+
 pub struct KnowledgeGraphEngine {
     /// Number of concepts in dictionary
     pub num_concepts: usize,
@@ -46,6 +69,10 @@ pub struct KnowledgeGraphEngine {
     pub relation_matrix: Vec<f32>,
     /// Relation lookup: name -> index
     pub relation_lookup: HashMap<String, usize>,
+    /// Canonical relation ontology entries
+    pub ontology: Vec<RelationOntologyEntry>,
+    /// Fast ontology lookup by name, lower name, and labels
+    pub ontology_lookup: HashMap<String, RelationOntologyEntry>,
 }
 
 static GLOBAL_ENGINE: OnceLock<RwLock<Option<KnowledgeGraphEngine>>> = OnceLock::new();
@@ -68,7 +95,7 @@ impl KnowledgeGraphEngine {
         concepts_bin: &[u8],
         concepts_dict_json: &[u8],
         relations_bin: &[u8],
-        relations_meta_json: &[u8],
+        relations_ontology_json: &[u8],
     ) -> Result<()> {
         info!("Initializing KnowledgeGraphEngine from buffers...");
 
@@ -101,15 +128,10 @@ impl KnowledgeGraphEngine {
             concept_lookup.insert(concept.to_lowercase(), idx);
         }
 
-        // 3. Parse relations metadata
-        #[derive(Deserialize)]
-        struct RelationsMeta {
-            #[serde(default)]
-            relations: Vec<String>,
-        }
-        let rel_meta: RelationsMeta = serde_json::from_slice(relations_meta_json)
-            .context("Failed to parse relations_metadata.json")?;
-        let mut relation_names = rel_meta.relations;
+        // 3. Parse relations ontology
+        let rel_ontology: RelationsOntologyFile = serde_json::from_slice(relations_ontology_json)
+            .context("Failed to parse relations_ontology.json")?;
+        let mut relation_names: Vec<String> = rel_ontology.relations.iter().map(|r| r.name.clone()).collect();
 
         // 4. Parse relations binary matrix
         let (num_rels, dim_rels, rel_matrix) = Self::parse_ckge_matrix(relations_bin)
@@ -129,6 +151,14 @@ impl KnowledgeGraphEngine {
             relation_lookup.insert(rel.clone(), idx);
         }
 
+        let mut ontology_lookup = HashMap::with_capacity(rel_ontology.relations.len() * 4);
+        for entry in &rel_ontology.relations {
+            ontology_lookup.insert(entry.name.clone(), entry.clone());
+            ontology_lookup.insert(entry.name.to_lowercase(), entry.clone());
+            ontology_lookup.insert(entry.en_label.clone(), entry.clone());
+            ontology_lookup.insert(entry.fa_label.clone(), entry.clone());
+        }
+
         let engine = KnowledgeGraphEngine {
             num_concepts: effective_num,
             concepts,
@@ -137,10 +167,12 @@ impl KnowledgeGraphEngine {
             relation_names,
             relation_matrix: rel_matrix[..num_rels * KNOWLEDGE_VECTOR_DIM].to_vec(),
             relation_lookup,
+            ontology: rel_ontology.relations,
+            ontology_lookup,
         };
 
         info!(
-            "KnowledgeGraphEngine ready: {} concepts (256-d), {} canonical relations",
+            "KnowledgeGraphEngine ready: {} concepts (256-d), {} canonical relations with ontology",
             engine.num_concepts,
             engine.relation_names.len()
         );
@@ -157,7 +189,7 @@ impl KnowledgeGraphEngine {
         let concepts_bin_path = dir.join("concepts_256d_int8.bin");
         let concepts_dict_path = dir.join("concepts_dict.json");
         let relations_bin_path = dir.join("relations_256d_int8.bin");
-        let relations_meta_path = dir.join("relations_metadata.json");
+        let relations_ontology_path = dir.join("relations_ontology.json");
 
         if !concepts_bin_path.is_file() {
             bail!("Missing concepts_256d_int8.bin in {:?}", dir);
@@ -169,10 +201,33 @@ impl KnowledgeGraphEngine {
             .with_context(|| format!("Read {:?}", concepts_dict_path))?;
         let r_bin = std::fs::read(&relations_bin_path)
             .with_context(|| format!("Read {:?}", relations_bin_path))?;
-        let r_meta = std::fs::read(&relations_meta_path)
-            .with_context(|| format!("Read {:?}", relations_meta_path))?;
+        let r_ontology = std::fs::read(&relations_ontology_path)
+            .with_context(|| format!("Read {:?}", relations_ontology_path))?;
 
-        Self::init_from_buffers(&c_bin, &c_dict, &r_bin, &r_meta)
+        Self::init_from_buffers(&c_bin, &c_dict, &r_bin, &r_ontology)
+    }
+
+    pub fn get_localized_label(&self, relation_name: &str, lang: &str) -> String {
+        if let Some(entry) = self.ontology_lookup.get(relation_name) {
+            match lang {
+                "fa" => entry.fa_label.clone(),
+                _ => entry.en_label.clone(),
+            }
+        } else {
+            relation_name.to_string()
+        }
+    }
+
+    pub fn render_template(&self, relation_name: &str, lang: &str, head: &str, tail: &str) -> String {
+        if let Some(entry) = self.ontology_lookup.get(relation_name) {
+            let template = match lang {
+                "fa" => &entry.fa_template,
+                _ => &entry.en_template,
+            };
+            template.replace("{head}", head).replace("{tail}", tail)
+        } else {
+            format!("{} {} {}", head, relation_name, tail)
+        }
     }
 
     /// Parses CKGE header: 4s magic, u32 num, u32 dim, u32 precision

@@ -55,6 +55,7 @@ Two schema files live in `centrode_daemon/src/`. **Never edit directly** — bot
 |-------|-------------|
 | `MapRegistry` | Map descriptors — id, name, timestamps, recency |
 | `SystemSetting` | Key/value application settings |
+| `IRelation` | Canonical relation ontology specifications (seeded via `system_relations.surql`) |
 
 ---
 

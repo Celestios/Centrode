@@ -540,12 +540,18 @@ impl AppHandle {
         language: Option<String>,
         limit: usize,
     ) -> anyhow::Result<Vec<String>> {
+        let lang = language.as_deref().unwrap_or("en");
+
         // Fast path: if KnowledgeGraphEngine is initialized, use 0.001ms displacement vector search!
         if let Some(preds) = KnowledgeGraphEngine::with_global(|engine| {
-            engine.predict_relation_between_nodes(&source_text, &target_text, limit)
+            let raw_preds = engine.predict_relation_between_nodes(&source_text, &target_text, limit);
+            raw_preds
+                .into_iter()
+                .map(|p| engine.get_localized_label(&p.relation, lang))
+                .collect::<Vec<_>>()
         }) {
             if !preds.is_empty() {
-                return Ok(preds.into_iter().map(|p| p.relation).collect());
+                return Ok(preds);
             }
         }
 

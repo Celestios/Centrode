@@ -244,13 +244,13 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     final conceptsData = await rootBundle.load('assets/models/simkgc_256d/concepts_256d_int8.bin');
     final conceptsDictData = await rootBundle.load('assets/models/simkgc_256d/concepts_dict.json');
     final relationsData = await rootBundle.load('assets/models/simkgc_256d/relations_256d_int8.bin');
-    final relationsMetaData = await rootBundle.load('assets/models/simkgc_256d/relations_metadata.json');
+    final relationsOntologyData = await rootBundle.load('assets/models/simkgc_256d/relations_ontology.json');
 
     await api.initKnowledgeGraphEngine(
       conceptsBytes: conceptsData.buffer.asUint8List(),
       conceptsDictBytes: conceptsDictData.buffer.asUint8List(),
       relationsBytes: relationsData.buffer.asUint8List(),
-      relationsMetaBytes: relationsMetaData.buffer.asUint8List(),
+      relationsMetaBytes: relationsOntologyData.buffer.asUint8List(),
     );
     _kgInitialized = true;
     log.info('KnowledgeGraphEngine ready (256-d SimKGC)');
