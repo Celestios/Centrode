@@ -48,7 +48,7 @@ Each sub-interface lives in its own file:
 | `TemplateApi` | `template_api.dart` | Template save/instantiate/delete |
 | `TagApi` | `tag_api.dart` | Tag CRUD |
 | `AssetApi` | `asset_api.dart` | Attachment ingest/resolve |
-| `MlApi` | `ml_api.dart` | Native embedder surface: `detectMapLanguage`, `predictRelationLabels`, `searchSimilarLabels`, `embedText`, `initEmbedderModel` |
+| `MlApi` | `ml_api.dart` | Knowledge graph & embedder surface: `initKnowledgeGraphEngine`, `suggestNextNodes`, `auditConnectionSanity`, `searchSimilarConcepts` |
 | `ViewportApi` | `viewport_api.dart` | Viewport state persistence |
 
 ---

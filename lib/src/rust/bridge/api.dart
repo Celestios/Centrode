@@ -23,6 +23,7 @@ import '../relation_engine/config.dart';
 import '../relation_engine/geometry.dart';
 import '../repo.dart';
 import '../repo/history.dart';
+import '../services/knowledge_graph_engine.dart';
 import '../telemetry.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
@@ -66,6 +67,12 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<GraphDelta?> applyHistoryRecordPatch({
     required HistoryRecord record,
     required bool isForward,
+  });
+
+  Future<ConnectionAuditResult?> auditConnectionSanity({
+    required String source,
+    required String relation,
+    required String target,
   });
 
   ArcGraphService get service;
@@ -162,6 +169,13 @@ abstract class AppHandle implements RustOpaqueInterface {
     Uint8List? configBytes,
   });
 
+  Future<void> initKnowledgeGraphEngine({
+    required List<int> conceptsBytes,
+    required List<int> conceptsDictBytes,
+    required List<int> relationsBytes,
+    required List<int> relationsMetaBytes,
+  });
+
   Future<void> instantiateTemplate({
     required String key,
     required double targetX,
@@ -220,6 +234,11 @@ abstract class AppHandle implements RustOpaqueInterface {
     required List<TypedRecordId> relationKeys,
   });
 
+  Future<List<ConceptPrediction>> searchSimilarConcepts({
+    required String concept,
+    required BigInt limit,
+  });
+
   Future<List<String>> searchSimilarLabels({
     required String query,
     String? category,
@@ -239,6 +258,12 @@ abstract class AppHandle implements RustOpaqueInterface {
   Future<void> setOptArea({BoundingBox? bounds});
 
   Future<void> storeEmbedding({required String textPayload});
+
+  Future<List<ConceptPrediction>> suggestNextNodes({
+    required String head,
+    required String relation,
+    required BigInt limit,
+  });
 
   Future<void> triggerLayoutOptimization({
     required LayoutConfig config,

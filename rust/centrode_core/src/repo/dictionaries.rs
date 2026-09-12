@@ -15,8 +15,6 @@ use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
 use surrealdb::Surreal;
 
-const KNOWLEDGE_LEXICON_BIN: &[u8] = include_bytes!("../../../../assets/models/multilingual_5lang/knowledge_lexicon.bin");
-
 #[derive(Debug, Clone)]
 pub struct OntologyIndex {
     pub by_lang_and_cat: HashMap<(String, String), Vec<String>>,
@@ -25,37 +23,12 @@ pub struct OntologyIndex {
 pub fn get_official_ontology_index() -> &'static OntologyIndex {
     static INDEX: OnceLock<OntologyIndex> = OnceLock::new();
     INDEX.get_or_init(|| {
-        let bytes = KNOWLEDGE_LEXICON_BIN;
-        if bytes.len() < 20 || &bytes[0..8] != b"CTRDONTO" {
-            return OntologyIndex { by_lang_and_cat: HashMap::new() };
-        }
-        let mut offset = 8;
-        let _version = u32::from_le_bytes(bytes[offset..offset+4].try_into().unwrap());
-        offset += 4;
-        let num_entries = u32::from_le_bytes(bytes[offset..offset+4].try_into().unwrap()) as usize;
-        offset += 4;
-        let _dim = u32::from_le_bytes(bytes[offset..offset+4].try_into().unwrap());
-        offset += 4;
-
         let mut map: HashMap<(String, String), Vec<String>> = HashMap::new();
-        for _ in 0..num_entries {
-            if offset + 18 > bytes.len() { break; }
-            let lang_raw = &bytes[offset..offset+4];
-            let lang = std::str::from_utf8(lang_raw).unwrap_or("en").trim_matches('\0').to_string();
-            offset += 4;
-
-            let cat_raw = &bytes[offset..offset+12];
-            let cat = std::str::from_utf8(cat_raw).unwrap_or("relation").trim_matches('\0').to_string();
-            offset += 12;
-
-            let text_len = u16::from_le_bytes(bytes[offset..offset+2].try_into().unwrap()) as usize;
-            offset += 2;
-
-            if offset + text_len > bytes.len() { break; }
-            let text = std::str::from_utf8(&bytes[offset..offset+text_len]).unwrap_or("").to_string();
-            offset += text_len;
-
-            map.entry((lang, cat)).or_default().push(text);
+        if let Some(rels) = crate::services::knowledge_graph_engine::KnowledgeGraphEngine::with_global(|engine| {
+            engine.relation_names.clone()
+        }) {
+            map.insert(("en".to_string(), "relation".to_string()), rels.clone());
+            map.insert(("fa".to_string(), "relation".to_string()), rels);
         }
         OntologyIndex { by_lang_and_cat: map }
     })

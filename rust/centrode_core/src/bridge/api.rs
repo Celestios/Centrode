@@ -21,6 +21,9 @@ pub use crate::repo::history::HistoryRecord;
 pub use crate::repo::traits::DictionaryRepository;
 pub use crate::repo::{Repositories, SurrealDictionaryRepository};
 pub use crate::services::embedding_service::EmbeddingService;
+pub use crate::services::knowledge_graph_engine::{
+    ConceptPrediction, ConnectionAuditResult, KnowledgeGraphEngine, RelationPrediction,
+};
 pub use crate::relation_engine::computed::{ComputedRelation, LabelAnchor, PathType};
 pub use crate::relation_engine::config::{BodyType, RelationEngineConfig, RoutingMode};
 pub use crate::relation_engine::geometry::{Point, Rect};
@@ -537,11 +540,69 @@ impl AppHandle {
         language: Option<String>,
         limit: usize,
     ) -> anyhow::Result<Vec<String>> {
+        // Fast path: if KnowledgeGraphEngine is initialized, use 0.001ms displacement vector search!
+        if let Some(preds) = KnowledgeGraphEngine::with_global(|engine| {
+            engine.predict_relation_between_nodes(&source_text, &target_text, limit)
+        }) {
+            if !preds.is_empty() {
+                return Ok(preds.into_iter().map(|p| p.relation).collect());
+            }
+        }
+
         self.service
             .repo
             .dictionaries
             .predict_relation_labels(&source_text, &target_text, language, limit)
             .await
+    }
+
+    pub fn init_knowledge_graph_engine(
+        &self,
+        concepts_bytes: Vec<u8>,
+        concepts_dict_bytes: Vec<u8>,
+        relations_bytes: Vec<u8>,
+        relations_meta_bytes: Vec<u8>,
+    ) -> anyhow::Result<()> {
+        KnowledgeGraphEngine::init_from_buffers(
+            &concepts_bytes,
+            &concepts_dict_bytes,
+            &relations_bytes,
+            &relations_meta_bytes,
+        )
+    }
+
+    pub fn suggest_next_nodes(
+        &self,
+        head: String,
+        relation: String,
+        limit: usize,
+    ) -> Vec<ConceptPrediction> {
+        KnowledgeGraphEngine::with_global(|engine| {
+            engine.suggest_next_nodes(&head, &relation, limit)
+        })
+        .unwrap_or_default()
+    }
+
+    pub fn audit_connection_sanity(
+        &self,
+        source: String,
+        relation: String,
+        target: String,
+    ) -> Option<ConnectionAuditResult> {
+        KnowledgeGraphEngine::with_global(|engine| {
+            engine.audit_connection_sanity(&source, &relation, &target)
+        })
+    }
+
+    pub fn search_similar_concepts(
+        &self,
+        concept: String,
+        limit: usize,
+    ) -> Vec<ConceptPrediction> {
+        KnowledgeGraphEngine::with_global(|engine| {
+            engine.suggest_similar_concepts(&concept, limit)
+        })
+        .unwrap_or_default()
     }
 
     pub fn detect_map_language(&self, node_texts: Vec<String>) -> String {

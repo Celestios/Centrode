@@ -173,6 +173,17 @@ All methods on `AppHandle`, `DaemonHandle`, and free functions (`rust/centrode_c
 
 ---
 
+## Knowledge Graph Engine (256-d SimKGC)
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `init_knowledge_graph_engine` | `(concepts_bytes, concepts_dict_bytes, relations_bytes, relations_meta_bytes)` | Load SimKGC 256-d int8 artifacts |
+| `suggest_next_nodes` | `(head: String, relation: String, limit: usize) -> Vec<ConceptPrediction>` | Predict candidate tail nodes |
+| `audit_connection_sanity` | `(source: String, relation: String, target: String) -> Option<ConnectionAuditResult>` | Evaluate relation semantic validity |
+| `search_similar_concepts` | `(concept: String, limit: usize) -> Vec<ConceptPrediction>` | Concept vector similarity search |
+
+---
+
 ## Asset Vault
 
 | Method | Signature | Description |

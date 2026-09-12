@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:centrode/shared/logging.dart';
@@ -229,52 +228,33 @@ class TabSession extends ChangeNotifier with TraceableNotifier {
     _log.info('TabSession initialized successfully');
     notifyListeners();
 
-    // Initialize native Candle embedding engine once in background (with persistent disk unpack)
-    unawaited(_initEmbedderOnce(handle, _log));
+    // Initialize native Knowledge Graph engine once in background
+    unawaited(_initKnowledgeGraphOnce(handle, _log));
   }
 
-  static bool _embedderInitialized = false;
-  static Completer<void>? _embedderInitCompleter;
+  static bool _kgInitialized = false;
+  static Completer<void>? _kgInitCompleter;
 
-  static Future<void> _initEmbedderOnce(RustGraphApi api, Logger log) async {
-    if (_embedderInitialized) return;
-    if (_embedderInitCompleter != null) return _embedderInitCompleter!.future;
+  static Future<void> _initKnowledgeGraphOnce(RustGraphApi api, Logger log) async {
+    if (_kgInitialized) return;
+    if (_kgInitCompleter != null) return _kgInitCompleter!.future;
     final completer = Completer<void>();
-    _embedderInitCompleter = completer;
+    _kgInitCompleter = completer;
 
-    try {
-      final tokBytes = await rootBundle.load('assets/models/multilingual_5lang/tokenizer.json');
-      final cfgBytes = await rootBundle.load('assets/models/multilingual_5lang/config.json');
+    final conceptsData = await rootBundle.load('assets/models/simkgc_256d/concepts_256d_int8.bin');
+    final conceptsDictData = await rootBundle.load('assets/models/simkgc_256d/concepts_dict.json');
+    final relationsData = await rootBundle.load('assets/models/simkgc_256d/relations_256d_int8.bin');
+    final relationsMetaData = await rootBundle.load('assets/models/simkgc_256d/relations_metadata.json');
 
-      final unpackedPath = p.join(
-        await AppPaths.dataDirectory,
-        'models',
-        'multilingual_5lang',
-        'model_unpacked.safetensors',
-      );
-
-      Uint8List? modelBytes;
-      if (!File(unpackedPath).existsSync()) {
-        log.info('Unpacked embedder model not found on disk. Loading bundled Q4 asset for one-time unpack...');
-        final bundleModel = await rootBundle.load('assets/models/multilingual_5lang/model.safetensors');
-        modelBytes = bundleModel.buffer.asUint8List();
-      } else {
-        log.info('Found existing pre-unpacked embedder model on disk at $unpackedPath');
-      }
-
-      await api.initEmbedderModel(
-        weightsBytes: modelBytes,
-        unpackedModelPath: unpackedPath,
-        tokenizerBytes: tokBytes.buffer.asUint8List(),
-        configBytes: cfgBytes.buffer.asUint8List(),
-      );
-      _embedderInitialized = true;
-      log.info('Native Candle multilingual embedder ready');
-      completer.complete();
-    } catch (e) {
-      log.warning('Candle embedder asset load failed: $e');
-      completer.completeError(e);
-    }
+    await api.initKnowledgeGraphEngine(
+      conceptsBytes: conceptsData.buffer.asUint8List(),
+      conceptsDictBytes: conceptsDictData.buffer.asUint8List(),
+      relationsBytes: relationsData.buffer.asUint8List(),
+      relationsMetaBytes: relationsMetaData.buffer.asUint8List(),
+    );
+    _kgInitialized = true;
+    log.info('KnowledgeGraphEngine ready (256-d SimKGC)');
+    completer.complete();
   }
 
   bool get canUndo => commandProcessor.canUndo;

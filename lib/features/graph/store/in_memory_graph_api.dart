@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:centrode/features/graph/store/graph_api.dart';
 import 'package:centrode/src/rust/bridge/stream.dart';
+import 'package:centrode/src/rust/services/knowledge_graph_engine.dart';
 import 'package:centrode/src/rust/domain/base_models.dart' as frb;
 import 'package:centrode/src/rust/domain/id.dart';
 import 'package:centrode/src/rust/domain/patches.dart';
@@ -573,6 +574,40 @@ class InMemoryGraphApi implements GraphApi {
     required Uint8List tokenizerBytes,
     Uint8List? configBytes,
   }) async {}
+
+  @override
+  Future<void> initKnowledgeGraphEngine({
+    required List<int> conceptsBytes,
+    required List<int> conceptsDictBytes,
+    required List<int> relationsBytes,
+    required List<int> relationsMetaBytes,
+  }) async {}
+
+  @override
+  Future<List<ConceptPrediction>> suggestNextNodes({
+    required String head,
+    required String relation,
+    required BigInt limit,
+  }) async {
+    return const [];
+  }
+
+  @override
+  Future<ConnectionAuditResult?> auditConnectionSanity({
+    required String source,
+    required String relation,
+    required String target,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<List<ConceptPrediction>> searchSimilarConcepts({
+    required String concept,
+    required BigInt limit,
+  }) async {
+    return const [];
+  }
 
   @override
   Future<void> close() async {

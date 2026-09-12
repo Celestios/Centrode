@@ -17,6 +17,7 @@ services.rs                   # Module root
 ├── graph_service.rs          # GraphService struct & dispatch
 ├── asset_vault.rs            # Content-addressable asset storage (SHA-256 CAS)
 ├── embedding_service.rs      # Native candle BERT embedder (384-dim vectors)
+├── knowledge_graph_engine.rs # 256-d SimKGC knowledge graph engine
 └── graph_service/            # Domain operation submodules
     ├── node.rs               # Node CRUD & cache management
     ├── relation.rs           # Relation CRUD, routing & boundaries
@@ -73,6 +74,13 @@ Native BERT embedder built on candle (MiniLM-L6, 384-dim vectors), with a hash-b
 - `cosine_similarity(a, b)` — vector similarity
 
 Exposed through [GraphService / AppHandle](../ffi/api-surface.md) as `store_embedding`, `search_similar_labels`, `predict_relation_labels`, `detect_map_language`, `embed_text`, `init_embedder_model`.
+
+### Knowledge Graph Engine (`knowledge_graph_engine.rs`)
+256-dimensional SimKGC knowledge graph engine utilizing quantized int8 concept and relation matrices:
+- `init_engine(concepts_bin, concepts_dict, relations_bin, relations_meta)` — initialize global engine
+- `suggest_next_nodes(head, relation, limit)` — predict likely tail concepts
+- `audit_connection(source, relation, target)` — assess semantic plausibility of relations
+- `search_similar_concepts(concept, limit)` — vector similarity search over concepts
 
 ---
 

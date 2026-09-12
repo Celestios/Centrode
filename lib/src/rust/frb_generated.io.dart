@@ -30,6 +30,7 @@ import 'relation_engine/config.dart';
 import 'relation_engine/geometry.dart';
 import 'repo.dart';
 import 'repo/history.dart';
+import 'services/knowledge_graph_engine.dart';
 import 'telemetry.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
@@ -227,6 +228,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CommentNode dco_decode_box_autoadd_comment_node(dynamic raw);
 
   @protected
+  ConnectionAuditResult dco_decode_box_autoadd_connection_audit_result(
+    dynamic raw,
+  );
+
+  @protected
   ContainerNode dco_decode_box_autoadd_container_node(dynamic raw);
 
   @protected
@@ -363,6 +369,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ComputedRelation dco_decode_computed_relation(dynamic raw);
 
   @protected
+  ConceptPrediction dco_decode_concept_prediction(dynamic raw);
+
+  @protected
+  ConnectionAuditResult dco_decode_connection_audit_result(dynamic raw);
+
+  @protected
   ContainerNode dco_decode_container_node(dynamic raw);
 
   @protected
@@ -469,6 +481,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ComputedRelation> dco_decode_list_computed_relation(dynamic raw);
+
+  @protected
+  List<ConceptPrediction> dco_decode_list_concept_prediction(dynamic raw);
 
   @protected
   List<ContentBlock> dco_decode_list_content_block(dynamic raw);
@@ -606,6 +621,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BoundingBox? dco_decode_opt_box_autoadd_bounding_box(dynamic raw);
+
+  @protected
+  ConnectionAuditResult? dco_decode_opt_box_autoadd_connection_audit_result(
+    dynamic raw,
+  );
 
   @protected
   ControlPoint? dco_decode_opt_box_autoadd_control_point(dynamic raw);
@@ -957,6 +977,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CommentNode sse_decode_box_autoadd_comment_node(SseDeserializer deserializer);
 
   @protected
+  ConnectionAuditResult sse_decode_box_autoadd_connection_audit_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ContainerNode sse_decode_box_autoadd_container_node(
     SseDeserializer deserializer,
   );
@@ -1113,6 +1138,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ComputedRelation sse_decode_computed_relation(SseDeserializer deserializer);
 
   @protected
+  ConceptPrediction sse_decode_concept_prediction(SseDeserializer deserializer);
+
+  @protected
+  ConnectionAuditResult sse_decode_connection_audit_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ContainerNode sse_decode_container_node(SseDeserializer deserializer);
 
   @protected
@@ -1221,6 +1254,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ComputedRelation> sse_decode_list_computed_relation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<ConceptPrediction> sse_decode_list_concept_prediction(
     SseDeserializer deserializer,
   );
 
@@ -1378,6 +1416,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BoundingBox? sse_decode_opt_box_autoadd_bounding_box(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ConnectionAuditResult? sse_decode_opt_box_autoadd_connection_audit_result(
     SseDeserializer deserializer,
   );
 
@@ -1800,6 +1843,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_connection_audit_result(
+    ConnectionAuditResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_container_node(
     ContainerNode self,
     SseSerializer serializer,
@@ -2025,6 +2074,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_concept_prediction(
+    ConceptPrediction self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_connection_audit_result(
+    ConnectionAuditResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_container_node(ContainerNode self, SseSerializer serializer);
 
   @protected
@@ -2147,6 +2208,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_computed_relation(
     List<ComputedRelation> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_concept_prediction(
+    List<ConceptPrediction> self,
     SseSerializer serializer,
   );
 
@@ -2337,6 +2404,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_bounding_box(
     BoundingBox? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_connection_audit_result(
+    ConnectionAuditResult? self,
     SseSerializer serializer,
   );
 

@@ -64,11 +64,12 @@ rust/
 │   │   ├── engine.rs           # Main layout engine
 │   │   ├── forces/             # 8 physics force implementations
 │   │   └── ...                 # config, integration, port optimizer
-│   ├── services.rs             # Module root — service layer (9 files)
+│   ├── services.rs             # Module root — service layer (10 files)
 │   │   ├── graph_service.rs    # GraphService facade
 │   │   ├── graph_service/      # node, relation, history, layout, metadata
 │   │   ├── asset_vault.rs      # Binary attachment vault
-│   │   └── embedding_service.rs # Native candle BERT embedder (384-dim vectors)
+│   │   ├── embedding_service.rs # Native candle BERT embedder (384-dim vectors)
+│   │   └── knowledge_graph_engine.rs # 256-d SimKGC knowledge graph engine
 │   ├── format/packager.rs      # .cent zip package format
 │   └── telemetry.rs            # Tracing subscriber → Flutter bridge
 └── centrode_daemon/src/

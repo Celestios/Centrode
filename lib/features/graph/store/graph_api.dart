@@ -16,6 +16,7 @@ import 'package:centrode/src/rust/layout_engine/types.dart';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
 import 'package:centrode/src/rust/relation_engine/config.dart';
 import 'package:centrode/src/rust/repo/history.dart';
+import 'package:centrode/src/rust/services/knowledge_graph_engine.dart';
 
 export 'package:centrode/features/graph/store/api/api.dart';
 
@@ -362,6 +363,54 @@ class RustGraphApi implements GraphApi {
             unpackedModelPath: unpackedModelPath,
             tokenizerBytes: tokenizerBytes,
             configBytes: configBytes,
+          ));
+
+  @override
+  Future<void> initKnowledgeGraphEngine({
+    required List<int> conceptsBytes,
+    required List<int> conceptsDictBytes,
+    required List<int> relationsBytes,
+    required List<int> relationsMetaBytes,
+  }) =>
+      _call((api) => api.initKnowledgeGraphEngine(
+            conceptsBytes: conceptsBytes,
+            conceptsDictBytes: conceptsDictBytes,
+            relationsBytes: relationsBytes,
+            relationsMetaBytes: relationsMetaBytes,
+          ));
+
+  @override
+  Future<List<ConceptPrediction>> suggestNextNodes({
+    required String head,
+    required String relation,
+    required BigInt limit,
+  }) =>
+      _call((api) => api.suggestNextNodes(
+            head: head,
+            relation: relation,
+            limit: limit,
+          ));
+
+  @override
+  Future<ConnectionAuditResult?> auditConnectionSanity({
+    required String source,
+    required String relation,
+    required String target,
+  }) =>
+      _call((api) => api.auditConnectionSanity(
+            source: source,
+            relation: relation,
+            target: target,
+          ));
+
+  @override
+  Future<List<ConceptPrediction>> searchSimilarConcepts({
+    required String concept,
+    required BigInt limit,
+  }) =>
+      _call((api) => api.searchSimilarConcepts(
+            concept: concept,
+            limit: limit,
           ));
 
   @override
