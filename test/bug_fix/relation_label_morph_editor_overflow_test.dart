@@ -88,4 +88,84 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Relation label preserves its vertical position at top section without jumping to center during closing',
+      (tester) async {
+    final mockUiController = MockNodeRenderState();
+    final mockEditorState = MockEditorState();
+    final mockSuggestionController = MockRelationLabelSuggestionController();
+    final mockInteractionContext = MockInteractionContext();
+
+    when(() => mockUiController.editorState).thenReturn(mockEditorState);
+    when(() => mockSuggestionController.value).thenReturn(
+      const RelationSuggestionState(
+        language: 'en',
+        contextualVerbs: ['causes', 'supports'],
+        autocompleteVerbs: ['contradicts'],
+        mapVerbs: {'leads_to': 2},
+        flatList: ['causes', 'supports', 'contradicts', 'leads_to'],
+      ),
+    );
+
+    const labelCenter = Offset(200, 200);
+    final relation = InfoUiRelation(
+      id: RawUuid.fromString('00000000-0000-0000-0000-000000000001'),
+      fromNodeId: RawUuid.fromString('00000000-0000-0000-0000-000000000002'),
+      fromNodeTable: 'INode',
+      toNodeId: RawUuid.fromString('00000000-0000-0000-0000-000000000003'),
+      toNodeTable: 'INode',
+      verb: 'depends_on',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(color: Colors.transparent),
+              ),
+              RelationLabelMorphEditor(
+                relation: relation,
+                labelCenter: labelCenter,
+                suggestionController: mockSuggestionController,
+                uiController: mockUiController,
+                interactionContext: mockInteractionContext,
+                onCommit: (_) {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Initial collapsed pump
+    await tester.pump();
+    final initialFieldCenter = tester.getCenter(find.byType(TextField));
+    expect(initialFieldCenter.dy, closeTo(labelCenter.dy, 0.5));
+
+    // Fully expand
+    await tester.pumpAndSettle();
+    final expandedFieldCenter = tester.getCenter(find.byType(TextField));
+    expect(expandedFieldCenter.dy, closeTo(labelCenter.dy, 0.5));
+
+    // Trigger closing via outside tap
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pump();
+
+    // Verify at intervals during the 360ms closing animation that the label does NOT jump to center
+    await tester.pump(const Duration(milliseconds: 50));
+    final closingFieldCenter50 = tester.getCenter(find.byType(TextField));
+    expect(closingFieldCenter50.dy, closeTo(labelCenter.dy, 0.5));
+
+    await tester.pump(const Duration(milliseconds: 100));
+    final closingFieldCenter150 = tester.getCenter(find.byType(TextField));
+    expect(closingFieldCenter150.dy, closeTo(labelCenter.dy, 0.5));
+
+    await tester.pump(const Duration(milliseconds: 100));
+    final closingFieldCenter250 = tester.getCenter(find.byType(TextField));
+    expect(closingFieldCenter250.dy, closeTo(labelCenter.dy, 0.5));
+
+    await tester.pumpAndSettle();
+  });
 }

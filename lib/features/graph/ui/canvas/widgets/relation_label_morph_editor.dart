@@ -35,6 +35,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
   static const double _collapsedHeight = 32.0;
   static const double _expandedWidth = 200.0;
   static const double _expandedHeight = 230.0;
+  static const double _headerHeight = _collapsedHeight - (UiStrokeWidth.thick * 2);
 
   static const _openDuration = Duration(milliseconds: 260);
   static const _closeDuration = Duration(milliseconds: 360);
@@ -116,6 +117,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     }
 
     setState(() {
+      _textController.text = text;
       _isExpanded = false;
       _isClosing = true;
     });
@@ -204,7 +206,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                 ),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final showList = _isExpanded && constraints.maxHeight > 50.0 && constraints.maxWidth > 130.0;
+                final showList = constraints.maxHeight > 50.0 && constraints.maxWidth > 130.0;
 
                 final inputField = Padding(
                   padding: UiInsets.horizontalStandard,
@@ -237,15 +239,10 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (showList)
-                      SizedBox(
-                        height: UiControlSize.dense,
-                        child: inputField,
-                      )
-                    else
-                      Expanded(
-                        child: inputField,
-                      ),
+                    SizedBox(
+                      height: _headerHeight,
+                      child: inputField,
+                    ),
                     if (showList) ...[
                       const Divider(height: 1, thickness: 0.5, color: Colors.white24),
                       Expanded(
