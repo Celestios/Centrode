@@ -94,13 +94,19 @@ impl EngineManager {
 
     /// Drops the database for a deleted map.
     pub async fn delete_map_db(map_id: &str) -> Result<()> {
-        let root = Self::root_db().await?;
         let db_name = if map_id.starts_with("map_") {
             map_id.to_string()
         } else {
             format!("map_{}", map_id)
         };
-        root.query(format!("REMOVE DATABASE {};", db_name)).await?;
+        if db_name == "map_system" || db_name == "system" || db_name == "core" {
+            anyhow::bail!("Cannot delete protected system database: {}", db_name);
+        }
+        let root = Self::root_db().await?;
+        root.use_ns("centrode").await?;
+        root.query(format!("REMOVE DATABASE `{}`;", db_name))
+            .await?
+            .check()?;
         Ok(())
     }
 

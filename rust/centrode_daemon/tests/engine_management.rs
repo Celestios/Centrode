@@ -28,6 +28,16 @@ async fn test_engine_manager_lifecycle() {
     // 4. Delete map DB
     EngineManager::delete_map_db("map_test_1").await.expect("Failed to delete map DB");
 
-    // 5. Shutdown engine
+    // 5. Open and delete map DB with UUID
+    let uuid_map_id = "1dd0ac04-5c56-498f-82a8-693b0c3ac9be";
+    let _uuid_map_db = EngineManager::open_map_db(uuid_map_id, "Test UUID Map")
+        .await
+        .expect("Failed to open map DB with uuid");
+    EngineManager::delete_map_db(uuid_map_id)
+        .await
+        .expect("Failed to delete map DB with uuid");
+
+    // 6. Shutdown engine
     EngineManager::shutdown().await.expect("Failed to shutdown EngineManager");
 }
+
