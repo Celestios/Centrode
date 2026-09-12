@@ -233,7 +233,7 @@ class _UnravelSliderLabState extends State<UnravelSliderLab> {
             color: active
                 ? scheme.primary.withValues(alpha: 0.65)
                 : Colors.white.withValues(alpha: 0.08),
-            width: UiStrokeWidth.standard.1,
+            width: UiStrokeWidth.standard,
           ),
         ),
         child: Text(

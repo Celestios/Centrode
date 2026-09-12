@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Centralized UI string constants structured for internationalization and translation readiness.
 abstract final class UiStrings {
   UiStrings._();

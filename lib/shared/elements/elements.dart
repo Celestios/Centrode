@@ -4,6 +4,7 @@ export '../theme/ui_enums.dart';
 export '../theme/ui_strings.dart';
 export '../utils/color_theory_engine.dart';
 export 'centrode_button.dart';
+export 'centrode_color_controls.dart';
 export 'centrode_color_picker.dart';
 export 'centrode_palette_generator.dart';
 export 'centrode_color_swatch_button.dart';

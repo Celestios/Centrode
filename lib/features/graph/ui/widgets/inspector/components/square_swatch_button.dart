@@ -1,4 +1,4 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:flutter/material.dart';
 import 'glass_color_pill_button.dart';
 

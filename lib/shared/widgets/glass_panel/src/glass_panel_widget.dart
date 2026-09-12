@@ -1,4 +1,3 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 part of '../glass_panel.dart';
 
 /// A self-contained glassmorphic panel that can render via shader or fallback blur.

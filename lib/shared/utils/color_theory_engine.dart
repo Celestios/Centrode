@@ -140,7 +140,6 @@ abstract final class ColorTheoryEngine {
 
   /// Generates Analogous harmony (±15°, ±30°) in perceptual OKLCH space.
   static List<Color> generateAnalogous(Color baseColor) {
-    final oklch = OklchColor.fromColor(baseColor);
     return [
       shiftHue(baseColor, -30),
       shiftHue(baseColor, -15),
