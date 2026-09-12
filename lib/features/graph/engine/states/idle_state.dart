@@ -124,6 +124,9 @@ class CanvasIdle extends CanvasInteractionState {
 
     if (activeEditId != null && (hitEntityId != activeEditId || hitResize)) {
       ctx.onCommitActiveEdit();
+      if (hitEntityId == null) {
+        return this;
+      }
     }
 
     _canvasIdleLog.fine('Selection Intent: HitEntity=$hitEntityId');

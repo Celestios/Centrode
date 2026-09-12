@@ -87,6 +87,7 @@ class ContextToolbarOverlay extends StatelessWidget {
 
     final List<Listenable> listenables = [
       interactionController.state,
+      renderState.activeEditIdNotifier,
       offsetNotifier,
       viewportController.transformController,
       renderState.activeTextSelectionNotifier,
@@ -123,7 +124,13 @@ class ContextToolbarOverlay extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final isEditing = renderState.activeEditId != null;
+        final activeEditId = renderState.activeEditId;
+        if (activeEditId != null &&
+            queryController.relationLookup.containsKey(activeEditId)) {
+          return const SizedBox.shrink();
+        }
+
+        final isEditing = activeEditId != null;
 
         final double screenWidth = MediaQuery.of(context).size.width;
         final double screenHeight = MediaQuery.of(context).size.height;

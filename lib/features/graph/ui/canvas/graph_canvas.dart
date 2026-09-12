@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../engine/config.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
@@ -372,49 +373,52 @@ class _GraphCanvasState extends State<GraphCanvas>
                                     valueListenable:
                                         viewportController.isTransitioningNotifier,
                                     builder: (context, isTransitioning, _) {
-                                      final viewerPanEnabled =
-                                          panScaleEnabled &&
-                                          renderState.activeEditId == null &&
-                                          !isTransitioning;
-                                      return GestureDetector(
-                                        behavior: HitTestBehavior.deferToChild,
-                                        onTap: renderState.activeEditId != null
-                                            ? null
-                                            : () {
-                                                renderState
-                                                    .hideFloatingToolbar();
+                                      return ValueListenableBuilder<RawUuid?>(
+                                        valueListenable:
+                                            renderState.activeEditIdNotifier,
+                                        builder: (context, activeEditId, _) {
+                                          final isEditing = activeEditId != null;
+                                          final viewerPanEnabled =
+                                              panScaleEnabled &&
+                                              !isEditing &&
+                                              !isTransitioning;
+                                          return GestureDetector(
+                                            behavior: HitTestBehavior.deferToChild,
+                                            onTap: isEditing
+                                                ? null
+                                                : () {
+                                                    renderState
+                                                        .hideFloatingToolbar();
+                                                  },
+                                            onDoubleTap:
+                                                isEditing ? null : () {},
+                                            onLongPress:
+                                                isEditing ? null : () {},
+                                            child: CanvasInteractiveViewer(
+                                              transformationController:
+                                                  viewportController
+                                                      .transformController,
+                                              constrained: true,
+                                              clipBehavior: Clip.none,
+                                              boundaryMargin: elasticMargins,
+                                              contentBounds:
+                                                  viewportController.contentBounds,
+                                              minScale:
+                                                  viewportController.currentMinScale,
+                                              maxScale:
+                                                  viewportController.currentMaxScale,
+                                              scaleFactor:
+                                                  AppConfig.canvas.scaleFactor,
+                                              panEnabled: viewerPanEnabled,
+                                              scaleEnabled: viewerPanEnabled,
+                                              onElasticOverscroll: (overscroll) {
+                                                _elasticOverscrollNotifier.value =
+                                                    overscroll;
                                               },
-                                        onDoubleTap:
-                                            renderState.activeEditId != null
-                                            ? null
-                                            : () {},
-                                        onLongPress:
-                                            renderState.activeEditId != null
-                                            ? null
-                                            : () {},
-                                        child: CanvasInteractiveViewer(
-                                          transformationController:
-                                              viewportController
-                                                  .transformController,
-                                          constrained: true,
-                                          clipBehavior: Clip.none,
-                                          boundaryMargin: elasticMargins,
-                                          contentBounds:
-                                              viewportController.contentBounds,
-                                          minScale:
-                                              viewportController.currentMinScale,
-                                          maxScale:
-                                              viewportController.currentMaxScale,
-                                          scaleFactor:
-                                              AppConfig.canvas.scaleFactor,
-                                          panEnabled: viewerPanEnabled,
-                                          scaleEnabled: viewerPanEnabled,
-                                          onElasticOverscroll: (overscroll) {
-                                            _elasticOverscrollNotifier.value =
-                                                overscroll;
-                                          },
-                                          child: child!,
-                                        ),
+                                              child: child!,
+                                            ),
+                                          );
+                                        },
                                       );
                                     },
                                   );

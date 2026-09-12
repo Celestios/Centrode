@@ -44,6 +44,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
 
   late final TextEditingController _textController;
   late final FocusNode _focusNode;
+  late final FocusNode _keyboardFocusNode;
   bool _isExpanded = false;
   bool _isClosing = false;
   Timer? _closeTimer;
@@ -55,9 +56,11 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
     final initialVerb = widget.relation.verb == 'default' ? '' : widget.relation.verb;
     _textController = TextEditingController(text: initialVerb);
     _focusNode = FocusNode();
+    _keyboardFocusNode = FocusNode();
 
     _textController.addListener(_onQueryChanged);
 
+    widget.uiController.hideFloatingToolbar();
     widget.uiController.commitActiveEditCallback = _handleCommit;
 
     _focusNode.addListener(() {
@@ -82,11 +85,15 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
   @override
   void dispose() {
     _closeTimer?.cancel();
+    if (widget.uiController.activeEditId == widget.relation.id) {
+      widget.uiController.cancelActiveEdit();
+    }
     if (widget.uiController.editorState.commitActiveEditCallback == _handleCommit) {
       widget.uiController.commitActiveEditCallback = null;
     }
     _textController.dispose();
     _focusNode.dispose();
+    _keyboardFocusNode.dispose();
     super.dispose();
   }
 
@@ -149,8 +156,23 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
         event.logicalKey == LogicalKeyboardKey.numpadEnter) {
       _handleCommit();
     } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-      _handleCommit();
+      _handleAbort();
     }
+  }
+
+  void _handleAbort() {
+    if (_isClosing) return;
+    setState(() {
+      _textController.text = widget.relation.verb == 'default' ? '' : widget.relation.verb;
+      _isExpanded = false;
+      _isClosing = true;
+    });
+
+    _closeTimer?.cancel();
+    _closeTimer = Timer(_closeDuration, () {
+      if (!mounted) return;
+      widget.uiController.cancelActiveEdit();
+    });
   }
 
   @override
@@ -173,20 +195,22 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
       top: top,
       width: currentWidth,
       height: currentHeight,
-      child: TapRegion(
-        onTapOutside: (_) {
-          if (!_isClosing) {
-            _handleCommit();
-          }
-        },
-        child: AnimatedOpacity(
-          duration: duration,
-          curve: _isClosing ? Curves.easeInQuad : Curves.easeOutCubic,
-          opacity: _isClosing ? 0.0 : 1.0,
-          child: KeyboardListener(
-            focusNode: FocusNode(),
-            onKeyEvent: _handleKeyEvent,
-            child: ClipRRect(
+      child: IgnorePointer(
+        ignoring: _isClosing,
+        child: TapRegion(
+          onTapOutside: (_) {
+            if (!_isClosing) {
+              _handleCommit();
+            }
+          },
+          child: AnimatedOpacity(
+            duration: duration,
+            curve: _isClosing ? Curves.easeInQuad : Curves.easeOutCubic,
+            opacity: _isClosing ? 0.0 : 1.0,
+            child: KeyboardListener(
+              focusNode: _keyboardFocusNode,
+              onKeyEvent: _handleKeyEvent,
+              child: ClipRRect(
               borderRadius: BorderRadius.circular(UiRadius.control),
               child: Container(
                 decoration: BoxDecoration(
@@ -312,6 +336,7 @@ class _RelationLabelMorphEditorState extends State<RelationLabelMorphEditor> {
       ),
     ),
   ),
+),
 );
   }
 }

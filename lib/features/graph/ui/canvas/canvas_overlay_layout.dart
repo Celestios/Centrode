@@ -341,10 +341,15 @@ class CanvasOverlayLayout extends StatelessWidget {
         ListenableBuilder(
           listenable: Listenable.merge([
             renderState.selectionState,
+            renderState.activeEditIdNotifier,
             interactionController.state,
           ]),
           builder: (context, _) {
+            final activeEditId = renderState.activeEditId;
+            final isRelationEdit = activeEditId != null &&
+                queryController.relationLookup.containsKey(activeEditId);
             if (renderState.selectedEntities.isEmpty ||
+                isRelationEdit ||
                 interactionController.state.value is RelationTipDragging) {
               return const SizedBox.shrink();
             }

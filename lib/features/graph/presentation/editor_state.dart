@@ -17,8 +17,15 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   /// Reference to the shared viewStates map owned by NodeRenderState.
   final Map<RawUuid, NodeViewState> viewStates;
 
-  /// ID of the entity currently in text inline edit mode.
-  RawUuid? activeEditId;
+  /// Tracks the ID of the entity currently in text inline edit mode.
+  final ValueNotifier<RawUuid?> activeEditIdNotifier = ValueNotifier(null);
+
+  RawUuid? get activeEditId => activeEditIdNotifier.value;
+  set activeEditId(RawUuid? id) {
+    if (activeEditIdNotifier.value != id) {
+      activeEditIdNotifier.value = id;
+    }
+  }
 
   /// ID of the node currently prompting a floating delete menu.
   RawUuid? nodeShowingFloatingToolbar;
@@ -65,6 +72,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
 
   /// Focuses and opens inline text editor mode for an entity.
   void enterEditMode(RawUuid id) {
+    hideFloatingToolbar();
     activeEditId = id;
     _log.finer('Entering edit mode for entity: $id');
     notifyListeners();
@@ -223,6 +231,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     cycleTextAlignCallback = null;
     commitActiveEditCallback = null;
     activeTextSelectionNotifier.dispose();
+    activeEditIdNotifier.dispose();
     toolbarOffsetNotifier.dispose();
     multiToolbarOffsetNotifier.dispose();
     currentTextAlignNotifier.dispose();

@@ -229,6 +229,8 @@ class NodeRenderState extends ChangeNotifier
   Set<RawUuid> get selectedEntities => selectionState.selectedEntities;
   List<RawUuid> get zOrder => selectionState.zOrder;
   RawUuid? get activeEditId => editorState.activeEditId;
+  ValueNotifier<RawUuid?> get activeEditIdNotifier =>
+      editorState.activeEditIdNotifier;
   RawUuid? get nodeShowingFloatingToolbar =>
       editorState.nodeShowingFloatingToolbar;
   Set<RawUuid> get draggingNodes => dragState.draggingNodes;
