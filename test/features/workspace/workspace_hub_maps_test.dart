@@ -1,13 +1,15 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:centrode/shared/utils/app_paths.dart';
-import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:path/path.dart' as p;
+import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/features/workspace/ui/widgets/left_panel/quick_actions_section.dart';
+import 'package:centrode/shared/utils/app_paths.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Map Storage Deletion & Teardown Tests', () {
+  group('Workspace Hub: Storage Deletion & Teardown', () {
     late Directory tempDir;
 
     setUp(() async {
@@ -21,7 +23,6 @@ void main() {
         await tempDir.delete(recursive: true);
       }
     });
-
 
     test(
       'deleteMapStorage deletes both single files and SurrealKV directories',
@@ -68,6 +69,52 @@ void main() {
         // closeByPath on unopened map is safe no-op
         await MapManager.instance.closeByPath(mapPath);
         expect(MapManager.instance.isPathOpen(mapPath), isFalse);
+      },
+    );
+  });
+
+  group('Workspace Hub: Quick Actions & Return to Map', () {
+    setUp(() {
+      MapManager.instance.closeAll();
+    });
+
+    tearDown(() {
+      MapManager.instance.closeAll();
+    });
+
+    testWidgets(
+      'QuickActionsSection renders Return to Map button instead of ACTIONS text',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: QuickActionsSection())),
+        );
+
+        expect(find.text('ACTIONS'), findsNothing);
+        expect(find.text('Return to Map'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Return to Map button state changes dynamically based on hasOpenMaps',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: QuickActionsSection())),
+        );
+
+        expect(MapManager.instance.hasOpenMaps, isFalse);
+
+        // Open a map session
+        MapManager.instance.openMap('maps/test.db', 'Test Map');
+        await tester.pump();
+
+        expect(MapManager.instance.hasOpenMaps, isTrue);
+        expect(find.text('Return to Map'), findsOneWidget);
+
+        // Close all maps
+        MapManager.instance.closeAll();
+        await tester.pump();
+
+        expect(MapManager.instance.hasOpenMaps, isFalse);
       },
     );
   });

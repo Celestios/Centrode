@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:centrode/features/graph/presentation/viewport_state.dart';
 import 'package:centrode/features/graph/store/graph_data_query.dart';
@@ -57,18 +58,20 @@ void main() {
       controller.dispose();
     });
 
-    test('updateViewportSize sets dimensions and triggers math', () async {
-      controller.updateViewportSize(const Size(800, 600));
+    test('updateViewportSize sets dimensions and triggers math', () {
+      fakeAsync((async) {
+        controller.updateViewportSize(const Size(800, 600));
 
-      expect(
-        controller.viewportStateNotifier.value.viewportSize,
-        const Size(800, 600),
-      );
-      await Future.delayed(Duration.zero);
-      expect(
-        controller.visibleNodeIds.value.contains(RawUuid.fromString('node-1')),
-        isTrue,
-      );
+        expect(
+          controller.viewportStateNotifier.value.viewportSize,
+          const Size(800, 600),
+        );
+        async.elapse(Duration.zero);
+        expect(
+          controller.visibleNodeIds.value.contains(RawUuid.fromString('node-1')),
+          isTrue,
+        );
+      });
     });
 
     test('focusOnBounds centers camera properly', () {

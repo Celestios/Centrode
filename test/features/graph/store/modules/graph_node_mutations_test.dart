@@ -1,69 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
-import 'package:centrode/features/graph/store/graph_api.dart';
-import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
-import 'package:centrode/src/rust/domain/base_models.dart' as frb;
-import 'package:centrode/shared/domain/raw_uuid.dart';
-
-class MockGraphApi extends Mock implements GraphApi {}
+import 'package:centrode/features/graph/store/in_memory_graph_api.dart';
 
 void main() {
 
   group('GraphNodeMutations', () {
     late CommandQueueProcessor controller;
     late GraphDataQueryController queryController;
-    late MockGraphApi mockApi;
-
-    setUpAll(() {
-      registerFallbackValue(const Offset(0, 0));
-      registerFallbackValue(
-        parseTypedRecordId('INode', RawUuid.fromString('dummy')),
-      );
-      registerFallbackValue(
-        Nodes.iNode(
-          INode(
-            id: parseTypedRecordId('INode', RawUuid.fromString('dummy')),
-            content: ContentFactory.empty(),
-            layer: 'default',
-            position: const frb.Coordinates(x: 0, y: 0),
-            size: const frb.Size(width: 10, height: 10),
-            expandable: false,
-            isExpanded: false,
-            locked: false,
-            tags: const [],
-            aliases: const [],
-            comments: const [],
-            attachments: const [],
-            significance: 0,
-            createdAt: 0,
-            updatedAt: 0,
-            lineCount: 1,
-          ),
-        ),
-      );
-    });
+    late InMemoryGraphApi api;
 
     setUp(() {
-      mockApi = MockGraphApi();
-
-      when(
-        () => mockApi.createNode(input: any(named: 'input')),
-      ).thenAnswer((_) async {});
-      when(
-        () => mockApi.deleteNodeEntry(id: any(named: 'id')),
-      ).thenAnswer((_) async {});
-      when(
-        () => mockApi.updateNodeCachePositions(positions: any(named: 'positions')),
-      ).thenAnswer((_) async {});
-      when(() => mockApi.undoCount()).thenAnswer((_) async => 0);
-      when(() => mockApi.redoCount()).thenAnswer((_) async => 0);
-
-      queryController = GraphDataQueryController(mockApi);
-      controller = CommandQueueProcessor(mockApi, queryController);
+      api = InMemoryGraphApi();
+      queryController = GraphDataQueryController(api);
+      controller = CommandQueueProcessor(api, queryController);
     });
 
     tearDown(() {
@@ -90,7 +42,7 @@ void main() {
 
       // Verify API was called to create node
       await controller.syncEngine.processor.forceFlush();
-      verify(() => mockApi.createNode(input: any(named: 'input'))).called(1);
+      expect(api.invocationLog.any((e) => e.startsWith('createNode:')), isTrue);
     });
 
     test('deleteNode removes from store immediately optimistically', () async {
@@ -108,7 +60,7 @@ void main() {
 
       // Verify API was called
       await controller.syncEngine.processor.forceFlush();
-      verify(() => mockApi.deleteNodeEntry(id: any(named: 'id'))).called(1);
+      expect(api.invocationLog.any((e) => e.startsWith('deleteNode:')), isTrue);
     });
 
     test('updateNodePosition moves node and updates spatial grid', () {

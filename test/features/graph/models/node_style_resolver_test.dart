@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/models/node_style_resolver.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 
 void main() {
   group('node_style_resolver tests', () {
@@ -47,7 +48,7 @@ void main() {
       );
       final style = resolveStyle(containerNode);
       expect(style.bgColor, 0x1A2196F3);
-      expect(style.strokeColor, 0xFF64B5F6);
+      expect(style.strokeColor, CentrodeDerivedPalette.current.canvas.containerBorder.toARGB32());
       expect(style.textColor, 0xFFFFFFFF);
     });
   });

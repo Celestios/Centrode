@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/models/commands/patch_helpers.dart';
@@ -51,83 +52,87 @@ void main() {
       store.relationLookup[relId] = relation;
     });
 
-    test('interpolates node positions and applies port patches on convergence', () async {
-      final movedEvents = <Set<RawUuid>>[];
-      LayoutTickResult? convergedResult;
+    test('interpolates node positions and applies port patches on convergence', () {
+      fakeAsync((async) {
+        final movedEvents = <Set<RawUuid>>[];
+        LayoutTickResult? convergedResult;
 
-      final tick = LayoutTickResult(
-        iteration: 1,
-        energy: 0.1,
-        converged: true,
-        positionPatches: [
-          LayoutPatch(
-            id: parseTypedRecordId('INode', nodeAId),
-            x: 50,
-            y: 50,
-          ),
-        ],
-        portPatches: [
-          PortPatch(
-            relationId: parseTypedRecordId('IRelation', relId),
-            fromSide: PortSide.right,
-            toSide: PortSide.left,
-          ),
-        ],
-      );
+        final tick = LayoutTickResult(
+          iteration: 1,
+          energy: 0.1,
+          converged: true,
+          positionPatches: [
+            LayoutPatch(
+              id: parseTypedRecordId('INode', nodeAId),
+              x: 50,
+              y: 50,
+            ),
+          ],
+          portPatches: [
+            PortPatch(
+              relationId: parseTypedRecordId('IRelation', relId),
+              fromSide: PortSide.right,
+              toSide: PortSide.left,
+            ),
+          ],
+        );
 
-      interpolator.processTick(
-        tick: tick,
-        store: store,
-        onSubStep: (moved) => movedEvents.add(Set.from(moved)),
-        onConverged: (result) => convergedResult = result,
-      );
+        interpolator.processTick(
+          tick: tick,
+          store: store,
+          onSubStep: (moved) => movedEvents.add(Set.from(moved)),
+          onConverged: (result) => convergedResult = result,
+        );
 
-      // Wait for sub-steps to execute (2 sub-steps of 10ms = 20ms)
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+        // Wait for sub-steps to execute (2 sub-steps of 10ms = 20ms)
+        async.elapse(const Duration(milliseconds: 50));
 
-      expect(movedEvents.isNotEmpty, isTrue);
-      expect(convergedResult, isNotNull);
-      expect(convergedResult!.converged, isTrue);
+        expect(movedEvents.isNotEmpty, isTrue);
+        expect(convergedResult, isNotNull);
+        expect(convergedResult!.converged, isTrue);
 
-      // Verify node final position
-      final nodeA = store.nodeLookup[nodeAId]!;
-      expect(nodeA.position.dx, equals(50));
-      expect(nodeA.position.dy, equals(50));
+        // Verify node final position
+        final nodeA = store.nodeLookup[nodeAId]!;
+        expect(nodeA.position.dx, equals(50));
+        expect(nodeA.position.dy, equals(50));
 
-      // Verify port patch was applied to the relation in store
-      final relation = store.relationLookup[relId]!;
-      expect(relation.resolvedLayout, isNotNull);
-      expect(relation.resolvedLayout!.fromSide, equals(PortSide.right));
-      expect(relation.resolvedLayout!.toSide, equals(PortSide.left));
+        // Verify port patch was applied to the relation in store
+        final relation = store.relationLookup[relId]!;
+        expect(relation.resolvedLayout, isNotNull);
+        expect(relation.resolvedLayout!.fromSide, equals(PortSide.right));
+        expect(relation.resolvedLayout!.toSide, equals(PortSide.left));
+      });
     });
 
-    test('cancel aborts ongoing interpolation loop', () async {
-      final tick = LayoutTickResult(
-        iteration: 1,
-        energy: 5.0,
-        converged: false,
-        positionPatches: [
-          LayoutPatch(
-            id: parseTypedRecordId('INode', nodeAId),
-            x: 100,
-            y: 100,
-          ),
-        ],
-        portPatches: [],
-      );
+    test('cancel aborts ongoing interpolation loop', () {
+      fakeAsync((async) {
+        final tick = LayoutTickResult(
+          iteration: 1,
+          energy: 5.0,
+          converged: false,
+          positionPatches: [
+            LayoutPatch(
+              id: parseTypedRecordId('INode', nodeAId),
+              x: 100,
+              y: 100,
+            ),
+          ],
+          portPatches: [],
+        );
 
-      bool convergedCalled = false;
-      interpolator.processTick(
-        tick: tick,
-        store: store,
-        onSubStep: (_) {},
-        onConverged: (_) => convergedCalled = true,
-      );
+        bool convergedCalled = false;
+        interpolator.processTick(
+          tick: tick,
+          store: store,
+          onSubStep: (_) {},
+          onConverged: (_) => convergedCalled = true,
+        );
 
-      interpolator.cancel();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+        interpolator.cancel();
+        async.elapse(const Duration(milliseconds: 50));
 
-      expect(convergedCalled, isFalse);
+        expect(convergedCalled, isFalse);
+      });
     });
   });
 }

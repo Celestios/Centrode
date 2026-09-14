@@ -9,5 +9,6 @@ void main() {
     await tester.pumpWidget(const CentrodeApp());
     await tester.pump();
     expect(find.text('CENTRODE'), findsOneWidget);
+    await tester.pumpAndSettle();
   });
 }

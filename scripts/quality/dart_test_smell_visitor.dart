@@ -143,6 +143,21 @@ class _AssertionDetector extends RecursiveAstVisitor<void> {
     'assert',
   };
 
+  static final _futureTargetRegex = RegExp(r'(^|\.)Future(<.*>)?$');
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final constructorName = node.constructorName.name?.name;
+    final typeSource = node.constructorName.type.toSource();
+
+    if (constructorName == 'delayed' &&
+        _futureTargetRegex.hasMatch(typeSource.trim())) {
+      hasWallClockSleep = true;
+    }
+
+    super.visitInstanceCreationExpression(node);
+  }
+
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final name = node.methodName.name;
@@ -163,7 +178,10 @@ class _AssertionDetector extends RecursiveAstVisitor<void> {
       hasAssertion = true;
     }
 
-    if ((name == 'delayed' && node.target?.toSource() == 'Future') ||
+    final targetSource = node.target?.toSource();
+    if ((name == 'delayed' &&
+            targetSource != null &&
+            _futureTargetRegex.hasMatch(targetSource.trim())) ||
         name == 'sleep') {
       hasWallClockSleep = true;
     }

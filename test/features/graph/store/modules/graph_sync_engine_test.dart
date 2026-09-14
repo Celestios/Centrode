@@ -14,6 +14,9 @@ import 'package:centrode/src/rust/domain/base_models.dart' as frb_base;
 import 'package:centrode/src/rust/domain/snapshot.dart';
 
 import 'package:centrode/presentation/theme/graph_theme.dart';
+import 'dart:async';
+import 'package:centrode/src/rust/bridge/stream.dart';
+import 'package:centrode/src/rust/domain/patches.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphApi extends Mock implements GraphApi {}
@@ -29,13 +32,15 @@ void main() {
     late CommandQueueProcessor controller;
     late GraphDataQueryController queryController;
     late MockGraphApi mockApi;
+    late StreamController<GraphEvent> eventController;
 
     setUp(() {
       mockApi = MockGraphApi();
+      eventController = StreamController<GraphEvent>.broadcast();
 
       when(
         () => mockApi.createGraphStream(),
-      ).thenAnswer((_) => const Stream.empty());
+      ).thenAnswer((_) => eventController.stream);
       when(() => mockApi.getGraphSnapshot()).thenAnswer(
         (_) async => GraphSnapshot(
           nodes: [],
@@ -65,6 +70,16 @@ void main() {
 
     tearDown(() {
       controller.dispose();
+      eventController.close();
+    });
+
+    test('initial savedViewportState returns null when no metadata is loaded', () {
+      expect(controller.syncEngine.savedViewportState, isNull);
+    });
+
+    test('canvasBounds has default initial values', () {
+      expect(controller.syncEngine.canvasBounds.minX, -500);
+      expect(controller.syncEngine.canvasBounds.maxX, 500);
     });
 
     test('loadGraph fetches state and updates canvas bounds', () async {
@@ -191,6 +206,53 @@ void main() {
       await controller.redo();
 
       verify(() => mockApi.redo()).called(1);
+    });
+
+    test('algebraic reversibility: Redo(Undo(Action)) restores identical state', () async {
+      await controller.loadGraph();
+      final nodeId = RawUuid.fromString('node-rev-1');
+      final initialNode = InfoUiNode(
+        id: nodeId,
+        position: const Offset(100, 100),
+      );
+      queryController.store.nodeLookup[nodeId] = initialNode;
+      const initialPos = Offset(100, 100);
+
+      // Apply forward mutation event (Action A)
+      eventController.add(
+        GraphEvent.nodeUpdated(
+          id: parseTypedRecordId('INode', nodeId),
+          patches: [
+            const NodePatch.position(frb_base.Coordinates(x: 350, y: 450)),
+          ],
+        ),
+      );
+      await pumpEventQueue();
+      expect(initialNode.position, const Offset(350, 450));
+
+      // Apply reverse mutation event (Undo A)
+      eventController.add(
+        GraphEvent.nodeUpdated(
+          id: parseTypedRecordId('INode', nodeId),
+          patches: [
+            const NodePatch.position(frb_base.Coordinates(x: 100, y: 100)),
+          ],
+        ),
+      );
+      await pumpEventQueue();
+      expect(initialNode.position, initialPos);
+
+      // Reapply forward mutation event (Redo A)
+      eventController.add(
+        GraphEvent.nodeUpdated(
+          id: parseTypedRecordId('INode', nodeId),
+          patches: [
+            const NodePatch.position(frb_base.Coordinates(x: 350, y: 450)),
+          ],
+        ),
+      );
+      await pumpEventQueue();
+      expect(initialNode.position, const Offset(350, 450));
     });
   });
 }

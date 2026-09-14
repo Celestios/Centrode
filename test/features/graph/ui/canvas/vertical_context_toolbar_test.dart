@@ -61,7 +61,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify submenu is closed again
-      expect(find.byIcon(Icons.format_bold_rounded), findsNothing);
+      expect(find.byIcon(Icons.crop_square_rounded), findsNothing);
     },
   );
 

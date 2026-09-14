@@ -34,6 +34,7 @@ void main() {
       when(() => mockCtx.nodeViewStates).thenReturn({nodeId: viewState});
       when(() => mockCtx.currentScale).thenReturn(1.0);
       when(() => mockCtx.viewportSize).thenReturn(const Size(1000, 800));
+      when(() => mockCtx.activeScope).thenReturn(const RootViewportScope());
       when(() => mockCtx.panViewport(any())).thenReturn(null);
       when(() => mockCtx.screenToCanvas(any()))
           .thenAnswer((i) => i.positionalArguments.first as Offset);
@@ -103,6 +104,30 @@ void main() {
         () => mockCtx.onNodeMove(nodeId, const Offset(120.0, 120.0)),
       ).called(1);
     });
+
+    test(
+      'on handlePointerCancel, nodes remain at current position without artificial reversion',
+      () {
+        final state = NodeDragging(nodeId, Offset.zero);
+
+        final moveEvent = PointerMoveEvent(position: const Offset(107.4, 113.8));
+        state.handlePointerMove(moveEvent, const Offset(107.4, 113.8), mockCtx);
+
+        expect(viewState.positionNotifier.value, const Offset(107.4, 113.8));
+
+        final cancelEvent = PointerCancelEvent(position: const Offset(107.4, 113.8));
+        final nextState = state.handlePointerCancel(cancelEvent, mockCtx);
+
+        // Transition strictly to CanvasIdle
+        expect(nextState, isA<CanvasIdle>());
+        // Node position remains at current un-reverted position
+        expect(viewState.positionNotifier.value, const Offset(107.4, 113.8));
+        // Node dragging state cleared
+        verify(() => mockCtx.setNodeDragging(nodeId, false)).called(1);
+        // No onNodeMove rollback committed
+        verifyNever(() => mockCtx.onNodeMove(any(), any()));
+      },
+    );
   });
 
   group('GroupDragging continuous movement and pause snapping', () {
@@ -184,6 +209,42 @@ void main() {
       expect(anchorVs.positionNotifier.value, const Offset(120.0, 120.0));
       expect(otherVs.positionNotifier.value, const Offset(240.0, 120.0));
     });
+
+    test(
+      'on handlePointerCancel, group nodes remain at current position without artificial reversion',
+      () {
+        final originalPositions = {
+          anchorId: const Offset(100, 100),
+          otherId: const Offset(200, 100),
+        };
+        final state = GroupDragging(
+          nodeIds: [anchorId, otherId],
+          anchorNodeId: anchorId,
+          grabOffset: Offset.zero,
+          originalPositions: originalPositions,
+        );
+
+        final moveEvent = PointerMoveEvent(position: const Offset(107.4, 113.8));
+        state.handlePointerMove(moveEvent, const Offset(107.4, 113.8), mockCtx);
+
+        expect(anchorVs.positionNotifier.value, const Offset(107.4, 113.8));
+        expect(otherVs.positionNotifier.value, const Offset(207.4, 113.8));
+
+        final cancelEvent = PointerCancelEvent(position: const Offset(107.4, 113.8));
+        final nextState = state.handlePointerCancel(cancelEvent, mockCtx);
+
+        // Transition strictly to CanvasIdle
+        expect(nextState, isA<CanvasIdle>());
+        // Node positions remain at current un-reverted positions
+        expect(anchorVs.positionNotifier.value, const Offset(107.4, 113.8));
+        expect(otherVs.positionNotifier.value, const Offset(207.4, 113.8));
+        // Node dragging states cleared
+        verify(() => mockCtx.setNodeDragging(anchorId, false)).called(1);
+        verify(() => mockCtx.setNodeDragging(otherId, false)).called(1);
+        // No onNodeMove rollback committed
+        verifyNever(() => mockCtx.onNodeMove(any(), any()));
+      },
+    );
   });
 
   group('AutoPanManager camera follow calculations', () {

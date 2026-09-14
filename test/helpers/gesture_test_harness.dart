@@ -21,11 +21,18 @@ class GestureTestHarness {
 
   GestureTestHarness({
     FakeInteractionContext? context,
-  })  : context = context ?? FakeInteractionContext(),
-        transformController = TransformationController(),
-        controller = InteractionController(
-          transformController: TransformationController(),
-          environment: context ?? FakeInteractionContext(),
+    TransformationController? transformController,
+  }) : this._(
+          context ?? FakeInteractionContext(),
+          transformController ?? TransformationController(),
+        );
+
+  GestureTestHarness._(
+    this.context,
+    this.transformController,
+  ) : controller = InteractionController(
+          transformController: transformController,
+          environment: context,
         );
 
   PointerDownEvent down(Offset pos, {int buttons = kPrimaryMouseButton}) {
@@ -81,6 +88,7 @@ class FakeInteractionContext implements InteractionContext {
   final Map<RawUuid, Offset> nodePositions = {};
   final Map<RawUuid, Size> nodeSizes = {};
   final Map<RawUuid, NodeViewState> _nodeViewStates = {};
+  final Map<RawUuid, UiNode> _nodes = {};
   final Set<RawUuid> selectedEntities = {};
   final List<String> eventLog = [];
 
@@ -95,6 +103,16 @@ class FakeInteractionContext implements InteractionContext {
     final id = RawUuid.fromString(idStr);
     nodePositions[id] = pos;
     nodeSizes[id] = size;
+    final node = InfoUiNode(
+      id: id,
+      position: pos,
+      size: size,
+    );
+    _nodes[id] = node;
+    final vs = NodeViewState(node);
+    vs.positionNotifier.value = pos;
+    vs.sizeNotifier.value = size;
+    _nodeViewStates[id] = vs;
   }
 
   @override
@@ -202,7 +220,7 @@ class FakeInteractionContext implements InteractionContext {
   UiRelation? getRelation(RawUuid id) => null;
 
   @override
-  UiNode? getNode(RawUuid id) => null;
+  UiNode? getNode(RawUuid id) => _nodes[id];
 
   @override
   RawUuid? get hoveredNodeId => null;
@@ -210,6 +228,7 @@ class FakeInteractionContext implements InteractionContext {
   @override
   void onNodeMove(RawUuid id, Offset pos) {
     nodePositions[id] = pos;
+    _nodeViewStates[id]?.positionNotifier.value = pos;
     eventLog.add('nodeMove:$id to $pos');
   }
 
@@ -234,6 +253,7 @@ class FakeInteractionContext implements InteractionContext {
   void onNodesDrag(List<(RawUuid, Offset)> updates) {
     for (final update in updates) {
       nodePositions[update.$1] = update.$2;
+      _nodeViewStates[update.$1]?.positionNotifier.value = update.$2;
     }
   }
 
