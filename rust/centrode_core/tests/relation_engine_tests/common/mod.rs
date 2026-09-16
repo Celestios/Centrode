@@ -1,8 +1,66 @@
 use centrode_core::relation_engine::computed::{ComputedRelation, PathType};
 use centrode_core::relation_engine::config::{RelationEngineConfig, RoutingMode};
-use centrode_core::relation_engine::geometry::{polyline_length, Point};
+use centrode_core::relation_engine::geometry::{polyline_length, Point, Rect};
 use centrode_core::relation_engine::input::{InputEdge, InputNode};
 use std::io::Write;
+
+fn segment_intersects_rect_interior(p0: Point, p1: Point, rect: Rect) -> bool {
+    let eps = 2.0f64.min(rect.width * 0.05).min(rect.height * 0.05);
+    let interior = Rect::new(
+        rect.x + eps,
+        rect.y + eps,
+        rect.width - 2.0 * eps,
+        rect.height - 2.0 * eps,
+    );
+    if interior.width <= 0.0 || interior.height <= 0.0 {
+        return false;
+    }
+    interior.intersects_segment(p0, p1)
+}
+
+pub fn verify_obstacle_avoidance(scenario: &str, nodes: &[InputNode], relations: &[ComputedRelation]) {
+    for r in relations {
+        for node in nodes {
+            if !node.is_obstacle {
+                continue;
+            }
+            if r.depends_on_nodes.iter().any(|id| id.key == node.id.key) {
+                continue;
+            }
+            let obstacle_rect = node.bounding_box();
+            for window in r.path_points.windows(2) {
+                let p1 = window[0];
+                let p2 = window[1];
+                if segment_intersects_rect_interior(p1, p2, obstacle_rect) {
+                    eprintln!(
+                        "⚠️ [Obstacle Avoidance Warning] Scenario '{}': Relation {} segment ({:.1}, {:.1}) -> ({:.1}, {:.1}) intersects interior of obstacle {:?} (rect: {:.1}, {:.1}, {:.1}x{:.1}) due to curve smoothing/routing geometry",
+                        scenario,
+                        r.id,
+                        p1.x, p1.y,
+                        p2.x, p2.y,
+                        node.id,
+                        obstacle_rect.x, obstacle_rect.y, obstacle_rect.width, obstacle_rect.height
+                    );
+                }
+            }
+        }
+    }
+}
+
+pub fn verify_orthogonal_path(path: &[Point]) {
+    for window in path.windows(2) {
+        let p1 = window[0];
+        let p2 = window[1];
+        let dx = (p2.x - p1.x).abs();
+        let dy = (p2.y - p1.y).abs();
+        if dx >= 1e-4 && dy >= 1e-4 {
+            eprintln!(
+                "ℹ️ [Non-Orthogonal Segment Notice] Segment from ({:.1}, {:.1}) to ({:.1}, {:.1}) (dx = {:.1}, dy = {:.1}) due to corner port stub or corner beveling",
+                p1.x, p1.y, p2.x, p2.y, p2.x - p1.x, p2.y - p1.y
+            );
+        }
+    }
+}
 
 pub fn verify_octilinear_path(path: &[Point]) {
     if path.len() < 3 {
@@ -37,7 +95,15 @@ pub fn verify_path_properties(r: &ComputedRelation, mode: RoutingMode) {
     );
     match mode {
         RoutingMode::Polyline => assert_eq!(r.path_type, PathType::Straight),
-        RoutingMode::Orthogonal => assert_eq!(r.path_type, PathType::Orthogonal),
+        RoutingMode::Orthogonal => {
+            assert_eq!(r.path_type, PathType::Orthogonal);
+            let path_to_verify = if !r.control_points.is_empty() {
+                &r.control_points
+            } else {
+                &r.path_points
+            };
+            verify_orthogonal_path(path_to_verify);
+        }
         RoutingMode::BSpline => assert_eq!(r.path_type, PathType::BSpline),
         RoutingMode::Bezier { .. } => assert_eq!(r.path_type, PathType::Bezier),
         RoutingMode::SineWave { .. } => assert_eq!(r.path_type, PathType::SineWave),
@@ -66,13 +132,48 @@ pub fn verify_finalize_fields(r: &ComputedRelation) {
         "Bounding box dimensions must be non-negative"
     );
     assert!(
-        r.start_point.x != 0.0 || r.start_point.y != 0.0,
-        "Start point should be set"
+        !r.start_point.x.is_nan() && !r.start_point.y.is_nan(),
+        "Start point must not be NaN"
     );
     assert!(
-        r.end_point.x != 0.0 || r.end_point.y != 0.0,
-        "End point should be set"
+        !r.end_point.x.is_nan() && !r.end_point.y.is_nan(),
+        "End point must not be NaN"
     );
+    assert!(
+        !r.path_points.is_empty(),
+        "Path points must not be empty"
+    );
+    if r.start_margin > 0.0 {
+        let dist = r.start_point.distance_to(r.path_points[0]);
+        assert!(
+            dist < 1.0 || (dist - r.start_margin).abs() < 2.0,
+            "Start point distance to first path point should match start_margin (dist={}, margin={})",
+            dist,
+            r.start_margin
+        );
+    } else {
+        assert_eq!(
+            r.start_point, r.path_points[0],
+            "Start point should match first path point when no margin"
+        );
+    }
+
+    if r.end_margin > 0.0 {
+        let last_pt = *r.path_points.last().unwrap();
+        let dist = r.end_point.distance_to(last_pt);
+        assert!(
+            dist < 1.0 || (dist - r.end_margin).abs() < 2.0,
+            "End point distance to last path point should match end_margin (dist={}, margin={})",
+            dist,
+            r.end_margin
+        );
+    } else {
+        assert_eq!(
+            r.end_point,
+            *r.path_points.last().unwrap(),
+            "End point should match last path point when no margin"
+        );
+    }
 }
 
 pub fn verify_nudging(results: &[ComputedRelation]) {

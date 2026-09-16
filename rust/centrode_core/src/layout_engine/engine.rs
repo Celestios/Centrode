@@ -175,6 +175,9 @@ impl LayoutEngine {
         Some((target_x, target_y))
     }
 
+    pub fn step(&mut self) -> LayoutTickResult {
+        self.run_batch()
+    }
 
     pub fn run_batch(&mut self) -> LayoutTickResult {
         let batch_size = self.config.batch_size;

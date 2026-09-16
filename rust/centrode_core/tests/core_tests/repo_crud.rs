@@ -8,7 +8,7 @@ use centrode_core::domain::styles::RelationDirection;
 use centrode_core::domain::tags::TagEdge;
 use centrode_core::domain::traits::TableKind;
 use centrode_core::repo::traits::{NodeRepository, RelationRepository};
-use crate::common::make_container_node;
+use crate::common::{make_container_node, make_inode, make_relation_fields};
 
 #[tokio::test]
 async fn test_inode_crud() {
@@ -272,33 +272,7 @@ async fn test_unique_constraints() {
     let repo = setup_test_repo().await;
 
     let inode_id = TypedRecordId::new_v4(TableKind::INode);
-
-    let inode = INode {
-        id: inode_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("INode 1"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 10, y: 20 },
-        size: Size {
-            width: 100,
-            height: 50,
-        },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
+    let inode = make_inode(inode_id, "INode 1", 10, 20);
     repo.nodes.create_node(Nodes::INode(inode)).await.unwrap();
 
     let n1_id = TypedRecordId::new_v4(TableKind::INode);
@@ -341,84 +315,9 @@ async fn test_relation_rerouting_and_deletion() {
     let n2_id = TypedRecordId::new_v4(TableKind::INode);
     let n3_id = TypedRecordId::new_v4(TableKind::INode);
 
-    let node1 = INode {
-        id: n1_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("Node 1"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 0, y: 0 },
-        size: Size {
-            width: 10,
-            height: 10,
-        },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
-    let node2 = INode {
-        id: n2_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("Node 2"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 100, y: 0 },
-        size: Size {
-            width: 10,
-            height: 10,
-        },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
-    let node3 = INode {
-        id: n3_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("Node 3"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 200, y: 0 },
-        size: Size {
-            width: 10,
-            height: 10,
-        },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
+    let node1 = make_inode(n1_id, "Node 1", 0, 0);
+    let node2 = make_inode(n2_id, "Node 2", 100, 0);
+    let node3 = make_inode(n3_id, "Node 3", 200, 0);
 
     repo.nodes.create_node(Nodes::INode(node1)).await.unwrap();
     repo.nodes.create_node(Nodes::INode(node2)).await.unwrap();
@@ -548,4 +447,44 @@ async fn test_container_node_crud() {
         .expect("Failed to fetch deleted ContainerNode");
 
     assert!(fetched_deleted.is_none(), "ContainerNode should be deleted");
+}
+
+#[tokio::test]
+async fn test_relational_cascading_deletion_on_node_deletion() {
+    let repo = setup_test_repo().await;
+
+    let node_a_id = TypedRecordId::new_v4(TableKind::INode);
+    let node_b_id = TypedRecordId::new_v4(TableKind::INode);
+    let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
+
+    let node_a = make_inode(node_a_id, "Node A", 0, 0);
+    let node_b = make_inode(node_b_id, "Node B", 100, 100);
+
+    repo.nodes.create_node(Nodes::INode(node_a)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(node_b)).await.unwrap();
+
+    let relation_ab = IRelation {
+        key: rel_id,
+        in_: node_a_id,
+        out: node_b_id,
+        fields: make_relation_fields("relates_to"),
+    };
+    repo.relations.create_relation(relation_ab).await.unwrap();
+
+    // Verify both nodes and relation exist
+    assert!(repo.nodes.get_node(node_a_id).await.unwrap().is_some());
+    assert!(repo.nodes.get_node(node_b_id).await.unwrap().is_some());
+    assert!(repo.relations.get_relation(rel_id).await.is_ok());
+
+    // Delete node_a
+    repo.nodes.delete_node(node_a_id).await.unwrap();
+
+    // Assert node_a is deleted
+    assert!(repo.nodes.get_node(node_a_id).await.unwrap().is_none());
+
+    // Assert relation_ab is automatically deleted via SurrealDB cascade
+    assert!(repo.relations.get_relation(rel_id).await.is_err());
+
+    // Assert node_b remains intact
+    assert!(repo.nodes.get_node(node_b_id).await.unwrap().is_some());
 }

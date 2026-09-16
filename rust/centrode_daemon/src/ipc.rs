@@ -224,4 +224,50 @@ mod tests {
         assert!(decoded.success);
         assert_eq!(decoded.active_state, "daemon");
     }
+
+    #[test]
+    fn test_frame_length_prefixing_and_roundtrip() {
+        let payload = b"hello centrode ipc payload";
+        let mut buffer = Vec::new();
+        write_frame(&mut buffer, payload).unwrap();
+
+        // Verify 4-byte big-endian length prefix
+        assert_eq!(buffer.len(), 4 + payload.len());
+        let len_prefix = u32::from_be_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]) as usize;
+        assert_eq!(len_prefix, payload.len());
+        assert_eq!(&buffer[4..], payload);
+
+        // Verify read_frame reads from Cursor
+        let mut cursor = std::io::Cursor::new(buffer);
+        let decoded = read_frame(&mut cursor).unwrap();
+        assert_eq!(decoded, payload);
+    }
+
+    #[test]
+    fn test_frame_empty_payload() {
+        let payload = b"";
+        let mut buffer = Vec::new();
+        write_frame(&mut buffer, payload).unwrap();
+
+        assert_eq!(buffer.len(), 4);
+        assert_eq!(buffer, [0, 0, 0, 0]);
+
+        let mut cursor = std::io::Cursor::new(buffer);
+        let decoded = read_frame(&mut cursor).unwrap();
+        assert!(decoded.is_empty());
+    }
+
+    #[test]
+    fn test_frame_partial_and_truncated_reads() {
+        // Truncated length header (less than 4 bytes)
+        let partial_header = vec![0u8, 0u8, 1u8];
+        let mut cursor = std::io::Cursor::new(partial_header);
+        assert!(read_frame(&mut cursor).is_err());
+
+        // Header claims 16 bytes, but cursor only contains 5 bytes
+        let mut truncated_stream = 16u32.to_be_bytes().to_vec();
+        truncated_stream.extend_from_slice(b"12345");
+        let mut cursor = std::io::Cursor::new(truncated_stream);
+        assert!(read_frame(&mut cursor).is_err());
+    }
 }

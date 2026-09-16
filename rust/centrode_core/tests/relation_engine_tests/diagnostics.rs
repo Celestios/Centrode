@@ -81,16 +81,6 @@ fn run_all_polyline_diagnostics() {
                 super::common::verify_finalize_fields(r);
             }
         }
-
-        super::common::render_svg(
-            "polyline",
-            &format!("polyline_{}", s.filename),
-            s.label,
-            &s.nodes,
-            &s.edges,
-            &results,
-            &config,
-        );
     }
 }
 
@@ -125,17 +115,8 @@ fn run_all_orthogonal_diagnostics() {
                 super::common::verify_path_properties(r, RoutingMode::Orthogonal);
                 super::common::verify_finalize_fields(r);
             }
+            super::common::verify_obstacle_avoidance(s.filename, &s.nodes, &results);
         }
-
-        super::common::render_svg(
-            "orthogonal",
-            &format!("orthogonal_{}", s.filename),
-            s.label,
-            &s.nodes,
-            &s.edges,
-            &results,
-            &config,
-        );
     }
 }
 
@@ -170,17 +151,8 @@ fn run_all_bspline_diagnostics() {
                 super::common::verify_path_properties(r, RoutingMode::BSpline);
                 super::common::verify_finalize_fields(r);
             }
+            super::common::verify_obstacle_avoidance(s.filename, &s.nodes, &results);
         }
-
-        super::common::render_svg(
-            "bspline",
-            &format!("bspline_{}", s.filename),
-            s.label,
-            &s.nodes,
-            &s.edges,
-            &results,
-            &config,
-        );
     }
 }
 
@@ -215,17 +187,8 @@ fn run_all_octilinear_diagnostics() {
                 super::common::verify_path_properties(r, RoutingMode::Octilinear);
                 super::common::verify_finalize_fields(r);
             }
+            super::common::verify_obstacle_avoidance(s.filename, &s.nodes, &results);
         }
-
-        super::common::render_svg(
-            "octilinear",
-            &format!("octilinear_{}", s.filename),
-            s.label,
-            &s.nodes,
-            &s.edges,
-            &results,
-            &config,
-        );
     }
 }
 
@@ -270,16 +233,6 @@ fn run_all_bezier_diagnostics() {
                 super::common::verify_finalize_fields(r);
             }
         }
-
-        super::common::render_svg(
-            "bezier",
-            &format!("bezier_{}", s.filename),
-            s.label,
-            &s.nodes,
-            &s.edges,
-            &results,
-            &config,
-        );
     }
 }
 
@@ -287,7 +240,7 @@ fn run_all_bezier_diagnostics() {
 fn run_all_nudging_diagnostics() {
     let scenarios = super::scenarios::all_scenarios();
 
-    // Test orthogonal nudging (rendered into target/relation_engine_diag/orthogonal/ to avoid nudge dir creation)
+    // Test orthogonal nudging
     let ortho_nudge = orthogonal_with_nudging();
     for mut s in scenarios.clone() {
         if s.filename == "29_multi_edge_nudging" {
@@ -295,20 +248,11 @@ fn run_all_nudging_diagnostics() {
                 edge.routing_mode = Some(RoutingMode::Orthogonal);
             }
             let results = RelationEngine::compute_relations(&s.nodes, &s.edges, &ortho_nudge, None);
-            super::common::render_svg(
-                "orthogonal",
-                &format!("nudge_orthogonal_{}", s.filename),
-                s.label,
-                &s.nodes,
-                &s.edges,
-                &results,
-                &ortho_nudge,
-            );
             super::common::verify_nudging(&results);
         }
     }
 
-    // Test bspline nudging (rendered into target/relation_engine_diag/bspline/ to avoid nudge dir creation)
+    // Test bspline nudging
     let mut bspline_nudge = bspline_config();
     bspline_nudge.nudging.enabled = true;
     for mut s in scenarios {
@@ -318,15 +262,6 @@ fn run_all_nudging_diagnostics() {
             }
             let results =
                 RelationEngine::compute_relations(&s.nodes, &s.edges, &bspline_nudge, None);
-            super::common::render_svg(
-                "bspline",
-                &format!("nudge_bspline_{}", s.filename),
-                s.label,
-                &s.nodes,
-                &s.edges,
-                &results,
-                &bspline_nudge,
-            );
             super::common::verify_nudging(&results);
         }
     }
@@ -383,15 +318,5 @@ fn run_all_sinewave_diagnostics() {
                 super::common::verify_finalize_fields(r);
             }
         }
-
-        super::common::render_svg(
-            "sinewave",
-            &format!("sinewave_{}", s.filename),
-            s.label,
-            &s.nodes,
-            &s.edges,
-            &results,
-            &config,
-        );
     }
 }

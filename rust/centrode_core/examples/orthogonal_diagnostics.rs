@@ -1,9 +1,8 @@
 use centrode_core::domain::id::TypedRecordId;
-use centrode_core::relation_engine::config::{RelationEngineConfig, RoutingMode};
-use centrode_core::relation_engine::engine::RelationEngine;
-
 use centrode_core::domain::styles::PortSide;
 use centrode_core::domain::traits::TableKind;
+use centrode_core::relation_engine::config::{RelationEngineConfig, RoutingMode};
+use centrode_core::relation_engine::engine::RelationEngine;
 use centrode_core::relation_engine::geometry::{polyline_length, segments_intersect, Rect};
 use centrode_core::relation_engine::input::{InputEdge, InputNode};
 use rand::RngExt;
@@ -179,6 +178,13 @@ fn render_svg(
 
     let out_dir = std::path::Path::new("target").join("ortho_diag");
     std::fs::create_dir_all(&out_dir).unwrap();
+
+    let svg_path = out_dir.join(format!("{}.svg", filename));
+    std::fs::write(&svg_path, svg.as_bytes()).unwrap();
+    println!(
+        "SVG written: {}",
+        std::fs::canonicalize(&svg_path).unwrap_or(svg_path).display()
+    );
 
     if let Err(e) = render_png(&svg, &out_dir.join(format!("{}.png", filename))) {
         eprintln!("PNG render failed for {}: {}", filename, e);
@@ -484,7 +490,7 @@ fn write_enriched_json(
     f.write_all(json.as_bytes()).unwrap();
     println!(
         "JSON written: {}",
-        std::fs::canonicalize(&path).unwrap().display()
+        std::fs::canonicalize(&path).unwrap_or(path).display()
     );
 }
 
@@ -520,7 +526,6 @@ fn print_log(label: &str, results: &[centrode_core::relation_engine::computed::C
 
 // ── Baseline: auto-resolve ──
 
-#[test]
 fn ortho_horizontal_facing() {
     let label = "Horizontal facing (Right->Left, same height)";
     let nodes = vec![
@@ -534,7 +539,6 @@ fn ortho_horizontal_facing() {
     render_svg("01_horizontal_facing", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_horizontal_offset() {
     let label = "Horizontal offset (Right->Left, different height)";
     let nodes = vec![
@@ -548,7 +552,6 @@ fn ortho_horizontal_offset() {
     render_svg("02_horizontal_offset", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_vertical_stacked() {
     let label = "Vertical stacked (Bottom->Top, same x)";
     let nodes = vec![
@@ -568,7 +571,6 @@ fn ortho_vertical_stacked() {
     render_svg("03_vertical_stacked", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_top_to_top() {
     let label = "Top→Top (both exit upward)";
     let nodes = vec![
@@ -588,7 +590,6 @@ fn ortho_top_to_top() {
     render_svg("04_top_to_top", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_bottom_to_bottom() {
     let label = "Bottom→Bottom (both exit downward)";
     let nodes = vec![
@@ -608,7 +609,6 @@ fn ortho_bottom_to_bottom() {
     render_svg("05_bottom_to_bottom", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_left_to_right_facing_away() {
     let label = "Left→Right (both facing outward)";
     let nodes = vec![
@@ -630,7 +630,6 @@ fn ortho_left_to_right_facing_away() {
 
 // ── Same-side loops ──
 
-#[test]
 fn ortho_right_to_right_loop() {
     let label = "Right→Right same-side loop";
     let nodes = vec![
@@ -650,7 +649,6 @@ fn ortho_right_to_right_loop() {
     render_svg("07_right_to_right_loop", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_left_to_left_loop() {
     let label = "Left→Left same-side loop";
     let nodes = vec![
@@ -672,7 +670,6 @@ fn ortho_left_to_left_loop() {
 
 // ── Cross ports ──
 
-#[test]
 fn ortho_top_to_bottom_facing() {
     let label = "Top→Bottom facing (through body)";
     let nodes = vec![
@@ -692,7 +689,6 @@ fn ortho_top_to_bottom_facing() {
     render_svg("09_top_to_bottom_facing", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_left_to_bottom_cross() {
     let label = "Left→Bottom cross port";
     let nodes = vec![
@@ -712,7 +708,6 @@ fn ortho_left_to_bottom_cross() {
     render_svg("10_left_to_bottom_cross", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_top_to_left_cross() {
     let label = "Top→Left cross port";
     let nodes = vec![
@@ -732,7 +727,6 @@ fn ortho_top_to_left_cross() {
     render_svg("11_top_to_left_cross", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_right_to_top_cross() {
     let label = "Right→Top cross port";
     let nodes = vec![
@@ -754,7 +748,6 @@ fn ortho_right_to_top_cross() {
 
 // ── Obstacles ──
 
-#[test]
 fn ortho_obstacle_center() {
     let label = "Obstacle blocking direct horizontal path";
     let nodes = vec![
@@ -769,7 +762,6 @@ fn ortho_obstacle_center() {
     render_svg("13_obstacle_center", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_obstacle_offset_high() {
     let label = "Obstacle offset high, only blocks upper route";
     let nodes = vec![
@@ -790,7 +782,6 @@ fn ortho_obstacle_offset_high() {
     render_svg("14_obstacle_offset_high", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_obstacle_close_gap() {
     let label = "Obstacle close to start node, tight corridor";
     let nodes = vec![
@@ -805,7 +796,6 @@ fn ortho_obstacle_close_gap() {
     render_svg("15_obstacle_close_gap", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_multiple_obstacles_s_curve() {
     let label = "Two obstacles forcing S-curve";
     let nodes = vec![
@@ -821,7 +811,6 @@ fn ortho_multiple_obstacles_s_curve() {
     render_svg("16_multiple_obstacles", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_wide_obstacle_detour() {
     let label = "Wide obstacle blocking direct path";
     let nodes = vec![
@@ -842,7 +831,6 @@ fn ortho_wide_obstacle_detour() {
     render_svg("17_wide_obstacle_detour", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_tall_obstacle_vertical() {
     let label = "Tall obstacle blocking vertical corridor";
     let nodes = vec![
@@ -863,7 +851,6 @@ fn ortho_tall_obstacle_vertical() {
     render_svg("18_tall_obstacle_vertical", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_right_to_right_obstacle() {
     let label = "Right→Right same-side loop with obstacle blocking return";
     let nodes = vec![
@@ -884,7 +871,6 @@ fn ortho_right_to_right_obstacle() {
     render_svg("19_right_to_right_obstacle", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_left_to_left_obstacle() {
     let label = "Left→Left same-side loop with obstacle below";
     let nodes = vec![
@@ -907,7 +893,6 @@ fn ortho_left_to_left_obstacle() {
 
 // ── Corner ports ──
 
-#[test]
 fn ortho_corner_top_left_to_bottom_right() {
     let label = "TopLeft→BottomRight corner ports, diagonal";
     let nodes = vec![
@@ -927,7 +912,6 @@ fn ortho_corner_top_left_to_bottom_right() {
     render_svg("21_corner_topleft_bottomright", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_corner_top_right_to_bottom_left() {
     let label = "TopRight→BottomLeft corner ports, cross-diagonal";
     let nodes = vec![
@@ -949,7 +933,6 @@ fn ortho_corner_top_right_to_bottom_left() {
 
 // ── Close/extreme ──
 
-#[test]
 fn ortho_close_nodes() {
     let label = "Close nodes, tight gap";
     let nodes = vec![
@@ -963,7 +946,6 @@ fn ortho_close_nodes() {
     render_svg("23_close_nodes", label, &nodes, &results);
 }
 
-#[test]
 fn ortho_far_nodes() {
     let label = "Far nodes, long distance";
     let nodes = vec![
@@ -1096,27 +1078,50 @@ fn generate_layout(seed: u64) -> RandLayout {
     }
 }
 
-macro_rules! ortho_random_test {
-    ($name:ident, $seed:expr) => {
-        #[test]
-        fn $name() {
-            let rl = generate_layout($seed);
-            let config = RelationEngineConfig::default();
-            let results = RelationEngine::compute_relations(&rl.nodes, &rl.edges, &config, None);
-            print_log(&rl.label, &results);
-            render_svg(
-                &format!("{}_random_ortho", $seed),
-                &rl.label,
-                &rl.nodes,
-                &results,
-            );
-        }
-    };
+fn ortho_random(seed: u64) {
+    let rl = generate_layout(seed);
+    let config = RelationEngineConfig::default();
+    let results = RelationEngine::compute_relations(&rl.nodes, &rl.edges, &config, None);
+    print_log(&rl.label, &results);
+    render_svg(
+        &format!("{}_random_ortho", seed),
+        &rl.label,
+        &rl.nodes,
+        &results,
+    );
 }
 
-ortho_random_test!(ortho_random_20, 20);
-ortho_random_test!(ortho_random_21, 21);
-ortho_random_test!(ortho_random_22, 22);
-ortho_random_test!(ortho_random_23, 23);
-ortho_random_test!(ortho_random_24, 24);
-ortho_random_test!(ortho_random_25, 25);
+fn main() {
+    println!("Running orthogonal diagnostics (30 scenarios)...");
+    ortho_horizontal_facing();
+    ortho_horizontal_offset();
+    ortho_vertical_stacked();
+    ortho_top_to_top();
+    ortho_bottom_to_bottom();
+    ortho_left_to_right_facing_away();
+    ortho_right_to_right_loop();
+    ortho_left_to_left_loop();
+    ortho_top_to_bottom_facing();
+    ortho_left_to_bottom_cross();
+    ortho_top_to_left_cross();
+    ortho_right_to_top_cross();
+    ortho_obstacle_center();
+    ortho_obstacle_offset_high();
+    ortho_obstacle_close_gap();
+    ortho_multiple_obstacles_s_curve();
+    ortho_wide_obstacle_detour();
+    ortho_tall_obstacle_vertical();
+    ortho_right_to_right_obstacle();
+    ortho_left_to_left_obstacle();
+    ortho_corner_top_left_to_bottom_right();
+    ortho_corner_top_right_to_bottom_left();
+    ortho_close_nodes();
+    ortho_far_nodes();
+    ortho_random(20);
+    ortho_random(21);
+    ortho_random(22);
+    ortho_random(23);
+    ortho_random(24);
+    ortho_random(25);
+    println!("All 30 orthogonal diagnostics generated successfully in target/ortho_diag/");
+}

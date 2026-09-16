@@ -1,5 +1,11 @@
 use crate::common::setup_test_repo;
+use centrode_core::domain::base_models::Coordinates;
+use centrode_core::domain::id::TypedRecordId;
+use centrode_core::domain::nodes::Nodes;
+use centrode_core::domain::patches::{EntityPatch, NodePatch, SymmetricEntityPatch};
+use centrode_core::domain::traits::TableKind;
 use centrode_core::repo::history::HistoryManager;
+use centrode_core::repo::traits::{HistoryRepository, NodeRepository};
 use surrealdb::types::SurrealValue;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, SurrealValue)]
@@ -189,4 +195,96 @@ async fn test_history_lifo_undo_redo_sequence() {
     // No more redos
     let r3 = history.redo().await.unwrap();
     assert!(r3.is_none());
+}
+
+#[tokio::test]
+async fn test_history_repository_patch_undo_redo() {
+    let repo = setup_test_repo().await;
+
+    let inode_id = TypedRecordId::new_v4(TableKind::INode);
+    let inode = crate::common::make_inode(inode_id, "History Trait Node", 10, 20);
+    repo.nodes.create_node(Nodes::INode(inode)).await.unwrap();
+
+    let forward_patch = EntityPatch::Node(vec![
+        NodePatch::Position(Coordinates { x: 150, y: 250 }),
+    ]);
+    let reverse_patch = EntityPatch::Node(vec![
+        NodePatch::Position(Coordinates { x: 10, y: 20 }),
+    ]);
+
+    // 1. Apply forward patch
+    repo.nodes
+        .patch_entity(inode_id.to_record_id(), &forward_patch)
+        .await
+        .unwrap();
+
+    // 2. Record patch history using HistoryRepository trait
+    repo.history
+        .record_patch_history(inode_id, forward_patch, reverse_patch)
+        .await
+        .unwrap();
+
+    assert_eq!(repo.history.undo_count().await.unwrap(), 1);
+    assert_eq!(repo.history.redo_count().await.unwrap(), 0);
+
+    // Verify forward state
+    let fetched = repo.nodes.get_node(inode_id).await.unwrap().unwrap();
+    if let Nodes::INode(n) = fetched {
+        assert_eq!(n.position.x, 150);
+        assert_eq!(n.position.y, 250);
+    } else {
+        panic!("Wrong node variant");
+    }
+
+    // 3. Undo event via HistoryRepository
+    let undone = repo.history.undo_event().await.unwrap();
+    assert!(undone.is_some());
+    let undone_rec = undone.unwrap();
+    assert_eq!(undone_rec.action_type, "entity_patch");
+
+    let patch_payload = SymmetricEntityPatch::from_value(undone_rec.payload).unwrap();
+    assert_eq!(patch_payload.id, inode_id);
+    // Apply reverse patch to DB
+    repo.nodes
+        .patch_entity(patch_payload.id.to_record_id(), &patch_payload.reverse)
+        .await
+        .unwrap();
+
+    // Verify undone state
+    let fetched_undone = repo.nodes.get_node(inode_id).await.unwrap().unwrap();
+    if let Nodes::INode(n) = fetched_undone {
+        assert_eq!(n.position.x, 10);
+        assert_eq!(n.position.y, 20);
+    } else {
+        panic!("Wrong node variant");
+    }
+
+    assert_eq!(repo.history.undo_count().await.unwrap(), 0);
+    assert_eq!(repo.history.redo_count().await.unwrap(), 1);
+
+    // 4. Redo event via HistoryRepository
+    let redone = repo.history.redo_event().await.unwrap();
+    assert!(redone.is_some());
+    let redone_rec = redone.unwrap();
+    assert_eq!(redone_rec.action_type, "entity_patch");
+
+    let redo_payload = SymmetricEntityPatch::from_value(redone_rec.payload).unwrap();
+    assert_eq!(redo_payload.id, inode_id);
+    // Apply forward patch to DB
+    repo.nodes
+        .patch_entity(redo_payload.id.to_record_id(), &redo_payload.forward)
+        .await
+        .unwrap();
+
+    // Verify redone state
+    let fetched_redone = repo.nodes.get_node(inode_id).await.unwrap().unwrap();
+    if let Nodes::INode(n) = fetched_redone {
+        assert_eq!(n.position.x, 150);
+        assert_eq!(n.position.y, 250);
+    } else {
+        panic!("Wrong node variant");
+    }
+
+    assert_eq!(repo.history.undo_count().await.unwrap(), 1);
+    assert_eq!(repo.history.redo_count().await.unwrap(), 0);
 }

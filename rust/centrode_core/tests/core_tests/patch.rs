@@ -320,29 +320,9 @@ async fn test_create_and_delete_entity_patches() {
     let in_id = TypedRecordId::new_v4(TableKind::INode);
     let out_id = TypedRecordId::new_v4(TableKind::INode);
 
-    let n1 = INode {
-        id: in_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("A"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 0, y: 0 },
-        size: Size { width: 10, height: 10 },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
+    let n1 = crate::common::make_inode(in_id, "A", 0, 0);
+    let n2 = crate::common::make_inode(out_id, "B", 100, 100);
+    repo.nodes.create_node(Nodes::INode(n2.clone())).await.unwrap();
 
     let rel_id = TypedRecordId::new_v4(TableKind::IRelation);
 
@@ -350,17 +330,7 @@ async fn test_create_and_delete_entity_patches() {
         key: rel_id,
         in_: in_id,
         out: out_id,
-        fields: IRelationFields {
-            verb: "link".to_string(),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            direction: RelationDirection::default(),
-            layer: "default".to_string(),
-            created_at: 0,
-            updated_at: 0,
-        },
+        fields: crate::common::make_relation_fields("link"),
     };
 
     // 1. Create node and relations via CreateNode patch
@@ -404,17 +374,53 @@ async fn test_create_and_delete_entity_patches() {
         .await
         .is_ok());
 
-    // 4. Delete node via DeleteNode patch
-    let delete_node_patch = EntityPatch::DeleteNode(Nodes::INode(n1.clone()), vec![]);
+    // 4. Delete node via DeleteNode patch with connected relations
+    let connected_relations = vec![rel.clone()];
+    let delete_node_patch = EntityPatch::DeleteNode(Nodes::INode(n1.clone()), connected_relations.clone());
     repo.nodes.patch_entity(n1.id.to_record_id(), &delete_node_patch)
         .await
         .unwrap();
+
+    // Verify node A is deleted and connected relation is cascadingly deleted
     assert!(repo
         .nodes
         .get_node(in_id)
         .await
         .unwrap()
         .is_none());
+    assert!(repo
+        .relations
+        .get_relation(rel_id)
+        .await
+        .is_err());
+    // Verify node B remains intact
+    assert!(repo
+        .nodes
+        .get_node(out_id)
+        .await
+        .unwrap()
+        .is_some());
+
+    // 5. Apply inverse CreateNode patch to restore node and relations
+    let restore_patch = EntityPatch::CreateNode(Nodes::INode(n1.clone()), connected_relations);
+    repo.nodes.patch_entity(n1.id.to_record_id(), &restore_patch)
+        .await
+        .unwrap();
+
+    assert!(repo
+        .nodes
+        .get_node(in_id)
+        .await
+        .unwrap()
+        .is_some());
+    assert!(repo
+        .relations
+        .get_relation(rel_id)
+        .await
+        .is_ok());
+    let restored_rel = repo.relations.get_relation(rel_id).await.unwrap();
+    assert_eq!(restored_rel.in_, in_id);
+    assert_eq!(restored_rel.out, out_id);
 }
 
 #[tokio::test]

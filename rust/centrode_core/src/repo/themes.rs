@@ -33,7 +33,11 @@ impl SurrealThemeRepository {
 
 impl ThemeRepository for SurrealThemeRepository {
     async fn get_theme(&self, key: String) -> Result<Option<MapTheme>> {
-        let record_id = RecordId::new(MapTheme::LABEL, key.clone());
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(&key) {
+            TypedRecordId::new(TableKind::MapTheme, u).to_record_id()
+        } else {
+            RecordId::new(MapTheme::LABEL, key.clone())
+        };
         let val: Option<Value> = self.db.select(record_id).await?;
         match val {
             Some(v) => {
@@ -64,7 +68,7 @@ impl ThemeRepository for SurrealThemeRepository {
         let record_id = theme.key.to_record_id();
         let _: Option<Value> = self
             .db
-            .create(record_id)
+            .upsert(record_id)
             .content(theme.fields.clone().into_value())
             .await?;
         Ok(theme)

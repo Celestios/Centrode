@@ -103,9 +103,12 @@ impl DaemonService {
         let new_map = self.create_map(new_name).await?;
         if EngineManager::is_initialized() {
             let src_db = EngineManager::map_db(map_id).await?;
-            let dst_db = EngineManager::open_map_db(&new_map.id, new_name).await?;
             let mut src_nodes = src_db.query("SELECT * FROM INode;").await?;
             let nodes: Vec<Value> = src_nodes.take(0)?;
+            let mut src_relations = src_db.query("SELECT * FROM IRelation;").await?;
+            let relations: Vec<Value> = src_relations.take(0)?;
+
+            let dst_db = EngineManager::open_map_db(&new_map.id, new_name).await?;
             for node in nodes {
                 if let Value::Object(obj) = node {
                     if let Some(id) = obj.get("id") {
@@ -113,12 +116,16 @@ impl DaemonService {
                     }
                 }
             }
-            let mut src_relations = src_db.query("SELECT * FROM IRelation;").await?;
-            let relations: Vec<Value> = src_relations.take(0)?;
             for rel in relations {
-                if let Value::Object(obj) = rel {
-                    if let Some(id) = obj.get("id") {
-                        dst_db.query("CREATE $id CONTENT $data;").bind(("id", id.clone())).bind(("data", Value::Object(obj))).await?;
+                if let Value::Object(mut obj) = rel {
+                    if let (Some(id), Some(in_node), Some(out_node)) = (obj.get("id").cloned(), obj.remove("in"), obj.remove("out")) {
+                        dst_db
+                            .query("RELATE $in->$id->$out CONTENT $data;")
+                            .bind(("in", in_node))
+                            .bind(("id", id))
+                            .bind(("out", out_node))
+                            .bind(("data", Value::Object(obj)))
+                            .await?;
                     }
                 }
             }

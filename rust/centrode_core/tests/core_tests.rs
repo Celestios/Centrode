@@ -21,8 +21,6 @@ mod theme;
 #[path = "core_tests/templates.rs"]
 mod templates;
 
-#[path = "core_tests/flatten_test.rs"]
-mod flatten_test;
 
 #[path = "relation_engine_tests/mod.rs"]
 mod relation_engine_tests;

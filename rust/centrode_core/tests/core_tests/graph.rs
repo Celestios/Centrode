@@ -350,79 +350,65 @@ async fn test_significance_calculation() {
     let repo = setup_test_repo().await;
 
     let center_id = TypedRecordId::new_v4(TableKind::INode);
-    let n1_id = TypedRecordId::new_v4(TableKind::INode);
+    let target_id = TypedRecordId::new_v4(TableKind::INode);
+    let leaf1_id = TypedRecordId::new_v4(TableKind::INode);
+    let leaf2_id = TypedRecordId::new_v4(TableKind::INode);
 
-    let center_node = INode {
-        id: center_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("Center"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 0, y: 0 },
-        size: Size { width: 10, height: 10 },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
-
-    let node1 = INode {
-        id: n1_id,
-        parent_container_id: None,
-        content: Content::from_plain_text("Neighbor 1"),
-        style: None,
-        resolved_style: None,
-        layout: None,
-        resolved_layout: None,
-        layer: "default".to_string(),
-        position: Coordinates { x: 10, y: 10 },
-        size: Size { width: 10, height: 10 },
-        line_count: 1,
-        expandable: true,
-        is_expanded: false,
-        locked: false,
-        tags: vec![],
-        aliases: vec![],
-        comments: vec![],
-        attachments: vec![],
-        significance: 0,
-        created_at: 0,
-        updated_at: 0,
-    };
+    let center_node = crate::common::make_inode(center_id, "Center", 0, 0);
+    let target_node = crate::common::make_inode(target_id, "Target", 50, 50);
+    let leaf1 = crate::common::make_inode(leaf1_id, "Leaf 1", 100, 50);
+    let leaf2 = crate::common::make_inode(leaf2_id, "Leaf 2", 100, 100);
 
     repo.nodes.create_node(Nodes::INode(center_node)).await.unwrap();
-    repo.nodes.create_node(Nodes::INode(node1)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(target_node)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(leaf1)).await.unwrap();
+    repo.nodes.create_node(Nodes::INode(leaf2)).await.unwrap();
 
-    let rel1 = IRelation {
+    // Verify initial significance is 0
+    let initial_node = repo.nodes.get_node(target_id).await.unwrap().unwrap();
+    if let Nodes::INode(n) = initial_node {
+        assert_eq!(n.significance, 0);
+    } else {
+        panic!("Expected INode");
+    }
+
+    // Connect center -> target
+    let rel_center_target = IRelation {
         key: TypedRecordId::new_v4(TableKind::IRelation),
         in_: center_id,
-        out: n1_id,
-        fields: IRelationFields {
-            verb: "connects".to_string(),
-            style: None,
-            resolved_style: None,
-            layout: None,
-            resolved_layout: None,
-            direction: RelationDirection::default(),
-            layer: "default".to_string(),
-            created_at: 0,
-            updated_at: 0,
-        },
+        out: target_id,
+        fields: crate::common::make_relation_fields("connects"),
     };
+    repo.relations.create_relation(rel_center_target).await.unwrap();
 
-    repo.relations.create_relation(rel1).await.unwrap();
+    // Connect target -> leaf1 and target -> leaf2 (target has >= 2 outgoing connections)
+    let rel_target_leaf1 = IRelation {
+        key: TypedRecordId::new_v4(TableKind::IRelation),
+        in_: target_id,
+        out: leaf1_id,
+        fields: crate::common::make_relation_fields("connects"),
+    };
+    repo.relations.create_relation(rel_target_leaf1).await.unwrap();
 
-    assert_significance_eventually(&repo, "INode", &n1_id.key.to_string(), 0).await;
+    let rel_target_leaf2 = IRelation {
+        key: TypedRecordId::new_v4(TableKind::IRelation),
+        in_: target_id,
+        out: leaf2_id,
+        fields: crate::common::make_relation_fields("connects"),
+    };
+    repo.relations.create_relation(rel_target_leaf2).await.unwrap();
+
+    repo.layout.recalculate_significance_area(center_id).await.unwrap();
+
+    assert_significance_eventually(&repo, "INode", &target_id.key.to_string(), 1).await;
+
+    let updated_node = repo.nodes.get_node(target_id).await.unwrap().unwrap();
+    if let Nodes::INode(n) = updated_node {
+        assert!(n.significance >= 1);
+        assert_eq!(n.significance, 1);
+    } else {
+        panic!("Expected INode");
+    }
 }
 
 #[tokio::test]

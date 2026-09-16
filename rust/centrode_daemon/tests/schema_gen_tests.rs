@@ -5,7 +5,7 @@ use surrealdb::engine::local::Mem;
 use centrode_daemon::schema_gen::generate_and_update_schema;
 
 #[tokio::test]
-async fn test_schema_gen_and_execution() {
+async fn test_schema_gen_and_execution() -> anyhow::Result<()> {
     let base_template = r#"
 DEFINE TABLE OVERWRITE INode SCHEMAFULL;
 DEFINE TABLE OVERWRITE TaskNode SCHEMAFULL;
@@ -30,5 +30,7 @@ DEFINE FIELD OVERWRITE out ON TABLE IRelation TYPE record<INode>;
     // Verify SurrealDB accepts the generated schema directly
     let db = Surreal::new::<Mem>(()).await.expect("Failed to init mem db");
     db.use_ns("test").use_db("test").await.expect("Failed to use db");
-    db.query(content).await.expect("SurrealDB failed to execute generated schema");
+    db.query(content).await?.check()?;
+
+    Ok(())
 }
