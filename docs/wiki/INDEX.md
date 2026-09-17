@@ -35,6 +35,7 @@
 | [Store & Sync](modules/graph/store.md) | GraphApi sub-interfaces, command handlers, sync engine, 12 store modules |
 | [Presentation Layer](modules/graph/presentation.md) | View state, strategies, viewport, style resolution |
 | [Workspace Module](modules/workspace/README.md) | Workspace hub, map/project management |
+| [Settings Module](modules/settings/README.md) | Dual-pod Smart Glass settings modal, theme, shaders, canvas controls |
 | [Shared Module](modules/shared/README.md) | Shared widgets, glass panel, common elements |
 | [Glass Panel](modules/shared/glass-panel.md) | Glassmorphic rendering, GLSL shader integration |
 | [Infrastructure Module](modules/infrastructure/README.md) | Telemetry, logging, error handling |
@@ -100,4 +101,5 @@
 | [Workspace Hub Architecture](../artifacts/workspace_hub/design_workspace_hub.md) | Project and map management hub design |
 | [Logical Gates & Data Flows](../artifacts/logical_data_flows/design_logical_data_flows.md) | Reactive dataflow engine, transfer functions, and visual gates architecture |
 | [Code Health Reports](../artifacts/code_health_reports/code_health_audit.md) | Subsystem SOLID and architecture audit logs |
+| [Settings Options Inventory](../artifacts/settings_options_inventory/design_settings_options.md) | Configurable settings catalog, domain constants, and roadmap |
 
