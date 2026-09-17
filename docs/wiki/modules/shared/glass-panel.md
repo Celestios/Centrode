@@ -36,6 +36,14 @@ See [Shader documentation](../../design/shaders.md) for the full breakdown.
 
 ---
 
+## Shadow and Corner Geometry
+
+`GlassPanel` uses a `ShapeDecoration` with `ContinuousRectangleBorder` (squircle) for its outer shadow casting, specular border highlight, face fill, and backdrop clipping.
+- **Continuous Curvature**: Outer multi-layered shadows conform directly to the continuous squircle curve without clipping or corner drop-off.
+- **Asymmetric Radii**: Supports `customBorderRadius: BorderRadiusGeometry?` to independently round specific corners (e.g. `topRight` and `bottomRight` for docked sidebars) while maintaining smooth squircle bezier continuity.
+
+---
+
 ## Usage
 
 ```dart

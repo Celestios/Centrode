@@ -1521,7 +1521,7 @@ workspace_components:
     description: "Fixed-width left sidebar with rounded right corners and Material background."
     styles:
       width: 200
-      borderRadius: "{ topRight: 16, bottomRight: 16 }"
+      borderRadius: "{ topRight: 48, bottomRight: 48 }"
       borderRight: dividerColor 0.2
 
   - name: MainContentArea
