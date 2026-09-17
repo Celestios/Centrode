@@ -62,6 +62,9 @@ class NodeRenderState extends ChangeNotifier
   /// Port currently hovered on canvas (for port highlight).
   final ValueNotifier<Port?> hoveredPortNotifier = ValueNotifier(null);
 
+  /// Current screen bounds of the floating context/format toolbar, if visible.
+  final ValueNotifier<Rect?> floatingToolbarRectNotifier = ValueNotifier(null);
+
   /// Map of currently active visual view states.
   final Map<RawUuid, NodeViewState> viewStates = {};
 
@@ -447,6 +450,7 @@ class NodeRenderState extends ChangeNotifier
     hoveredNodeMetadataNotifier.dispose();
     hoveredNodeNotifier.dispose();
     hoveredPortNotifier.dispose();
+    floatingToolbarRectNotifier.dispose();
 
     editorState.dispose();
     selectionState.dispose();

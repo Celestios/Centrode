@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
@@ -232,8 +233,6 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final onSurface = theme.colorScheme.onSurface;
-    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     final views = <SegmentItem<String>>[
       (icon: Icons.bubble_chart_outlined, label: 'Canvas', mode: 'canvas', tooltip: 'Standard Knowledge Graph Canvas', accentBadge: null),
@@ -249,89 +248,51 @@ class ExtraRibbonMenuWidget extends StatelessWidget {
       width: iconButtonPreset.width,
       height: iconButtonPreset.height,
       padding: EdgeInsets.zero,
-      child: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        icon: Icon(
-          Icons.grid_view_rounded,
-          color: primaryColor,
-          size: UiIconSize.standard,
-        ),
-        tooltip: 'Extra Ribbon Options',
-        offset: const Offset(0, -180),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(UiRadius.panel),
-        ),
-        color: theme.cardColor,
-        onSelected: (value) {
-          if (value.startsWith('view_')) {
-            activeSession.currentViewNotifier.value = value.substring(5);
-          } else if (value.startsWith('label_')) {
-            activeSession.relationLabelModeNotifier.value = value.substring(6);
-          }
-        },
-        itemBuilder: (context) {
-          final currentView = activeSession.currentViewNotifier.value;
-          final currentLabelMode = activeSession.relationLabelModeNotifier.value;
+      child: Builder(
+        builder: (btnContext) => MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              final renderBox = btnContext.findRenderObject() as RenderBox;
+              final targetRect =
+                  renderBox.localToGlobal(Offset.zero) & renderBox.size;
 
-          return [
-            const PopupMenuItem<String>(
-              enabled: false,
-              child: Text(
-                'VIEWS',
-                style: TextStyle(
-                  fontSize: UiFont.micro,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                ),
+              CentrodeContextMenu.showAt(
+                context: btnContext,
+                targetRect: targetRect,
+                items: [
+                  const CentrodeMenuItem.header('VIEWS'),
+                  for (final view in views)
+                    CentrodeMenuItem.action(
+                      label: view.label,
+                      leadingIcon: view.icon,
+                      onTap: () {
+                        activeSession.currentViewNotifier.value = view.mode;
+                      },
+                    ),
+                  const CentrodeMenuItem.divider(),
+                  const CentrodeMenuItem.header('RELATION LABELS'),
+                  for (final mode in _labelModes)
+                    CentrodeMenuItem.action(
+                      label: _labelDisplayTitles[mode]!,
+                      leadingIcon: _labelIcons[mode]!,
+                      onTap: () {
+                        activeSession.relationLabelModeNotifier.value = mode;
+                      },
+                    ),
+                ],
+              );
+            },
+            child: Center(
+              child: Icon(
+                Icons.grid_view_rounded,
+                color: primaryColor,
+                size: UiIconSize.standard,
               ),
             ),
-            for (final view in views)
-              PopupMenuItem<String>(
-                value: 'view_${view.mode}',
-                child: Row(
-                  children: [
-                    Icon(
-                      view.icon,
-                      size: UiIconSize.dense,
-                      color: view.mode == currentView ? primaryColor : textColor,
-                    ),
-                    const SizedBox(width: UiSpacing.standard),
-                    Text(
-                      view.label,
-                      style: TextStyle(
-                        fontSize: UiFont.standard,
-                        fontWeight: view.mode == currentView ? FontWeight.bold : FontWeight.normal,
-                        color: view.mode == currentView ? primaryColor : textColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const PopupMenuDivider(),
-            const PopupMenuItem<String>(
-              enabled: false,
-              child: Text(
-                'RELATION LABELS',
-                style: TextStyle(
-                  fontSize: UiFont.micro,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ),
-            for (final mode in _labelModes)
-              PopupMenuItem<String>(
-                value: 'label_$mode',
-                child: Row(
-                  children: [
-                    Icon(_labelIcons[mode]!, size: UiIconSize.dense, color: currentLabelMode == mode ? primaryColor : textColor),
-                    const SizedBox(width: UiSpacing.standard),
-                    Text(_labelDisplayTitles[mode]!, style: TextStyle(fontSize: UiFont.standard, color: currentLabelMode == mode ? primaryColor : textColor)),
-                  ],
-                ),
-              ),
-          ];
-        },
+          ),
+        ),
       ),
     );
   }

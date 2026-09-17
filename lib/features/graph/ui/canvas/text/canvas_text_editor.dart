@@ -274,20 +274,45 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     final hasSelection =
         !selection.isCollapsed && selection.start >= 0 && selection.end >= 0;
 
+    Rect? editorRect;
+    final renderBox = context.findRenderObject();
+    if (renderBox is RenderBox && renderBox.hasSize) {
+      editorRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
+    }
+
     _contextMenuEntry = ContextMenuOverlay.show(
       context: context,
       position: tapPosition,
+      targetRect: editorRect,
+      avoidRect: _renderState.floatingToolbarRectNotifier.value,
       items: [
-        ContextMenuItem(
+        ContextMenuItem.action(
+          label: 'Cut',
+          leadingIcon: Icons.content_cut_rounded,
+          shortcut: 'Ctrl+X',
+          visible: hasSelection,
+          onTap: () {
+            final markdown = _controller.selectedTextAsMarkdown();
+            Clipboard.setData(ClipboardData(text: markdown));
+            final text = _controller.text;
+            final newText = text.replaceRange(selection.start, selection.end, '');
+            _controller.text = newText;
+            _controller.selection = TextSelection.collapsed(offset: selection.start);
+          },
+        ),
+        ContextMenuItem.action(
           label: 'Copy',
+          leadingIcon: Icons.copy_rounded,
+          shortcut: 'Ctrl+C',
           visible: hasSelection,
           onTap: () {
             final markdown = _controller.selectedTextAsMarkdown();
             Clipboard.setData(ClipboardData(text: markdown));
           },
         ),
-        ContextMenuItem(
+        ContextMenuItem.action(
           label: 'Copy as Plain Text',
+          leadingIcon: Icons.description_outlined,
           visible: hasSelection,
           onTap: () {
             final text = _controller.text;
@@ -295,13 +320,27 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
             Clipboard.setData(ClipboardData(text: selectedText));
           },
         ),
-        ContextMenuItem(
+        ContextMenuItem.action(
           label: 'Paste',
+          leadingIcon: Icons.paste_rounded,
+          shortcut: 'Ctrl+V',
           onTap: () async {
             final data = await Clipboard.getData('text/plain');
             if (data?.text != null && data!.text!.isNotEmpty) {
               _controller.insertMarkdownSpans(data.text!);
             }
+          },
+        ),
+        const ContextMenuItem.divider(),
+        ContextMenuItem.action(
+          label: 'Select All',
+          leadingIcon: Icons.select_all_rounded,
+          shortcut: 'Ctrl+A',
+          onTap: () {
+            _controller.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: _controller.text.length,
+            );
           },
         ),
       ],

@@ -26,6 +26,9 @@ class CanvasContextMenu {
   static void show({
     required BuildContext context,
     required Offset position,
+    Rect? targetRect,
+    Rect? avoidRect,
+    List<Rect> avoidRects = const [],
     required GraphDataQueryController queryController,
     required CommandQueueProcessor commandProcessor,
     required NodeRenderState renderState,
@@ -37,10 +40,15 @@ class CanvasContextMenu {
     _entry = ContextMenuOverlay.show(
       context: context,
       position: position,
+      targetRect: targetRect,
+      avoidRect: avoidRect,
+      avoidRects: avoidRects,
       onDismissed: () => _entry = null,
       items: [
-        ContextMenuItem(
+        ContextMenuItem.action(
           label: 'Copy',
+          leadingIcon: Icons.copy_rounded,
+          shortcut: 'Ctrl+C',
           onTap: () {
             final selectedIds = renderState.selectedEntities.toList();
             if (selectedIds.isNotEmpty) {
@@ -48,8 +56,10 @@ class CanvasContextMenu {
             }
           },
         ),
-        ContextMenuItem(
+        ContextMenuItem.action(
           label: 'Cut',
+          leadingIcon: Icons.content_cut_rounded,
+          shortcut: 'Ctrl+X',
           onTap: () {
             final selectedIds = renderState.selectedEntities.toList();
             if (selectedIds.isNotEmpty) {
@@ -58,8 +68,10 @@ class CanvasContextMenu {
             }
           },
         ),
-        ContextMenuItem(
+        ContextMenuItem.action(
           label: 'Paste',
+          leadingIcon: Icons.paste_rounded,
+          shortcut: 'Ctrl+V',
           onTap: () async {
             if (copyBuffer.hasData) {
               final transform = viewportController.transformController.value;
@@ -96,9 +108,12 @@ class CanvasContextMenu {
           },
         ),
         if (renderState.selectedEntities.isNotEmpty) ...[
+          const ContextMenuItem.divider(),
           if (renderState.selectedEntities.length > 1)
-            ContextMenuItem(
-              label: 'Group (Ctrl+G)',
+            ContextMenuItem.action(
+              label: 'Group',
+              leadingIcon: Icons.workspaces_outlined,
+              shortcut: 'Ctrl+G',
               onTap: () {
                 final selectedIds = renderState.selectedEntities.toList();
                 commandProcessor.groupNodes(selectedIds);
@@ -109,30 +124,41 @@ class CanvasContextMenu {
             final node = queryController.nodeLookup[id];
             return node != null && node.groupId != null;
           }))
-            ContextMenuItem(
-              label: 'Ungroup (Ctrl+Shift+G)',
+            ContextMenuItem.action(
+              label: 'Ungroup',
+              leadingIcon: Icons.grid_view_rounded,
+              shortcut: 'Ctrl+Shift+G',
               onTap: () {
                 final selectedIds = renderState.selectedEntities.toList();
                 commandProcessor.ungroupNodes(selectedIds);
                 renderState.selectEntities(selectedIds);
               },
             ),
-          ContextMenuItem(
+          ContextMenuItem.action(
             label: 'Group in Frame',
+            leadingIcon: Icons.crop_free_rounded,
             onTap: () {
               final selectedIds = renderState.selectedEntities.toList();
               final frameId = commandProcessor.createFrameFromSelection(selectedIds);
               renderState.selectEntities([frameId]);
             },
           ),
-          ContextMenuItem(
+          ContextMenuItem.action(
             label: 'Convert to Container',
+            leadingIcon: Icons.folder_outlined,
             onTap: () {
               final selectedIds = renderState.selectedEntities.toList();
               for (final id in selectedIds) {
                 commandProcessor.convertNodeToContainer(id);
               }
             },
+          ),
+          const ContextMenuItem.divider(),
+          ContextMenuItem.destructive(
+            label: 'Delete Node(s)',
+            leadingIcon: Icons.delete_outline_rounded,
+            shortcut: 'Del',
+            onTap: renderState.deleteSelectedEntities,
           ),
           if (renderState.selectedEntities.length == 1 &&
               queryController.nodeLookup[renderState.selectedEntities.first] is ContainerUiNode)
@@ -237,8 +263,9 @@ class CanvasContextMenu {
             ),
           ],
         ] else ...[
-          ContextMenuItem(
+          ContextMenuItem.action(
             label: 'New Node',
+            leadingIcon: Icons.add_circle_outline_rounded,
             onTap: () {
               final transform = viewportController.transformController.value;
               final canvasPos = transform.determinant() == 0.0
@@ -259,8 +286,9 @@ class CanvasContextMenu {
               renderState.selectEntities([newId]);
             },
           ),
-          ContextMenuItem(
+          ContextMenuItem.action(
             label: 'New Frame',
+            leadingIcon: Icons.crop_free_rounded,
             onTap: () {
               final transform = viewportController.transformController.value;
               final canvasPos = transform.determinant() == 0.0
@@ -276,8 +304,9 @@ class CanvasContextMenu {
               renderState.selectEntities([frameId]);
             },
           ),
-          ContextMenuItem(
+          ContextMenuItem.action(
             label: 'New Media Node (File Picker)...',
+            leadingIcon: Icons.perm_media_outlined,
             onTap: () async {
               final transform = viewportController.transformController.value;
               final canvasPos = transform.determinant() == 0.0
@@ -365,6 +394,15 @@ class CanvasContextMenu {
                 }
               }
               renderState.selectEntities([newId]);
+            },
+          ),
+          const ContextMenuItem.divider(),
+          ContextMenuItem.action(
+            label: 'Select All',
+            leadingIcon: Icons.select_all_rounded,
+            shortcut: 'Ctrl+A',
+            onTap: () {
+              renderState.selectEntities(queryController.nodeLookup.keys.toList());
             },
           ),
         ],

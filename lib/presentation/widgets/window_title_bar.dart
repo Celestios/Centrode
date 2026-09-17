@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'hover_scale_button.dart';
 import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import '../../features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'search/search_command_palette.dart';
@@ -66,130 +67,101 @@ class _WorkspaceWindowTitleBarState extends State<WorkspaceWindowTitleBar> {
                     ),
                     const SizedBox(width: UiSpacing.tight),
                     HoverExpandableMenuBar(
-                      menuBuilder: (context, menuButtonStyle) {
-                        return [
-                          SubmenuButton(
-                            style: menuButtonStyle,
-                            menuChildren: [
-                              MenuItemButton(
-                                onPressed: () {
-                                  session.commandProcessor.flushSync();
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.save_outlined,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('Force Sync Save'),
-                              ),
-                            ],
-                            child: const Text('File', style: TextStyle(fontSize: UiFont.standard)),
-                          ),
-                          SubmenuButton(
-                            style: menuButtonStyle,
-                            menuChildren: [
-                              MenuItemButton(
-                                onPressed: () {
-                                  session.showLeftPanel.value =
-                                      !session.showLeftPanel.value;
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.menu_open_rounded,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('Toggle Left Sidebar'),
-                              ),
-                              MenuItemButton(
-                                onPressed: () {
-                                  session.showRightPanel.value =
-                                      !session.showRightPanel.value;
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.chrome_reader_mode_outlined,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('Toggle Right Inspector'),
-                              ),
-                              MenuItemButton(
-                                onPressed: () {
-                                  session.showBottomPanel.value =
-                                      !session.showBottomPanel.value;
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.call_to_action_outlined,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('Toggle Status Bar'),
-                              ),
-                            ],
-                            child: const Text('View', style: TextStyle(fontSize: UiFont.standard)),
-                          ),
-                          SubmenuButton(
-                            style: menuButtonStyle,
-                            menuChildren: [
-                              MenuItemButton(
-                                onPressed: () async {
-                                  final isMaximized =
-                                      await windowManager.isMaximized();
-                                  if (isMaximized) {
-                                    await windowManager.unmaximize();
-                                  } else {
-                                    await windowManager.maximize();
-                                  }
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.crop_square_rounded,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('Toggle Maximize'),
-                              ),
-                              MenuItemButton(
-                                onPressed: () async {
-                                  await windowManager.minimize();
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.minimize_rounded,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('Minimize Window'),
-                              ),
-                            ],
-                            child: const Text(
-                              'Window',
-                              style: TextStyle(fontSize: UiFont.standard),
+                      sections: [
+                        CentrodeMenuSection(
+                          title: 'File',
+                          items: [
+                            CentrodeMenuItem.action(
+                              label: 'Force Sync Save',
+                              leadingIcon: Icons.save_outlined,
+                              shortcut: 'Ctrl+S',
+                              onTap: () {
+                                session.commandProcessor.flushSync();
+                              },
                             ),
-                          ),
-                          SubmenuButton(
-                            style: menuButtonStyle,
-                            menuChildren: [
-                              MenuItemButton(
-                                onPressed: () {
-                                  showAboutDialog(
-                                    context: context,
-                                    applicationName: 'Centrode',
-                                    applicationVersion: '1.0.0',
-                                    applicationIcon: Icon(
-                                      Icons.hub_outlined,
-                                      color: theme.colorScheme.primary,
-                                      size: 36,
+                          ],
+                        ),
+                        CentrodeMenuSection(
+                          title: 'View',
+                          items: [
+                            CentrodeMenuItem.action(
+                              label: 'Toggle Left Sidebar',
+                              leadingIcon: Icons.menu_open_rounded,
+                              onTap: () {
+                                session.showLeftPanel.value =
+                                    !session.showLeftPanel.value;
+                              },
+                            ),
+                            CentrodeMenuItem.action(
+                              label: 'Toggle Right Inspector',
+                              leadingIcon: Icons.chrome_reader_mode_outlined,
+                              onTap: () {
+                                session.showRightPanel.value =
+                                    !session.showRightPanel.value;
+                              },
+                            ),
+                            CentrodeMenuItem.action(
+                              label: 'Toggle Status Bar',
+                              leadingIcon: Icons.call_to_action_outlined,
+                              onTap: () {
+                                session.showBottomPanel.value =
+                                    !session.showBottomPanel.value;
+                              },
+                            ),
+                          ],
+                        ),
+                        CentrodeMenuSection(
+                          title: 'Window',
+                          items: [
+                            CentrodeMenuItem.action(
+                              label: 'Toggle Maximize',
+                              leadingIcon: Icons.crop_square_rounded,
+                              onTap: () async {
+                                final isMaximized =
+                                    await windowManager.isMaximized();
+                                if (isMaximized) {
+                                  await windowManager.unmaximize();
+                                } else {
+                                  await windowManager.maximize();
+                                }
+                              },
+                            ),
+                            CentrodeMenuItem.action(
+                              label: 'Minimize Window',
+                              leadingIcon: Icons.minimize_rounded,
+                              onTap: () async {
+                                await windowManager.minimize();
+                              },
+                            ),
+                          ],
+                        ),
+                        CentrodeMenuSection(
+                          title: 'Help',
+                          items: [
+                            CentrodeMenuItem.action(
+                              label: 'About Centrode',
+                              leadingIcon: Icons.info_outline,
+                              onTap: () {
+                                showAboutDialog(
+                                  context: context,
+                                  applicationName: 'Centrode',
+                                  applicationVersion: '1.0.0',
+                                  applicationIcon: Icon(
+                                    Icons.hub_outlined,
+                                    color: theme.colorScheme.primary,
+                                    size: 36,
+                                  ),
+                                  children: const [
+                                    Text(
+                                      'Centrode is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
                                     ),
-                                    children: const [
-                                      Text(
-                                        'Centrode is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
-                                      ),
-                                    ],
-                                  );
-                                },
-                                leadingIcon: const Icon(
-                                  Icons.info_outline,
-                                  size: UiIconSize.dense,
-                                ),
-                                child: const Text('About Centrode'),
-                              ),
-                            ],
-                            child: const Text('Help', style: TextStyle(fontSize: UiFont.standard)),
-                          ),
-                        ];
-                      },
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),

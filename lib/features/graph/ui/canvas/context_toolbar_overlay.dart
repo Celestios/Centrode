@@ -121,12 +121,22 @@ class ContextToolbarOverlay extends StatelessWidget {
       listenable: Listenable.merge(listenables),
       builder: (context, _) {
         if (interactionController.state.value is RelationTipDragging) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (renderState.floatingToolbarRectNotifier.value != null) {
+              renderState.floatingToolbarRectNotifier.value = null;
+            }
+          });
           return const SizedBox.shrink();
         }
 
         final activeEditId = renderState.activeEditId;
         if (activeEditId != null &&
             queryController.relationLookup.containsKey(activeEditId)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (renderState.floatingToolbarRectNotifier.value != null) {
+              renderState.floatingToolbarRectNotifier.value = null;
+            }
+          });
           return const SizedBox.shrink();
         }
 
@@ -247,6 +257,18 @@ class ContextToolbarOverlay extends StatelessWidget {
         screenPosition.dx.clamp(leftThreshold, maxX).toDouble();
     final double toolbarTop =
         screenPosition.dy.clamp(topThreshold, maxY).toDouble();
+
+    final toolbarRect = Rect.fromLTWH(
+      toolbarLeft,
+      toolbarTop,
+      toolbarWidth,
+      toolbarHeight,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (renderState.floatingToolbarRectNotifier.value != toolbarRect) {
+        renderState.floatingToolbarRectNotifier.value = toolbarRect;
+      }
+    });
 
     return Positioned(
       left: toolbarLeft,
@@ -415,9 +437,26 @@ class ContextToolbarOverlay extends StatelessWidget {
       final nodeScreenRect = Rect.fromPoints(tl, br);
       final screenRect = Rect.fromLTWH(0, 0, screenWidth, screenHeight);
       if (!screenRect.overlaps(nodeScreenRect)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (renderState.floatingToolbarRectNotifier.value != null) {
+            renderState.floatingToolbarRectNotifier.value = null;
+          }
+        });
         return const SizedBox.shrink();
       }
     }
+
+    final toolbarRect = Rect.fromLTWH(
+      toolbarLeft,
+      toolbarTop,
+      visualToolbarWidth,
+      toolbarHeight,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (renderState.floatingToolbarRectNotifier.value != toolbarRect) {
+        renderState.floatingToolbarRectNotifier.value = toolbarRect;
+      }
+    });
 
     return Positioned(
       left: toolbarLeft,

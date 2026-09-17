@@ -9,6 +9,7 @@ import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
 import '../../engine/interaction_engine.dart';
+import '../../engine/hit_test_resolver.dart';
 import '../../engine/drawing_interceptor.dart';
 import 'painters/active_drawing_painter.dart';
 import 'package:centrode/features/graph/engine/interaction_facade.dart';
@@ -313,9 +314,46 @@ class _GraphCanvasState extends State<GraphCanvas>
                         if (_rightClickDownScreenPos != null &&
                             !_isRightClickDrag &&
                             renderState.activeEditId == null) {
+                          final transform = viewportController.transformController.value;
+                          final canvasPos = transform.determinant() == 0.0
+                              ? Offset.zero
+                              : MatrixUtils.transformPoint(
+                                  Matrix4.inverted(transform),
+                                  _rightClickDownScreenPos!,
+                                );
+                          final hitResult = HitTestResolver().resolve(
+                            canvasPos,
+                            interactionController.environment,
+                            false,
+                          );
+
+                          Rect? targetNodeRect;
+
+                          if (hitResult.hitNodeId != null) {
+                            final hitId = hitResult.hitNodeId!;
+                            if (!renderState.selectedEntities.contains(hitId)) {
+                              renderState.selectEntities([hitId]);
+                            }
+                            final node = queryController.nodeLookup[hitId];
+                            final vs = renderState.viewStates[hitId];
+                            final worldPos = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ??
+                                (vs?.positionNotifier.value ?? Offset.zero);
+                            final size = Size(
+                              vs?.dragWidthNotifier.value ?? vs?.sizeNotifier.value.width ?? node?.size.width ?? 120.0,
+                              vs?.sizeNotifier.value.height ?? node?.size.height ?? 60.0,
+                            );
+                            final tl = MatrixUtils.transformPoint(transform, worldPos);
+                            final br = MatrixUtils.transformPoint(transform, worldPos + Offset(size.width, size.height));
+                            targetNodeRect = Rect.fromPoints(tl, br);
+                          } else {
+                            renderState.selectEntity(null);
+                          }
+
                           CanvasContextMenu.show(
                             context: context,
                             position: _rightClickDownScreenPos!,
+                            targetRect: targetNodeRect,
+                            avoidRect: renderState.floatingToolbarRectNotifier.value,
                             queryController: queryController,
                             commandProcessor: commandProcessor,
                             renderState: renderState,

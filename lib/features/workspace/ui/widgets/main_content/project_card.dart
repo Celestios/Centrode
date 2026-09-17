@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 
 class ProjectCard extends StatefulWidget {
   final String name;
@@ -219,55 +220,61 @@ class _ProjectCardState extends State<ProjectCard> {
                         ],
                       ),
                     ),
-                    PopupMenuButton<String>(
-                      popUpAnimationStyle: AnimationStyle.noAnimation,
-                      tooltip: '',
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          widget.onDelete?.call();
-                        } else if (value == 'share' || value == 'metadata') {
-                          // placeholders
-                        }
-                      },
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(UiRadius.card),
+                    Builder(
+                      builder: (btnContext) => GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          final renderBox =
+                              btnContext.findRenderObject() as RenderBox;
+                          final targetRect =
+                              renderBox.localToGlobal(Offset.zero) &
+                                  renderBox.size;
+                          CentrodeContextMenu.showAt(
+                            context: btnContext,
+                            targetRect: targetRect,
+                            items: [
+                              CentrodeMenuItem.action(
+                                label: 'Open',
+                                leadingIcon: Icons.open_in_new_rounded,
+                                onTap: () => widget.onTap?.call(),
+                              ),
+                              CentrodeMenuItem.action(
+                                label: 'Share',
+                                leadingIcon: Icons.share_outlined,
+                                onTap: () {},
+                              ),
+                              CentrodeMenuItem.action(
+                                label: 'View metadata',
+                                leadingIcon: Icons.info_outline_rounded,
+                                onTap: () {},
+                              ),
+                              const CentrodeMenuItem.divider(),
+                              CentrodeMenuItem.destructive(
+                                label: 'Delete',
+                                leadingIcon: Icons.delete_outline_rounded,
+                                shortcut: 'Del',
+                                onTap: () => widget.onDelete?.call(),
+                              ),
+                            ],
+                          );
+                        },
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: _isHovered
+                                ? theme.colorScheme.primary
+                                    .withValues(alpha: 0.1)
+                                : theme.dividerColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.more_horiz,
+                            size: UiIconSize.dense,
+                            color: theme.textTheme.bodySmall?.color,
+                          ),
+                        ),
                       ),
-                      color: theme.cardColor,
-                      elevation: 4,
-                      icon: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: _isHovered
-                              ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                              : theme.dividerColor.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.more_horiz,
-                          size: UiIconSize.dense,
-                          color: theme.textTheme.bodySmall?.color,
-                        ),
-                      ),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          height: UiControlSize.standard,
-                          child: Text('Delete', style: TextStyle(fontSize: 13)),
-                        ),
-                        const PopupMenuItem(
-                          value: 'share',
-                          height: UiControlSize.standard,
-                          child: Text('Share', style: TextStyle(fontSize: 13)),
-                        ),
-                        const PopupMenuItem(
-                          value: 'metadata',
-                          height: UiControlSize.standard,
-                          child: Text('View metadata', style: TextStyle(fontSize: 13)),
-                        ),
-                      ],
                     ),
                   ],
                 ),
