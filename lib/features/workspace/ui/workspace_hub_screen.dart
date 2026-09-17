@@ -14,10 +14,9 @@ class WorkspaceHubScreen extends StatelessWidget {
     final isAndroid = !kIsWeb && Platform.isAndroid;
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : theme.scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       drawer: isAndroid ? const Drawer(child: SafeArea(child: LeftPanel())) : null,
       body: Stack(
         children: [
@@ -45,10 +44,22 @@ class WorkspaceHubScreen extends StatelessWidget {
     if (isAndroid) {
       return const MainContentArea();
     }
-    return const Row(
+    return const Stack(
       children: [
-        LeftPanel(),
-        Expanded(child: MainContentArea()),
+        Positioned(
+          top: 0,
+          bottom: 0,
+          left: WorkspaceTokens.leftPanelWidth,
+          right: 0,
+          child: MainContentArea(),
+        ),
+        Positioned(
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: WorkspaceTokens.leftPanelWidth,
+          child: LeftPanel(),
+        ),
       ],
     );
   }

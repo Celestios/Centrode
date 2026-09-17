@@ -23,6 +23,7 @@ import 'package:centrode/features/graph/ui/widgets/drawing_manager/global_drawin
 import 'package:centrode/features/graph/ui/widgets/relation_manager/global_relations_manager_panel.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import 'package:centrode/presentation/widgets/search/search_command_palette.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import 'package:centrode/presentation/theme/app_theme.dart';
@@ -105,55 +106,76 @@ class CanvasOverlayLayout extends StatelessWidget {
                   ),
                   const SizedBox(width: UiSpacing.standard),
                   // Right Circular Action Button
-                  GlassPanel(
+                    GlassPanel(
                     borderRadius: 20,
                     width: 40,
                     height: UiControlSize.tile,
                     padding: EdgeInsets.zero,
-                    child: PopupMenuButton<String>(
-                      padding: EdgeInsets.zero,
-                      icon: Icon(Icons.more_vert_rounded, color: primaryColor, size: UiIconSize.standard),
-                      tooltip: 'Options Menu',
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(UiRadius.panel),
+                    child: Builder(
+                      builder: (btnContext) => MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            final renderBox =
+                                btnContext.findRenderObject() as RenderBox;
+                            final targetRect =
+                                renderBox.localToGlobal(Offset.zero) &
+                                    renderBox.size;
+
+                            CentrodeContextMenu.showAt(
+                              context: btnContext,
+                              targetRect: targetRect,
+                              items: [
+                                CentrodeMenuItem.action(
+                                  label: 'Force Sync Save',
+                                  leadingIcon: Icons.save_outlined,
+                                  shortcut: 'Ctrl+S',
+                                  onTap: () {
+                                    session.commandProcessor.flushSync();
+                                  },
+                                ),
+                                CentrodeMenuItem.action(
+                                  label: 'Toggle Theme',
+                                  leadingIcon: Icons.palette_outlined,
+                                  onTap: () {
+                                    final current = AppThemeManager
+                                        .instance.themeNotifier.value;
+                                    final isDark =
+                                        current.brightness == Brightness.dark;
+                                    AppThemeManager
+                                            .instance.themeNotifier.value =
+                                        AppTheme(
+                                      brightness: isDark
+                                          ? Brightness.light
+                                          : Brightness.dark,
+                                      scaffoldBackgroundColor: isDark
+                                          ? const Color(0xFFF5F5F5)
+                                          : const Color(0xFF121212),
+                                      cardColor: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF1E1E1E),
+                                      textColor: isDark
+                                          ? const Color(0xFF212121)
+                                          : Colors.white,
+                                      bodyTextColor: isDark
+                                          ? const Color(0xFF212121)
+                                          : Colors.white,
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                          child: Center(
+                            child: Icon(
+                              Icons.more_vert_rounded,
+                              color: primaryColor,
+                              size: UiIconSize.standard,
+                            ),
+                          ),
+                        ),
                       ),
-                      onSelected: (action) {
-                        if (action == 'force_sync') {
-                          session.commandProcessor.flushSync();
-                        } else if (action == 'toggle_theme') {
-                          final current = AppThemeManager.instance.themeNotifier.value;
-                          final isDark = current.brightness == Brightness.dark;
-                          AppThemeManager.instance.themeNotifier.value = AppTheme(
-                            brightness: isDark ? Brightness.light : Brightness.dark,
-                            scaffoldBackgroundColor: isDark ? const Color(0xFFF5F5F5) : const Color(0xFF121212),
-                            cardColor: isDark ? Colors.white : const Color(0xFF1E1E1E),
-                            textColor: isDark ? const Color(0xFF212121) : Colors.white,
-                            bodyTextColor: isDark ? const Color(0xFF212121) : Colors.white,
-                          );
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'force_sync',
-                          child: Row(
-                            children: [
-                              Icon(Icons.save_outlined, size: UiIconSize.dense),
-                              SizedBox(width: UiSpacing.standard),
-                              Text('Force Sync Save', style: TextStyle(fontSize: UiFont.standard)),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'toggle_theme',
-                          child: Row(
-                            children: [
-                              Icon(Icons.palette_outlined, size: UiIconSize.dense),
-                              SizedBox(width: UiSpacing.standard),
-                              Text('Toggle Theme', style: TextStyle(fontSize: UiFont.standard)),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -450,24 +472,21 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
         opacity: isOpen ? 1.0 : 0.0,
         child: IgnorePointer(
           ignoring: !isOpen,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(UiRadius.panel),
-            child: OverflowBox(
-              alignment: Alignment.topLeft,
-              minWidth: targetWidth,
-              maxWidth: targetWidth,
-              minHeight: 0.0,
-              maxHeight: maxPanelHeight,
-              child: ConstrainedBox(
-                key: _contentKey,
-                constraints: BoxConstraints(
-                  minWidth: targetWidth,
-                  maxWidth: targetWidth,
-                  minHeight: 0.0,
-                  maxHeight: maxPanelHeight,
-                ),
-                child: _buildContent(_displayedPanel),
+          child: OverflowBox(
+            alignment: Alignment.topLeft,
+            minWidth: targetWidth,
+            maxWidth: targetWidth,
+            minHeight: 0.0,
+            maxHeight: maxPanelHeight,
+            child: ConstrainedBox(
+              key: _contentKey,
+              constraints: BoxConstraints(
+                minWidth: targetWidth,
+                maxWidth: targetWidth,
+                minHeight: 0.0,
+                maxHeight: maxPanelHeight,
               ),
+              child: _buildContent(_displayedPanel),
             ),
           ),
         ),

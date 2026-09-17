@@ -40,6 +40,7 @@ docs/compose/
 maps/
 data/
 /docs/artifacts
+boot_cache.json
 
 # === Symbols and Obfuscation ===
 app.*.map.json

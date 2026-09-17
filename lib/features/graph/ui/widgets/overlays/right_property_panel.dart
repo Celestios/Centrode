@@ -133,13 +133,8 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
         child: GlassPanel(
           width: _handleWidth,
           height: _handleHeight,
-          borderRadius: 12,
+          borderRadius: UiRadius.panel,
           blur: 12.0,
-          shadow: BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
           child: AnimatedContainer(
             duration: UiMotion.fast,
             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
@@ -247,34 +242,16 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                 ? amberColor.withValues(alpha: 0.65)
                 : primaryColor.withValues(alpha: 0.65);
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(UiRadius.panel),
-        border: Border.all(
-          color: panelEdgeColor,
-          width: isNothingSelected ? 1.2 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isNothingSelected
-                ? Colors.white.withValues(alpha: 0.08)
-                : panelEdgeColor.withValues(alpha: 0.15),
-            blurRadius: isNothingSelected ? 12 : 8,
-            spreadRadius: 0,
-          ),
-        ],
+    return GlassPanel(
+      borderRadius: UiRadius.panel,
+      blur: 12.0,
+      border: Border.all(
+        color: panelEdgeColor,
+        width: UiStrokeWidth.standard,
       ),
-      child: GlassPanel(
-        borderRadius: 16,
-        blur: 12.0,
-        shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.25),
-          blurRadius: 12,
-          offset: const Offset(0, 3),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-          child: Column(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Top Tab Switcher Bar (Appearance vs Data)
@@ -379,9 +356,8 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTopTabBar(
     BuildContext context,

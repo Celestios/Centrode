@@ -10,6 +10,7 @@ class GlassPanel extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
 
   final double borderRadius;
+  final BorderRadiusGeometry? customBorderRadius;
   final Color? color;
   final double blur;
   final BoxShadow? shadow;
@@ -32,6 +33,7 @@ class GlassPanel extends StatelessWidget {
     this.padding,
     this.margin,
     this.borderRadius = 16.0,
+    this.customBorderRadius,
     this.color,
     this.blur = 10.0,
     this.enableBackdrop = true,
@@ -67,6 +69,7 @@ class GlassPanel extends StatelessWidget {
           padding: padding,
           margin: margin,
           borderRadius: borderRadius,
+          customBorderRadius: customBorderRadius,
           color: color,
           blur: blur,
           enableBackdrop: enableBackdrop,
@@ -88,6 +91,7 @@ class GlassPanel extends StatelessWidget {
       padding: padding,
       margin: margin,
       borderRadius: borderRadius,
+      customBorderRadius: customBorderRadius,
       color: color,
       blur: blur,
       enableBackdrop: enableBackdrop,
@@ -110,6 +114,7 @@ class _GlassPanelBody extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
   final double borderRadius;
+  final BorderRadiusGeometry? customBorderRadius;
   final Color? color;
   final double blur;
   final bool enableBackdrop;
@@ -128,6 +133,7 @@ class _GlassPanelBody extends StatelessWidget {
     required this.padding,
     required this.margin,
     required this.borderRadius,
+    this.customBorderRadius,
     required this.color,
     required this.blur,
     required this.enableBackdrop,
@@ -144,10 +150,16 @@ class _GlassPanelBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final resolvedColor = color ?? theme.cardColor.withValues(alpha: 0.85);
-    final shape = borderRadius >= 100.0
-        ? const StadiumBorder()
+    final borderSide = (border != null && border!.isUniform)
+        ? border!.top
+        : BorderSide.none;
+    final effectiveRadius =
+        customBorderRadius ?? BorderRadius.circular(borderRadius);
+    final shape = borderRadius >= 100.0 && customBorderRadius == null
+        ? StadiumBorder(side: borderSide)
         : ContinuousRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
+            side: borderSide,
+            borderRadius: effectiveRadius,
           );
     final interactiveChild = _buildInteractiveContent(shape);
 
@@ -179,73 +191,46 @@ class _GlassPanelBody extends StatelessWidget {
       // Layer 1: Razor contact grounding line
       BoxShadow(
         color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.16),
-        blurRadius: 1.5,
+        blurRadius: 2.0,
         offset: const Offset(0, 0.5),
         spreadRadius: 0.0,
       ),
       // Layer 2: Tight edge step
       BoxShadow(
         color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.10),
-        blurRadius: 3.0,
+        blurRadius: 4.0,
         offset: const Offset(0, 1.0),
-        spreadRadius: -0.2,
+        spreadRadius: 0.0,
       ),
       // Layer 3: Smooth mid edge step
       BoxShadow(
         color: Colors.black.withValues(alpha: isDark ? 0.08 : 0.05),
-        blurRadius: 6.0,
+        blurRadius: 8.0,
         offset: const Offset(0, 2.0),
-        spreadRadius: -0.5,
+        spreadRadius: 0.0,
       ),
       // Layer 4: Feathered outer edge decay
       BoxShadow(
         color: Colors.black.withValues(alpha: isDark ? 0.03 : 0.02),
-        blurRadius: 10.0,
+        blurRadius: 14.0,
         offset: const Offset(0, 3.5),
-        spreadRadius: -1.0,
+        spreadRadius: 0.0,
       ),
       // Layer 5: Imperceptible outer halo
       BoxShadow(
         color: Colors.black.withValues(alpha: isDark ? 0.008 : 0.008),
-        blurRadius: 16.0,
+        blurRadius: 20.0,
         offset: const Offset(0, 5.0),
-        spreadRadius: -1.5,
+        spreadRadius: -0.5,
       ),
       // Subtle primary backlight glow
       if (isDark)
         BoxShadow(
           color: theme.colorScheme.primary.withValues(alpha: 0.025),
           blurRadius: 20.0,
-          spreadRadius: -3.0,
+          spreadRadius: -1.0,
         ),
     ];
-
-    // Conic sweep border gradient: Monochromatic alpha modulation per theme mode (no color-mix wrinkles)
-    final borderGradient = SweepGradient(
-      center: Alignment.center,
-      colors: isDark
-          ? [
-              Colors.white.withValues(alpha: 0.10), // 0.00 (Right edge)
-              Colors.white.withValues(alpha: 0.22), // 0.125 (Bottom-Right corner echo)
-              Colors.white.withValues(alpha: 0.10), // 0.25 (Bottom edge)
-              Colors.white.withValues(alpha: 0.04), // 0.45 (Bottom-Left edge)
-              Colors.white.withValues(alpha: 0.28), // 0.58 (Approach Top-Left)
-              Colors.white.withValues(alpha: 0.48), // 0.65 (Top-Left corner peak!)
-              Colors.white.withValues(alpha: 0.30), // 0.78 (Top edge wash)
-              Colors.white.withValues(alpha: 0.10), // 1.00 (Right edge return)
-            ]
-          : [
-              Colors.black.withValues(alpha: 0.06), // 0.00 (Right edge)
-              Colors.black.withValues(alpha: 0.18), // 0.125 (Bottom-Right shadow edge)
-              Colors.black.withValues(alpha: 0.08), // 0.25 (Bottom edge)
-              Colors.black.withValues(alpha: 0.03), // 0.45 (Bottom-Left)
-              Colors.black.withValues(alpha: 0.14), // 0.58 (Approach Top-Left)
-              Colors.black.withValues(alpha: 0.28), // 0.65 (Top-Left corner peak!)
-              Colors.black.withValues(alpha: 0.16), // 0.78 (Top edge rim wash)
-              Colors.black.withValues(alpha: 0.06), // 1.00 (Right edge return)
-            ],
-      stops: const [0.0, 0.125, 0.25, 0.45, 0.58, 0.65, 0.78, 1.0],
-    );
 
     // Flat fill: Real glass doesn't glow across its face; face stays clean and flat.
     final fillDecoration = ShapeDecoration(
@@ -261,7 +246,7 @@ class _GlassPanelBody extends StatelessWidget {
     final surfaceWithBorder = CustomPaint(
       foregroundPainter: _GlassSpecularBorderPainter(
         shape: shape,
-        gradient: borderGradient,
+        isDark: isDark,
         strokeWidth: UiStrokeWidth.standard,
       ),
       child: surface,
@@ -285,10 +270,9 @@ class _GlassPanelBody extends StatelessWidget {
     return Padding(
       padding: margin ?? EdgeInsets.zero,
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: shadows,
-          border: border,
+        decoration: ShapeDecoration(
+          shape: shape,
+          shadows: shadows,
         ),
         child: glassContent,
       ),
@@ -469,12 +453,12 @@ List<double> _saturationMatrix(double s) {
 
 class _GlassSpecularBorderPainter extends CustomPainter {
   final ShapeBorder shape;
-  final Gradient gradient;
+  final bool isDark;
   final double strokeWidth;
 
   const _GlassSpecularBorderPainter({
     required this.shape,
-    required this.gradient,
+    required this.isDark,
     this.strokeWidth = 1.0,
   });
 
@@ -483,6 +467,48 @@ class _GlassSpecularBorderPainter extends CustomPainter {
     if (size.isEmpty) return;
     final rect = (Offset.zero & size).deflate(strokeWidth / 2);
     final path = shape.getOuterPath(rect);
+
+    final alpha = math.atan2(size.height, size.width);
+    final brStop = (alpha / (2 * math.pi)).clamp(0.05, 0.45);
+    final blStop = 0.5 - brStop;
+    final tlStop = 0.5 + brStop;
+    final trStop = 1.0 - brStop;
+
+    final gradient = SweepGradient(
+      center: Alignment.center,
+      colors: isDark
+          ? [
+              Colors.white.withValues(alpha: 0.10), // Right edge
+              Colors.white.withValues(alpha: 0.22), // BR corner
+              Colors.white.withValues(alpha: 0.10), // Bottom edge
+              Colors.white.withValues(alpha: 0.04), // BL corner
+              Colors.white.withValues(alpha: 0.28), // Approach TL
+              Colors.white.withValues(alpha: 0.48), // TL corner peak!
+              Colors.white.withValues(alpha: 0.30), // Top edge wash
+              Colors.white.withValues(alpha: 0.10), // TR corner return
+            ]
+          : [
+              Colors.black.withValues(alpha: 0.06), // Right edge
+              Colors.black.withValues(alpha: 0.18), // BR corner shadow edge
+              Colors.black.withValues(alpha: 0.08), // Bottom edge
+              Colors.black.withValues(alpha: 0.03), // BL corner
+              Colors.black.withValues(alpha: 0.14), // Approach TL
+              Colors.black.withValues(alpha: 0.28), // TL corner peak!
+              Colors.black.withValues(alpha: 0.16), // Top edge rim wash
+              Colors.black.withValues(alpha: 0.06), // TR corner return
+            ],
+      stops: [
+        0.0,
+        brStop,
+        0.25,
+        blStop,
+        (blStop + tlStop) / 2,
+        tlStop,
+        (tlStop + trStop) / 2,
+        1.0,
+      ],
+    );
+
     canvas.drawPath(
       path,
       Paint()
@@ -495,6 +521,6 @@ class _GlassSpecularBorderPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _GlassSpecularBorderPainter old) =>
       old.shape != shape ||
-      old.gradient != gradient ||
+      old.isDark != isDark ||
       old.strokeWidth != strokeWidth;
 }

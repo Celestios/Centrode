@@ -249,6 +249,7 @@ abstract final class WorkspaceTokens {
   WorkspaceTokens._();
 
   static const double leftPanelWidth = 200.0;
+  static const double leftPanelRadius = 48.0;
   static const double topBarHeight = 48.0;
   static const double cardWidth = 184.0;
   static const double cardHeight = 160.0;

@@ -18,17 +18,8 @@ class LeftRepositoryPanel extends StatelessWidget {
     return GlassPanel(
       padding: EdgeInsets.zero,
       blur: 12.0,
-      borderRadius: 12.0,
+      borderRadius: UiRadius.panel,
       color: theme.cardColor.withValues(alpha: 0.90),
-      border: Border.all(
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-        width: UiStrokeWidth.standard,
-      ),
-      shadow: BoxShadow(
-        color: Colors.black.withValues(alpha: 0.20),
-        blurRadius: 14,
-        offset: const Offset(0, 4),
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
