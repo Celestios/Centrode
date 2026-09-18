@@ -9,6 +9,7 @@ import 'package:centrode/features/graph/models/port.dart';
 import 'package:centrode/features/graph/presentation/node_ports.dart';
 import 'package:centrode/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:centrode/features/graph/engine/volatile_node_state.dart';
+import 'package:centrode/features/graph/presentation/shared/view_constants.dart';
 import 'package:centrode/features/graph/presentation/view_state_geometry.dart';
 
 class NodeViewState implements VolatileNodeState {
@@ -95,8 +96,8 @@ class NodeViewState implements VolatileNodeState {
       final size = sizeNotifier.value;
       if (size.width > 0 && size.height > 0) {
         final fontScale =
-            (node.resolvedStyle?.fontSize ?? node.style?.fontSize ?? 14.0) /
-            14.0;
+            (node.resolvedStyle?.fontSize ?? node.style?.fontSize ?? kDefaultFontDivisor) /
+            kDefaultFontDivisor;
         final sizeScale = math.sqrt(
           (size.width * size.height) / (400.0 * 300.0),
         );
@@ -105,7 +106,7 @@ class NodeViewState implements VolatileNodeState {
     }
     final style = node.resolvedStyle ?? node.style;
     if (style == null) return 1.0;
-    return style.fontSize / 14.0;
+    return style.fontSize / kDefaultFontDivisor;
   }
 
   UiNode? _currentNode;
@@ -186,7 +187,7 @@ class NodeViewState implements VolatileNodeState {
     'BottomRight': bottomRightPort,
   };
 
-  Port? getClosestPortNew(Offset point) => ports.getClosestPort(point);
+  Port? getClosestPort(Offset point) => ports.getClosestPort(point);
 
   Port? getMiddlePort(PortSide side) => ports.getMiddlePortForSide(side);
 
@@ -198,7 +199,7 @@ class NodeViewState implements VolatileNodeState {
   }
 
   /// Finds the position of the port on this node closest to a given point.
-  ({PortSide side, Offset position}) getClosestPort(Offset point) {
+  ({PortSide side, Offset position}) getClosestPortRecord(Offset point) {
     double bestDist = double.infinity;
     PortSide bestSide = PortSide.right;
     Offset bestPos = rightPort;

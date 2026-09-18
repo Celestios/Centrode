@@ -25,5 +25,4 @@ export 'logo_home_button.dart';
 export 'ribbon_capsule.dart';
 export 'submenu_button_data.dart';
 export 'window_control_buttons.dart';
-export 'window_title_bar.dart';
 

@@ -13,7 +13,7 @@ class PropertyCommandHandler {
   late final GraphStyleMutations style;
   late final GraphTagMutations tags;
 
-  PropertyCommandHandler(this.context) {
+  PropertyCommandHandler({required this.context}) {
     text = GraphTextMutations(context);
     style = GraphStyleMutations(context);
     tags = GraphTagMutations(context);

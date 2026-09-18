@@ -85,10 +85,11 @@ class NodeWidget extends StatelessWidget {
           );
         }
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
+        return RepaintBoundary(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
               width: size.width,
               height: size.height,
               clipBehavior: Clip.antiAlias,
@@ -211,7 +212,8 @@ class NodeWidget extends StatelessWidget {
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         );
       },
     );

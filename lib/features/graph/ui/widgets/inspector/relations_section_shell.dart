@@ -1,5 +1,8 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 import 'components/glass_section_shell.dart';
 import 'components/sub_block_shell.dart';
@@ -9,15 +12,16 @@ import 'components/glass_color_pill_button.dart';
 import 'components/relation_shape_definitions.dart';
 import 'showcase/relation_showcase_card.dart';
 
-/// Dynamic Top-Level Relations Section Container containing all relation appearance sub-blocks.
 class RelationsSectionShell extends StatefulWidget {
   final bool isGlobal;
   final int selectedCount;
+  final NodeRenderState? renderState;
 
   const RelationsSectionShell({
     super.key,
     this.isGlobal = true,
     this.selectedCount = 0,
+    this.renderState,
   });
 
   @override
@@ -25,7 +29,6 @@ class RelationsSectionShell extends StatefulWidget {
 }
 
 class _RelationsSectionShellState extends State<RelationsSectionShell> {
-  // State variables for Relation Appearance sub-blocks
   String _selectedShape = 'capsule';
   String _selectedFill = 'glass';
   Color? _labelBgColor;
@@ -47,10 +50,83 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
   String _crossingStrategy = 'bridge';
   double _bundleGap = 12.0;
 
+  String? _lastSelectionSignature;
+
+  NodeRenderState _getRenderState(BuildContext context) =>
+      widget.renderState ?? context.watch<NodeRenderState>();
+
+  List<UiRelation> _getSelectedRelations(NodeRenderState rs) {
+    return rs.selectedEntities
+        .where((id) => rs.relationLookup.containsKey(id))
+        .map((id) => rs.relationLookup[id]!)
+        .toList();
+  }
+
+  void _syncFromSelection(List<UiRelation> relations) {
+    if (relations.isEmpty) return;
+    if (relations.length > 1) return;
+
+    final rel = relations.first;
+    final style = rel.style ?? rel.resolvedStyle;
+    if (style != null) {
+      _selectedShape = style.bodyStrategy.isNotEmpty ? style.bodyStrategy : 'capsule';
+      _selectedFill = style.bodyStrategy.isNotEmpty ? style.bodyStrategy : 'glass';
+      if (style.bgColor != 0) {
+        final col = Color(style.bgColor);
+        final alphaVal = ((style.bgColor >> 24) & 0xFF);
+        if (alphaVal > 0) {
+          _labelBgColor = col.withAlpha(255);
+        } else {
+          _labelBgColor = null;
+        }
+      } else {
+        _labelBgColor = null;
+      }
+      _strokeWidth = style.strokeWidth.toDouble().clamp(0.5, 8.0);
+      if (style.strokeColor != 0) {
+        _lineColor = Color(style.strokeColor).withAlpha(255);
+      } else {
+        _lineColor = null;
+      }
+      _selectedFont = style.fontFamily.isNotEmpty ? style.fontFamily : 'inter';
+      _fontSize = style.fontSize > 0 ? style.fontSize : 11.0;
+      _strokePattern = style.strokePattern.isNotEmpty ? style.strokePattern : 'solid';
+      _routingStrategy = style.strategyType.isNotEmpty ? style.strategyType : 'curved';
+    }
+
+    final layout = rel.layout ?? rel.resolvedLayout;
+    if (layout != null) {
+      _startCap = 'none';
+      _endCap = 'arrow';
+    }
+    if (style != null) {
+      if (style.startShape != null) {
+        _startCap = style.startShape!.name;
+      }
+      if (style.endShape != null) {
+        _endCap = style.endShape!.name;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryAccent = theme.colorScheme.primary;
+    final effectiveRenderState = _getRenderState(context);
+
+    final selectedRelations = _getSelectedRelations(effectiveRenderState);
+
+    final currentSignature = selectedRelations.isEmpty
+        ? '__EMPTY__'
+        : selectedRelations
+            .map((r) => '${r.id}_${r.style?.hashCode}')
+            .join(';');
+
+    if (_lastSelectionSignature != currentSignature) {
+      _lastSelectionSignature = currentSignature;
+      _syncFromSelection(selectedRelations);
+    }
 
     final selectedRoutingIndex = kAvailableRoutingStrategies.isEmpty
         ? 0
@@ -85,7 +161,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
       ),
       child: Column(
         children: [
-          // Sub-block 1: Label Body
           SubBlockShell(
             title: 'Label Body',
             accentColor: primaryAccent,
@@ -104,7 +179,18 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                   height: UiControlSize.standard,
                   activeColor: primaryAccent,
                   selectedValue: _selectedShape,
-                  onSelected: (val) => setState(() => _selectedShape = val),
+                  onSelected: (val) {
+                    setState(() => _selectedShape = val);
+                    for (final rel in selectedRelations) {
+                      final currentStyle = rel.style ?? rel.resolvedStyle;
+                      if (currentStyle != null) {
+                        effectiveRenderState.updateRelationStyle(
+                          rel.id,
+                          currentStyle.copyWith(bodyStrategy: val),
+                        );
+                      }
+                    }
+                  },
                   segments: const [
                     SegmentData(value: 'capsule', label: 'Capsule'),
                     SegmentData(value: 'rounded', label: 'Rounded'),
@@ -121,7 +207,18 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _selectedFill,
-                        onSelected: (val) => setState(() => _selectedFill = val),
+                        onSelected: (val) {
+                          setState(() => _selectedFill = val);
+                          for (final rel in selectedRelations) {
+                            final currentStyle = rel.style ?? rel.resolvedStyle;
+                            if (currentStyle != null) {
+                              effectiveRenderState.updateRelationStyle(
+                                rel.id,
+                                currentStyle.copyWith(bodyStrategy: val),
+                              );
+                            }
+                          }
+                        },
                         segments: const [
                           SegmentData(value: 'solid', label: 'Solid'),
                           SegmentData(value: 'glass', label: 'Glass'),
@@ -136,7 +233,20 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         label: 'bg',
                         selectedValue: _labelBgColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _labelBgColor = val),
+                        onSelected: (val) {
+                          setState(() => _labelBgColor = val);
+                          for (final rel in selectedRelations) {
+                            final currentStyle = rel.style ?? rel.resolvedStyle;
+                            if (currentStyle != null) {
+                              effectiveRenderState.updateRelationStyle(
+                                rel.id,
+                                currentStyle.copyWith(
+                                  bgColor: (val ?? primaryAccent).toARGB32(),
+                                ),
+                              );
+                            }
+                          }
+                        },
                         options: [
                           const ColorPillOption(value: null, label: 'Accent', isNone: true),
                           const ColorPillOption(value: Color(0xFF1E293B), color: Color(0xFF1E293B), label: 'Slate'),
@@ -180,7 +290,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             ),
           ),
 
-          // Sub-block 2: Label Typography
           SubBlockShell(
             title: 'Label Text',
             accentColor: primaryAccent,
@@ -200,7 +309,18 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _selectedFont,
-                        onSelected: (val) => setState(() => _selectedFont = val),
+                        onSelected: (val) {
+                          setState(() => _selectedFont = val);
+                          for (final rel in selectedRelations) {
+                            final currentStyle = rel.style ?? rel.resolvedStyle;
+                            if (currentStyle != null) {
+                              effectiveRenderState.updateRelationStyle(
+                                rel.id,
+                                currentStyle.copyWith(fontFamily: val),
+                              );
+                            }
+                          }
+                        },
                         segments: const [
                           SegmentData(value: 'inter', label: 'Inter'),
                           SegmentData(value: 'outfit', label: 'Outfit'),
@@ -218,7 +338,18 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         max: 20,
                         unit: 'pt',
                         activeColor: primaryAccent,
-                        onChanged: (val) => setState(() => _fontSize = val),
+                        onChanged: (val) {
+                          setState(() => _fontSize = val);
+                          for (final rel in selectedRelations) {
+                            final currentStyle = rel.style ?? rel.resolvedStyle;
+                            if (currentStyle != null) {
+                              effectiveRenderState.updateRelationStyle(
+                                rel.id,
+                                currentStyle.copyWith(fontSize: val),
+                              );
+                            }
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -227,7 +358,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             ),
           ),
 
-          // Sub-block 3: Path Routing
           SubBlockShell(
             title: 'Routing',
             accentColor: primaryAccent,
@@ -250,9 +380,17 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                           items: kAvailableRoutingStrategies,
                           selectedIndex: selectedRoutingIndex,
                           onSelected: (idx) {
-                            setState(() {
-                              _routingStrategy = kAvailableRoutingStrategies[idx].id;
-                            });
+                            final newStrategy = kAvailableRoutingStrategies[idx].id;
+                            setState(() => _routingStrategy = newStrategy);
+                            for (final rel in selectedRelations) {
+                              final currentStyle = rel.style ?? rel.resolvedStyle;
+                              if (currentStyle != null) {
+                                effectiveRenderState.updateRelationStyle(
+                                  rel.id,
+                                  currentStyle.copyWith(strategyType: newStrategy),
+                                );
+                              }
+                            }
                           },
                           theme: UnravelSliderThemeData(
                             accentColor: primaryAccent,
@@ -268,7 +406,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                                 : theme.textTheme.bodyMedium?.color
                                         ?.withValues(alpha: (0.35 + 0.65 * focus).clamp(0.0, 1.0)) ??
                                     Colors.white70;
-
                             return Center(
                               child: Icon(
                                 item.icon,
@@ -296,7 +433,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             ),
           ),
 
-          // Sub-block 4: Line Body & Arrowcaps
           SubBlockShell(
             title: 'Stroke & Caps',
             accentColor: primaryAccent,
@@ -319,7 +455,18 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         height: UiControlSize.standard,
                         activeColor: primaryAccent,
                         selectedValue: _strokePattern,
-                        onSelected: (val) => setState(() => _strokePattern = val),
+                        onSelected: (val) {
+                          setState(() => _strokePattern = val);
+                          for (final rel in selectedRelations) {
+                            final currentStyle = rel.style ?? rel.resolvedStyle;
+                            if (currentStyle != null) {
+                              effectiveRenderState.updateRelationStyle(
+                                rel.id,
+                                currentStyle.copyWith(strokePattern: val),
+                              );
+                            }
+                          }
+                        },
                         segments: const [
                           SegmentData(value: 'solid', label: '━ Solid', style: TextStyle(fontSize: UiFont.compact)),
                           SegmentData(value: 'dashed', label: '┅ Dash', style: TextStyle(fontSize: UiFont.compact)),
@@ -334,7 +481,20 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         label: 'color',
                         selectedValue: _lineColor,
                         activeColor: primaryAccent,
-                        onSelected: (val) => setState(() => _lineColor = val),
+                        onSelected: (val) {
+                          setState(() => _lineColor = val);
+                          for (final rel in selectedRelations) {
+                            final currentStyle = rel.style ?? rel.resolvedStyle;
+                            if (currentStyle != null) {
+                              effectiveRenderState.updateRelationStyle(
+                                rel.id,
+                                currentStyle.copyWith(
+                                  strokeColor: (val ?? primaryAccent).toARGB32(),
+                                ),
+                              );
+                            }
+                          }
+                        },
                         options: [
                           const ColorPillOption(value: null, label: 'Accent', isNone: true),
                           const ColorPillOption(value: Colors.white, color: Colors.white, label: 'White'),
@@ -384,13 +544,23 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                   max: 8.0,
                   unit: 'px',
                   activeColor: primaryAccent,
-                  onChanged: (val) => setState(() => _strokeWidth = val),
+                  onChanged: (val) {
+                    setState(() => _strokeWidth = val);
+                    for (final rel in selectedRelations) {
+                      final currentStyle = rel.style ?? rel.resolvedStyle;
+                      if (currentStyle != null) {
+                        effectiveRenderState.updateRelationStyle(
+                          rel.id,
+                          currentStyle.copyWith(strokeWidth: val.round()),
+                        );
+                      }
+                    }
+                  },
                 ),
               ],
             ),
           ),
 
-          // Sub-block 5: Topology & Crossing
           SubBlockShell(
             title: 'Topology',
             accentColor: primaryAccent,

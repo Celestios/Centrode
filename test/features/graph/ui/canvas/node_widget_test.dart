@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/ui/canvas/node_widget.dart';
@@ -14,7 +15,7 @@ class MockGraphDataQuery extends Mock
     with ChangeNotifier
     implements GraphDataQuery {
   @override
-  Map<RawUuid, UiNode> get nodeLookup => {};
+  UnmodifiableMapView<RawUuid, UiNode> get nodeLookup => UnmodifiableMapView({});
 }
 
 class MockThemeController extends Mock implements ThemeController {

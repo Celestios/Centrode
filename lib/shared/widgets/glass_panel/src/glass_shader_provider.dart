@@ -10,12 +10,8 @@ class GlassShaderProvider {
 
   /// Preloads the fragment shader from assets.
   static Future<void> load() async {
-    try {
-      _log.info('Preloading liquid glass fragment shader...');
-      _shaderProgram = await ui.FragmentProgram.fromAsset(shaderAssetPath);
-      _log.info('Liquid glass shader preloaded successfully.');
-    } catch (e, stack) {
-      _log.severe('Failed to preload liquid glass shader: $e', e, stack);
-    }
+    _log.info('Preloading liquid glass fragment shader...');
+    _shaderProgram = await ui.FragmentProgram.fromAsset(shaderAssetPath);
+    _log.info('Liquid glass shader preloaded successfully.');
   }
 }

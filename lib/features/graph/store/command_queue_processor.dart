@@ -18,6 +18,8 @@ import 'package:centrode/src/rust/layout_engine/config.dart';
 import 'package:centrode/src/rust/layout_engine/types.dart';
 import 'graph_api.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'api/layout_config_defaults.dart';
+import '../presentation/strategies/node_layout_strategy.dart';
 
 /// Central coordinator for graph command execution, queueing, and synchronization.
 class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
@@ -43,8 +45,8 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   AreaCommandHandler get areaMutations => areaHandler;
 
   // Sizing & styling delegates
-  ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator;
-  NodeStyle Function(UiNode)? styleResolver;
+  ({Size size, int lineCount}) Function(UiNode, {bool isEditing}) sizeCalculator;
+  NodeStyle Function(UiNode) styleResolver;
 
   @override
   GraphStyleUpdater? styleUpdater;
@@ -52,10 +54,11 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   CommandQueueProcessor(
     this.api,
     this.queryController, {
-    this.sizeCalculator,
-    this.styleResolver,
+    ({Size size, int lineCount}) Function(UiNode, {bool isEditing})? sizeCalculator,
+    NodeStyle Function(UiNode)? styleResolver,
     this.styleUpdater,
-  }) {
+  }) : sizeCalculator = sizeCalculator ?? _defaultSizeCalculator,
+       styleResolver = styleResolver ?? _defaultStyleResolver {
     processor = CommandProcessor(
       onError: _handleError,
       onQueueDrained: updateHistoryStatus,
@@ -72,10 +75,9 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     );
     relationHandler = RelationCommandHandler(
       context: this,
-      api: api,
       processor: processor,
     );
-    propertyHandler = PropertyCommandHandler(this);
+    propertyHandler = PropertyCommandHandler(context: this);
     templateHandler = TemplateCommandHandler(
       api: api,
       context: this,
@@ -85,6 +87,9 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     historyHandler = HistoryCommandHandler(
       api: api,
       processor: processor,
+      store: queryController.store,
+      spatial: queryController.spatial,
+      relationEngine: queryController.relationEngine,
       onHistoryUpdated: triggerUpdate,
     );
   }
@@ -112,6 +117,24 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     queryController.triggerUpdate();
   }
 
+  static ({Size size, int lineCount}) _defaultSizeCalculator(
+    UiNode node, {
+    bool isEditing = false,
+  }) {
+    return const DefaultNodeLayoutStrategy().calculateSize(
+      node,
+      isEditing: isEditing,
+    );
+  }
+
+  static NodeStyle _defaultStyleResolver(UiNode node) {
+    final ns = node.style;
+    if (ns != null) return ns;
+    throw StateError(
+      'No style found for node ${node.id}. Style resolver must be configured.',
+    );
+  }
+
   // ===========================================================================
   // Sizing & Styling delegates
   // ===========================================================================
@@ -120,22 +143,11 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     UiNode node, {
     bool isEditing = false,
   }) {
-    return sizeCalculator?.call(node, isEditing: isEditing) ??
-        (size: node.size, lineCount: node.lineCount);
+    return sizeCalculator(node, isEditing: isEditing);
   }
 
   NodeStyle resolveNodeStyle(UiNode node) {
-    final resolver = styleResolver;
-    if (resolver != null) {
-      return resolver(node);
-    }
-    final ns = node.style;
-    if (ns != null) {
-      return ns;
-    }
-    throw StateError(
-      'styleResolver must be configured on CommandQueueProcessor before resolving styles for unstyled nodes.',
-    );
+    return styleResolver(node);
   }
 
   // ===========================================================================
@@ -304,6 +316,7 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
     strategyType: strategyType,
   );
 
+  @override
   void updateRelationStyle(RawUuid id, RelationStyle newStyle) =>
       propertyHandler.updateRelationStyle(id, newStyle);
 
@@ -358,34 +371,10 @@ class CommandQueueProcessor implements GraphCommandContext, GraphDataCommand {
   Future<void> deleteTag(String tagKey) => propertyHandler.deleteTag(tagKey);
 
   Future<void> triggerLayoutOptimization({
-    LayoutConfig config = const LayoutConfig(
-      force: ForceConfig(
-        repulsionConstant: 8000.0,
-        springConstant: 0.06,
-        idealLinkDistance: 220.0,
-        collisionStrength: 1.2,
-        baseMargin: 35.0,
-        marginScale: 0.2,
-        wallStrength: 1.2,
-        wallPadding: 20.0,
-        damping: 0.35,
-        alphaDecay: 0.006,
-        alphaMin: 0.001,
-        relationStretchFactor: 0.5,
-        nodeEdgeRepulsion: 1500.0,
-        densityDispersionStrength: 300.0,
-      ),
-      convergence: ConvergenceCriteria(
-        maxIterations: 600,
-        energyThreshold: 0.005,
-        displacementThreshold: 0.2,
-        oscillationWindow: 10,
-      ),
-      batchSize: 1,
-    ),
+    LayoutConfig? config,
     required List<LayoutPatch> livePositions,
   }) => areaHandler.triggerLayoutOptimization(
-    config: config,
+    config: config ?? defaultLayoutConfig(),
     livePositions: livePositions,
   );
 

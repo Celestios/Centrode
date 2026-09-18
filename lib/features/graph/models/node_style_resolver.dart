@@ -1,22 +1,10 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
-import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/features/graph/models/graph_node.dart';
 
 const double _referenceFontSize = 14.0;
 const String defaultNodeFont = 'Inter';
 const String defaultNodeShape = 'rectangle';
-
-int get containerBgColor => CentrodeDerivedPalette.current.canvas.containerBorder
-    .withValues(alpha: CentrodeDerivedPalette.current.alpha.containerFill)
-    .toARGB32();
-int get containerStrokeColor =>
-    CentrodeDerivedPalette.current.canvas.containerBorder.toARGB32();
-int get frameBgColor => CentrodeDerivedPalette.current.canvas.frameBorder
-    .withValues(alpha: CentrodeDerivedPalette.current.alpha.frameFill)
-    .toARGB32();
-int get frameStrokeColor =>
-    CentrodeDerivedPalette.current.canvas.frameBorder.toARGB32();
 
 double expandToggleSpace(bool isExpanded, double fontScale) =>
     (isExpanded ? 24.0 : 18.0) * fontScale;
@@ -69,7 +57,13 @@ NodeStyle scaleStyle(NodeStyle base) {
   );
 }
 
-NodeStyle resolveStyle(UiNode node) {
+NodeStyle resolveStyle(
+  UiNode node, {
+  int containerBgColor = 0xFFE0E0E0,
+  int containerStrokeColor = 0xFFAAAAAA,
+  int frameBgColor = 0xFFE0E0E0,
+  int frameStrokeColor = 0xFFAAAAAA,
+}) {
   if (node.resolvedStyle != null) return node.resolvedStyle!;
 
   final NodeStyle base = switch (node) {

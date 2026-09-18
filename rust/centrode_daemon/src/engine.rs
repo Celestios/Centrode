@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::LazyLock;
 use surrealdb::engine::local::{Db, SurrealKv};
 use surrealdb::Surreal;
@@ -16,6 +17,8 @@ static ENGINE: LazyLock<Mutex<EngineManager>> = LazyLock::new(|| {
     })
 });
 
+static INITIALIZED: AtomicBool = AtomicBool::new(false);
+
 impl EngineManager {
     /// Initializes the root SurrealKV engine instance.
     pub async fn init(storage_path: &str) -> Result<()> {
@@ -26,6 +29,7 @@ impl EngineManager {
             guard.root_db = Some(db);
             guard.storage_path = Some(storage_path.to_string());
         }
+        INITIALIZED.store(true, Ordering::SeqCst);
         Ok(())
     }
 
@@ -115,11 +119,12 @@ impl EngineManager {
         let mut guard = ENGINE.lock().await;
         guard.root_db = None;
         guard.storage_path = None;
+        INITIALIZED.store(false, Ordering::SeqCst);
         tracing::info!("DB: Root SurrealKV engine shut down, locks released.");
         Ok(())
     }
 
     pub fn is_initialized() -> bool {
-        ENGINE.try_lock().map(|g| g.root_db.is_some()).unwrap_or(false)
+        INITIALIZED.load(Ordering::SeqCst)
     }
 }

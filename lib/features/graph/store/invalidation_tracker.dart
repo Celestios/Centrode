@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 import 'package:centrode/src/rust/relation_engine/computed.dart';
@@ -8,7 +9,7 @@ class InvalidationTracker {
   final Map<RawUuid, ComputedRelation> _cache = {};
   final Set<RawUuid> _dirtyRelationIds = {};
 
-  Map<RawUuid, ComputedRelation> get cache => _cache;
+  UnmodifiableMapView<RawUuid, ComputedRelation> get cache => UnmodifiableMapView(_cache);
 
   void clear() {
     _cache.clear();

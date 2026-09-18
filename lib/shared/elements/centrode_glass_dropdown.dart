@@ -39,9 +39,6 @@ class CentrodeGlassDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final safeValue = items.any((item) => item.value == selectedValue)
-        ? selectedValue
-        : (items.isNotEmpty ? items.first.value : null);
 
     final dropdownBox = Container(
       height: height,
@@ -56,7 +53,7 @@ class CentrodeGlassDropdown<T> extends StatelessWidget {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
-          value: safeValue,
+          value: selectedValue,
           isExpanded: true,
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,

@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -13,6 +14,7 @@ import 'package:centrode/features/graph/engine/base_interaction_state.dart';
 import 'package:centrode/features/graph/engine/interaction_engine.dart';
 import 'package:centrode/features/graph/engine/interaction_facade.dart';
 import 'package:centrode/features/graph/presentation/viewport_state.dart';
+import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
 import 'package:centrode/features/graph/store/spatial_index.dart';
 import 'package:centrode/features/graph/store/relation_engine_state.dart';
 import 'package:centrode/presentation/theme/graph_theme.dart';
@@ -37,6 +39,11 @@ class MockThemeController extends Mock implements ThemeController {}
 class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 
 class MockInteractionController extends Mock implements InteractionController {}
+
+class MockWorkspaceTabsController extends Mock
+    implements WorkspaceTabsController {}
+
+class MockTabSession extends Mock implements TabSession {}
 
 ComputedRelation createTestComputedRelation(
   RawUuid idStr,
@@ -97,6 +104,19 @@ void main() {
       final mockQueryController = MockGraphDataQueryController();
       final mockCommandProcessor = MockCommandQueueProcessor();
       final mockTheme = MockThemeController();
+      final mockTabsController = MockWorkspaceTabsController();
+      final mockSession = MockTabSession();
+      final relationLabelModeNotifier = ValueNotifier<String>('auto');
+      final cacheNotifier = ValueNotifier<int>(0);
+      final optAreaNotifier = ValueNotifier<Rect?>(null);
+      addTearDown(relationLabelModeNotifier.dispose);
+      addTearDown(cacheNotifier.dispose);
+      addTearDown(optAreaNotifier.dispose);
+      when(() => mockTabsController.activeSession).thenReturn(mockSession);
+      when(
+        () => mockSession.relationLabelModeNotifier,
+      ).thenReturn(relationLabelModeNotifier);
+      when(() => mockQueryController.optAreaNotifier).thenReturn(optAreaNotifier);
 
       final fromNode = InfoUiNode(
         id: RawUuid.fromString('node-from'),
@@ -129,13 +149,16 @@ void main() {
       toVs.sizeNotifier.value = const Size(100, 50);
 
       when(() => mockQueryController.relations).thenReturn([rel]);
-      when(() => mockQueryController.nodeLookup).thenReturn({
+      when(
+        () => mockQueryController.relationsInScope(const RootViewportScope()),
+      ).thenReturn([rel]);
+      when(() => mockQueryController.nodeLookup).thenReturn(UnmodifiableMapView({
         RawUuid.fromString('node-from'): fromNode,
         RawUuid.fromString('node-to'): toNode,
-      });
+      }));
       when(
         () => mockQueryController.relationLookup,
-      ).thenReturn({RawUuid.fromString('rel-1'): rel});
+      ).thenReturn(UnmodifiableMapView({RawUuid.fromString('rel-1'): rel}));
       when(
         () => mockQueryController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
@@ -156,7 +179,7 @@ void main() {
       ).thenReturn({});
       when(
         () => mockRelationEngine.cacheNotifier,
-      ).thenReturn(ValueNotifier<int>(0));
+      ).thenReturn(cacheNotifier);
       when(
         () => mockQueryController.relationEngine,
       ).thenReturn(mockRelationEngine);
@@ -174,7 +197,10 @@ void main() {
       renderState.viewStates[RawUuid.fromString('node-from')] = fromVs;
       renderState.viewStates[RawUuid.fromString('node-to')] = toVs;
       renderState.selectedEntities.add(RawUuid.fromString('rel-1'));
+      addTearDown(renderState.dispose);
 
+      final viewportController = ViewportController(mockQueryController);
+      addTearDown(viewportController.dispose);
       final mockInteraction = MockInteractionController();
       final stateNotifier = ValueNotifier<CanvasInteractionState>(
         RelationTipDragging(
@@ -188,11 +214,17 @@ void main() {
         SystemMouseCursors.grab,
       );
       final panScaleNotifier = ValueNotifier<bool>(false);
+      addTearDown(stateNotifier.dispose);
+      addTearDown(cursorNotifier.dispose);
+      addTearDown(panScaleNotifier.dispose);
 
       when(() => mockInteraction.state).thenReturn(stateNotifier);
       when(() => mockInteraction.cursor).thenReturn(cursorNotifier);
       when(() => mockInteraction.panScaleEnabled).thenReturn(panScaleNotifier);
 
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -206,6 +238,10 @@ void main() {
               ),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
+              Provider<ViewportController>.value(value: viewportController),
+              ChangeNotifierProvider<WorkspaceTabsController>.value(
+                value: mockTabsController,
+              ),
               Provider<InteractionController>.value(value: mockInteraction),
             ],
             child: Scaffold(
@@ -250,6 +286,19 @@ void main() {
       final mockQueryController = MockGraphDataQueryController();
       final mockCommandProcessor = MockCommandQueueProcessor();
       final mockTheme = MockThemeController();
+      final mockTabsController = MockWorkspaceTabsController();
+      final mockSession = MockTabSession();
+      final relationLabelModeNotifier = ValueNotifier<String>('auto');
+      final cacheNotifier = ValueNotifier<int>(0);
+      final optAreaNotifier = ValueNotifier<Rect?>(null);
+      addTearDown(relationLabelModeNotifier.dispose);
+      addTearDown(cacheNotifier.dispose);
+      addTearDown(optAreaNotifier.dispose);
+      when(() => mockTabsController.activeSession).thenReturn(mockSession);
+      when(
+        () => mockSession.relationLabelModeNotifier,
+      ).thenReturn(relationLabelModeNotifier);
+      when(() => mockQueryController.optAreaNotifier).thenReturn(optAreaNotifier);
 
       final fromNode = InfoUiNode(
         id: RawUuid.fromString('node-from'),
@@ -282,13 +331,16 @@ void main() {
       toVs.sizeNotifier.value = const Size(100, 50);
 
       when(() => mockQueryController.relations).thenReturn([rel]);
-      when(() => mockQueryController.nodeLookup).thenReturn({
+      when(
+        () => mockQueryController.relationsInScope(const RootViewportScope()),
+      ).thenReturn([rel]);
+      when(() => mockQueryController.nodeLookup).thenReturn(UnmodifiableMapView({
         RawUuid.fromString('node-from'): fromNode,
         RawUuid.fromString('node-to'): toNode,
-      });
+      }));
       when(
         () => mockQueryController.relationLookup,
-      ).thenReturn({RawUuid.fromString('rel-1'): rel});
+      ).thenReturn(UnmodifiableMapView({RawUuid.fromString('rel-1'): rel}));
       when(
         () => mockQueryController.onEntityUpdate,
       ).thenAnswer((_) => const Stream.empty());
@@ -305,7 +357,7 @@ void main() {
       });
       when(
         () => mockRelationEngine.cacheNotifier,
-      ).thenReturn(ValueNotifier<int>(0));
+      ).thenReturn(cacheNotifier);
       when(
         () => mockRelationEngine.previewCache,
       ).thenReturn({});
@@ -333,9 +385,12 @@ void main() {
       renderState.viewStates[RawUuid.fromString('node-from')] = fromVs;
       renderState.viewStates[RawUuid.fromString('node-to')] = toVs;
       renderState.selectedEntities.add(RawUuid.fromString('rel-1'));
+      addTearDown(renderState.dispose);
 
       final transformController = TransformationController();
+      addTearDown(transformController.dispose);
       final viewportController = ViewportController(mockQueryController);
+      addTearDown(viewportController.dispose);
       final environment = CanvasInteractionEnvironment(
         queryController: mockQueryController,
         commandProcessor: mockCommandProcessor,
@@ -347,7 +402,11 @@ void main() {
         transformController: transformController,
         environment: environment,
       );
+      addTearDown(interactionController.dispose);
 
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -361,6 +420,10 @@ void main() {
               ),
               ChangeNotifierProvider<NodeRenderState>.value(value: renderState),
               ChangeNotifierProvider<ThemeController>.value(value: mockTheme),
+              Provider<ViewportController>.value(value: viewportController),
+              ChangeNotifierProvider<WorkspaceTabsController>.value(
+                value: mockTabsController,
+              ),
               Provider<InteractionController>.value(
                 value: interactionController,
               ),

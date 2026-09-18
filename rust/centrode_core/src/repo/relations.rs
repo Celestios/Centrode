@@ -42,7 +42,7 @@ impl RelationRepository for SurrealRelationRepository {
             .bind(("data", input.fields))
             .await?;
         let created: Option<Value> = res.take(0)?;
-        let _ = created.ok_or_else(|| anyhow::anyhow!("Failed to create Relation"))?;
+        created.ok_or_else(|| anyhow::anyhow!("Failed to create Relation"))?;
 
         let layout_repo = SurrealLayoutRepository::new(self.db.clone());
         layout_repo.trigger_significance_update(&in_id).await?;

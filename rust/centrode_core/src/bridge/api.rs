@@ -616,7 +616,7 @@ impl AppHandle {
     }
 
     pub fn embed_text(&self, text: String) -> Vec<f32> {
-        EmbeddingService::embed_text(&text)
+        EmbeddingService::embed_text(&text).expect("Embedder model inference failed")
     }
 
     pub fn init_embedder_model(

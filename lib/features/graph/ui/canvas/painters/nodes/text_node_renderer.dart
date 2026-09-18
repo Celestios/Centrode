@@ -12,6 +12,15 @@ import '../node_render_entry.dart';
 class TextNodeRenderer {
   const TextNodeRenderer();
 
+  static final Paint _shadowPaint = Paint()
+    ..color = Colors.black26
+    ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2);
+  static final Paint _fillPaint = Paint();
+  static final Paint _borderPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..color = Colors.white;
+  static final Paint _toggleBgPaint = Paint()..style = PaintingStyle.fill;
+
   static void paintText(
     Canvas canvas,
     NodeRenderEntry entry,
@@ -157,19 +166,14 @@ class TextNodeRenderer {
       hasComments: node.comments.isNotEmpty,
     );
 
-    final shadowPaint = Paint()
-      ..color = Colors.black26
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * scale);
-    canvas.drawCircle(center + Offset(0, 1 * scale), r, shadowPaint);
+    _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * scale);
+    canvas.drawCircle(center + Offset(0, 1 * scale), r, _shadowPaint);
 
-    final fillPaint = Paint()..color = Color(color);
-    canvas.drawCircle(center, r, fillPaint);
+    _fillPaint.color = Color(color);
+    canvas.drawCircle(center, r, _fillPaint);
 
-    final borderPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5 * scale;
-    canvas.drawCircle(center, r, borderPaint);
+    _borderPaint.strokeWidth = 1.5 * scale;
+    canvas.drawCircle(center, r, _borderPaint);
   }
 
   static void paintExpandToggle(
@@ -207,10 +211,8 @@ class TextNodeRenderer {
       Radius.circular(4.0 * scale),
     );
 
-    final bgPaint = Paint()
-      ..color = Color(style.textColor).withValues(alpha: 0.08)
-      ..style = PaintingStyle.fill;
-    canvas.drawRRect(buttonRRect, bgPaint);
+    _toggleBgPaint.color = Color(style.textColor).withValues(alpha: 0.08);
+    canvas.drawRRect(buttonRRect, _toggleBgPaint);
 
     final iconData = entry.viewState.isExpandedNotifier.value
         ? Icons.keyboard_double_arrow_up

@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -10,7 +11,6 @@ import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/ui/widgets/overlays/canvas_status_bar/viewport_mini_map_widget.dart';
 import 'package:centrode/features/graph/ui/widgets/overlays/canvas_status_bar/zoom_slider_widget.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/src/rust/domain/base_models.dart' show BoundingBox;
 
 class MockGraphDataQuery extends Mock implements GraphDataQuery {}
 
@@ -35,14 +35,14 @@ void main() {
       mockSpatial = MockSpatialHashGrid();
       renderState = MockNodeRenderState();
 
-      when(() => renderState.nodeLookup).thenReturn({});
+      when(() => renderState.nodeLookup).thenReturn(UnmodifiableMapView({}));
       when(() => renderState.relations).thenReturn({});
       when(() => renderState.boundaryNotifier).thenReturn(ChangeNotifier());
       when(() => renderState.addListener(any())).thenReturn(null);
       when(() => renderState.removeListener(any())).thenReturn(null);
 
       when(() => mockSpatial.queryRect(any())).thenReturn(<RawUuid>{});
-      when(() => mockQuery.nodeLookup).thenReturn(<RawUuid, UiNode>{});
+      when(() => mockQuery.nodeLookup).thenReturn(UnmodifiableMapView(<RawUuid, UiNode>{}));
       when(() => mockQuery.spatialGrid).thenReturn(mockSpatial);
       when(() => mockQuery.spatialIndex).thenReturn(HierarchicalSpatialIndex());
       when(
@@ -103,7 +103,7 @@ void main() {
       mockQuery = MockGraphDataQuery();
       mockSpatial = MockSpatialHashGrid();
       when(() => mockSpatial.queryRect(any())).thenReturn(<RawUuid>{});
-      when(() => mockQuery.nodeLookup).thenReturn(<RawUuid, UiNode>{});
+      when(() => mockQuery.nodeLookup).thenReturn(UnmodifiableMapView(<RawUuid, UiNode>{}));
       when(() => mockQuery.spatialGrid).thenReturn(mockSpatial);
       when(() => mockQuery.spatialIndex).thenReturn(HierarchicalSpatialIndex());
       when(

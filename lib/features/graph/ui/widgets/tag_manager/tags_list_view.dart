@@ -13,7 +13,7 @@ import '../../../models/commands/patch_helpers.dart';
 import 'tag_color_picker_panel.dart';
 
 List<int> get _presetColors =>
-    CentrodeDerivedPalette.current.swatches.map((c) => c.value).toList();
+    CentrodeDerivedPalette.current.swatches.map((c) => c.toARGB32()).toList();
 
 enum TagSortOption { alphabeticalAsc, alphabeticalDesc, usageDesc, usageAsc }
 
@@ -43,6 +43,8 @@ class _TagsListViewState extends State<TagsListView> {
   // State for creating a new tag color
   int _newTagColor = 0xFF5C6BC0; // Default Indigo
 
+  final ValueNotifier<List<Tag>> _tagsNotifier = ValueNotifier<List<Tag>>([]);
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +52,9 @@ class _TagsListViewState extends State<TagsListView> {
       setState(() {
         _searchQuery = _searchController.text.trim();
       });
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshTags();
     });
   }
 
@@ -60,7 +65,14 @@ class _TagsListViewState extends State<TagsListView> {
     _renameController.dispose();
     _createFocusNode.dispose();
     _renameFocusNode.dispose();
+    _tagsNotifier.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshTags() async {
+    final controller = context.read<CommandQueueProcessor>();
+    final tags = await controller.propertyMutations.getAllTags();
+    _tagsNotifier.value = tags.whereType<Tag>().toList();
   }
 
   int _getTagUsageCount(String tagKey, GraphDataQueryController controller) {
@@ -115,6 +127,7 @@ class _TagsListViewState extends State<TagsListView> {
                       ),
                     );
                     await controller.updateTag(updatedTag);
+                    await _refreshTags();
                   },
                 ),
               ),
@@ -192,19 +205,12 @@ class _TagsListViewState extends State<TagsListView> {
       ),
     );
 
-    try {
-      await controller.createTag(newTag);
-      _createController.clear();
-      // Generate a new random color for next tag
-      setState(() {
-        _newTagColor = (List<int>.from(_presetColors)..shuffle()).first;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
+    await controller.createTag(newTag);
+    _createController.clear();
+    setState(() {
+      _newTagColor = (List<int>.from(_presetColors)..shuffle()).first;
+    });
+    await _refreshTags();
   }
 
   void _submitRename(
@@ -234,24 +240,21 @@ class _TagsListViewState extends State<TagsListView> {
       return;
     }
 
-    try {
-      final updatedTag = Tag(
-        key: tag.key,
-        fields: TagFields(
-          name: newName,
-          color: tag.fields.color,
-          createdAt: tag.fields.createdAt,
-          updatedAt: DateTime.now().millisecondsSinceEpoch,
-        ),
-      );
-      await controller.updateTag(updatedTag);
-      setState(() {
-        _editingTagKey = null;
-        _validationError = null;
-      });
-    } catch (e) {
-      setState(() => _validationError = e.toString());
-    }
+    final updatedTag = Tag(
+      key: tag.key,
+      fields: TagFields(
+        name: newName,
+        color: tag.fields.color,
+        createdAt: tag.fields.createdAt,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    await controller.updateTag(updatedTag);
+    setState(() {
+      _editingTagKey = null;
+      _validationError = null;
+    });
+    await _refreshTags();
   }
 
   void _startEditing(Tag tag) {
@@ -271,24 +274,9 @@ class _TagsListViewState extends State<TagsListView> {
     final queryController = context.read<GraphDataQueryController>();
     final theme = Theme.of(context);
 
-    return FutureBuilder<List<Tag>>(
-      future: controller.propertyMutations.getAllTags(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData) {
-          return const SizedBox(
-            height: 100,
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: UiControlSize.dense,
-                child: CircularProgressIndicator(strokeWidth: UiStrokeWidth.thick),
-              ),
-            ),
-          );
-        }
-
-        final allTags = (snapshot.data ?? []).whereType<Tag>().toList();
+    return ValueListenableBuilder<List<Tag>>(
+      valueListenable: _tagsNotifier,
+      builder: (context, allTags, _) {
 
         // Apply search query filter
         var filteredTags = allTags;
@@ -613,6 +601,7 @@ class _TagsListViewState extends State<TagsListView> {
                                         await controller.deleteTag(
                                           tag.key.key.uuid,
                                         );
+                                        await _refreshTags();
                                       }
                                     },
                                     iconSize: UiIconSize.dense,

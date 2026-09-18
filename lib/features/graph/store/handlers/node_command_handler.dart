@@ -10,15 +10,15 @@ import '../command_processor.dart';
 /// Command handler managing node creation, movement, deletion, and cache synchronization.
 class NodeCommandHandler {
   final CommandQueueProcessor context;
-  final NodeApi api;
+  final NodeApi _api;
   final CommandProcessor processor;
   late final GraphNodeMutations mutations;
 
   NodeCommandHandler({
     required this.context,
-    required this.api,
+    required NodeApi api,
     required this.processor,
-  }) {
+  }) : _api = api {
     mutations = GraphNodeMutations(context);
   }
 
@@ -31,7 +31,7 @@ class NodeCommandHandler {
     if (node != null) {
       final pos = positionOverride ?? node.position;
       final size = sizeOverride ?? node.size;
-      api.updateNodeCachePositions(
+      _api.updateNodeCachePositions(
         positions: [
           (
             parseTypedRecordId(node.tableName, id),
@@ -103,7 +103,7 @@ class NodeCommandHandler {
       }
     }
     if (positions.isNotEmpty) {
-      api.updateNodeCachePositions(positions: positions);
+      _api.updateNodeCachePositions(positions: positions);
       for (final update in updates) {
         context.relationEngine.onNodeMoved(update.$1);
       }

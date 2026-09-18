@@ -57,7 +57,7 @@ SnapResult findNearestSnap(
     if (vs.sizeNotifier.value == Size.zero) continue;
 
     if (isInsideScope) {
-      final port = vs.getClosestPortNew(pCanvas);
+      final port = vs.getClosestPort(pCanvas);
       if (port == null) continue;
 
       final dist = (pCanvas - port.edgePosition).distance;
@@ -84,7 +84,7 @@ SnapResult findNearestSnap(
       final sy = (1600.0 * aspectRatio) / (effectiveOuterSize.height > 0 ? effectiveOuterSize.height : 1.0);
 
       final pParent = Offset((pCanvas.dx / sx) + containerPos.dx, (pCanvas.dy / sy) + containerPos.dy);
-      final port = vs.getClosestPortNew(pParent);
+      final port = vs.getClosestPort(pParent);
       if (port == null) continue;
 
       final localPortPos = Offset((port.edgePosition.dx - containerPos.dx) * sx, (port.edgePosition.dy - containerPos.dy) * sy);

@@ -124,9 +124,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   @override
   void dispose() {
     _controller.removeListener(_onControllerChanged);
-    try {
-      _contextMenuEntry?.remove();
-    } catch (_) {}
+    _contextMenuEntry?.remove();
     _renderState.clearBlockFormatCallback = null;
     _renderState.cycleFontFamilyCallback = null;
     _renderState.cycleTextColorCallback = null;
@@ -137,15 +135,11 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
     if (!_isCommitted && !_isAborted) {
       _isCommitted = true;
       _log.info('Committing final edit on dispose for: ${widget.entityId}');
-      try {
-        _renderState.commitEntityText(
-          widget.entityId,
-          _controller.buildContent(),
-          originalTextOrContent: _initialContent,
-        );
-      } catch (e) {
-        _log.severe('Failed to commit text on dispose: $e');
-      }
+      _renderState.commitEntityText(
+        widget.entityId,
+        _controller.buildContent(),
+        originalTextOrContent: _initialContent,
+      );
     }
 
     _controller.dispose();
@@ -261,9 +255,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
   }
 
   void _showCustomContextMenu() {
-    try {
-      _contextMenuEntry?.remove();
-    } catch (_) {}
+    _contextMenuEntry?.remove();
     _contextMenuEntry = null;
 
     final tapPosition = _lastSecondaryTapDownPosition;

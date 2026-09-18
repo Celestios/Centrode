@@ -51,7 +51,7 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     final activeIndex = widget.items.indexWhere((item) => item.mode == widget.currentMode);
-    final safeIndex = activeIndex >= 0 ? activeIndex : 0;
+    assert(activeIndex >= 0, 'currentMode ${widget.currentMode} not found in items');
     final itemWidth = widget.isCompact ? 34.0 : 88.0;
 
     return Listener(
@@ -88,7 +88,7 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
             AnimatedPositioned(
               duration: UiMotion.standard,
               curve: Curves.easeOutCubic,
-              left: safeIndex * itemWidth,
+              left: activeIndex * itemWidth,
               top: 0,
               bottom: 0,
               width: itemWidth,
@@ -138,7 +138,7 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                           Icon(
                             widget.items[i].icon,
                             size: UiIconSize.dense,
-                            color: i == safeIndex
+                            color: i == activeIndex
                                 ? textColor
                                 : textColor.withValues(alpha: 0.75),
                           ),
@@ -150,8 +150,8 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: UiFont.compact,
-                                  fontWeight: i == safeIndex ? FontWeight.bold : FontWeight.w500,
-                                  color: i == safeIndex
+                                  fontWeight: i == activeIndex ? FontWeight.bold : FontWeight.w500,
+                                  color: i == activeIndex
                                       ? textColor
                                       : textColor.withValues(alpha: 0.75),
                                 ),

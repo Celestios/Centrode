@@ -5,6 +5,7 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 abstract interface class GraphDataCommand {
   Future<void> deleteNode(RawUuid id);
   Future<void> deleteRelation(RawUuid id);
+  void updateRelationStyle(RawUuid id, RelationStyle newStyle);
   RawUuid createNode(
     UiNodes type,
     Offset position, {

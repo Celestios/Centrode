@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection' show UnmodifiableMapView;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
@@ -87,10 +88,12 @@ class GraphDataQueryController implements GraphDataQuery {
   HierarchicalSpatialIndex get spatialIndex => spatial.spatialIndex;
 
   @override
-  Map<RawUuid, UiNode> get nodeLookup => store.nodeLookup;
+  UnmodifiableMapView<RawUuid, UiNode> get nodeLookup =>
+      UnmodifiableMapView(store.nodeLookup);
 
   @override
-  Map<RawUuid, UiRelation> get relationLookup => store.relationLookup;
+  UnmodifiableMapView<RawUuid, UiRelation> get relationLookup =>
+      UnmodifiableMapView(store.relationLookup);
 
   @override
   Iterable<UiRelation> get relations => store.relations;

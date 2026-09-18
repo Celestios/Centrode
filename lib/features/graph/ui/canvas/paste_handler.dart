@@ -5,7 +5,9 @@ import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/content_builder.dart';
 import '../../models/graph_node.dart';
 import '../../models/graph_relation.dart';
+import '../../models/commands.dart';
 import '../../store/command_queue_processor.dart';
+import '../../store/graph_data_query.dart';
 import 'package:centrode/src/rust/domain/contents.dart';
 import 'package:centrode/features/graph/presentation/relation_utils.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
@@ -219,12 +221,25 @@ Future<void> _createTreeNodes(
       ),
     );
 
+    // Optimistic insertion
     dataController.store.relationLookup[relation.id] = relation;
     dataController.styleUpdater?.updateStyleForRelation(relation.id);
     relation.normalize();
 
-    await dataController.syncEngine.api.createRelation(
-      input: relation.toRust(),
+    final cmd = CreateRelationCommand(
+      targetId: relation.id,
+      api: dataController.syncEngine.api,
+      relation: relation,
+      controller: dataController,
+    );
+    dataController.syncEngine.processor.queueCommand(cmd, immediate: true);
+    dataController.publishUpdate(
+      GraphEntityUpdate(
+        id: relation.id,
+        tableName: 'IRelation',
+        type: GraphUpdateType.relationAdded,
+        payload: relation,
+      ),
     );
   }
 

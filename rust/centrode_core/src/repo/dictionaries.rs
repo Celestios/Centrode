@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
 use crate::domain::id::TypedRecordId;
+use crate::domain::nlp::{damerau_levenshtein, detect_map_language_impl};
 use crate::domain::styles::RelationStyle;
 use crate::domain::traits::TableKind;
 use crate::domain::types::{CustomWord, VectorEmbedding};
@@ -41,44 +42,6 @@ pub fn get_official_ontology_index() -> &'static OntologyIndex {
     })
 }
 
-pub fn damerau_levenshtein(s1: &str, s2: &str) -> usize {
-    let v1: Vec<char> = s1.chars().collect();
-    let v2: Vec<char> = s2.chars().collect();
-    let len1 = v1.len();
-    let len2 = v2.len();
-
-    if len1 == 0 {
-        return len2;
-    }
-    if len2 == 0 {
-        return len1;
-    }
-
-    let mut d = vec![vec![0usize; len2 + 1]; len1 + 1];
-
-    for i in 0..=len1 {
-        d[i][0] = i;
-    }
-    for j in 0..=len2 {
-        d[0][j] = j;
-    }
-
-    for i in 1..=len1 {
-        for j in 1..=len2 {
-            let cost = if v1[i - 1].eq_ignore_ascii_case(&v2[j - 1]) { 0 } else { 1 };
-            d[i][j] = (d[i - 1][j] + 1)
-                .min(d[i][j - 1] + 1)
-                .min(d[i - 1][j - 1] + cost);
-
-            if i > 1 && j > 1 && v1[i - 1].eq_ignore_ascii_case(&v2[j - 2]) && v1[i - 2].eq_ignore_ascii_case(&v2[j - 1]) {
-                d[i][j] = d[i][j].min(d[i - 2][j - 2] + 1);
-            }
-        }
-    }
-
-    d[len1][len2]
-}
-
 #[derive(Clone)]
 pub struct SurrealDictionaryRepository {
     pub(crate) db: Surreal<Db>,
@@ -94,47 +57,7 @@ impl SurrealDictionaryRepository {
     }
 
     pub fn detect_map_language(node_texts: &[String]) -> String {
-        Self::detect_map_language_impl(node_texts)
-    }
-
-    fn detect_map_language_impl(node_texts: &[String]) -> String {
-        let mut fa_ar_count = 0;
-        let mut fa_specific_count = 0;
-        let mut zh_count = 0;
-        let mut es_count = 0;
-        let mut en_count = 0;
-
-        for text in node_texts {
-            for ch in text.chars() {
-                let cp = ch as u32;
-                if (0x0600..=0x06FF).contains(&cp) || (0xFB50..=0xFEFF).contains(&cp) {
-                    fa_ar_count += 1;
-                    if matches!(ch, 'گ' | 'چ' | 'پ' | 'ژ' | 'ی' | 'ک') {
-                        fa_specific_count += 1;
-                    }
-                } else if (0x4E00..=0x9FFF).contains(&cp) || (0x3400..=0x4DBF).contains(&cp) {
-                    zh_count += 1;
-                } else if matches!(ch, 'á' | 'é' | 'í' | 'ó' | 'ú' | 'ñ' | '¿' | '¡' | 'Á' | 'É' | 'Í' | 'Ó' | 'Ú' | 'Ñ') {
-                    es_count += 2;
-                } else if ch.is_ascii_alphabetic() {
-                    en_count += 1;
-                }
-            }
-        }
-
-        if fa_ar_count > zh_count && fa_ar_count > es_count && fa_ar_count > en_count {
-            if fa_specific_count > 0 {
-                "fa".to_string()
-            } else {
-                "ar".to_string()
-            }
-        } else if zh_count > fa_ar_count && zh_count > es_count && zh_count > en_count {
-            "zh".to_string()
-        } else if es_count > 0 && es_count >= (en_count / 3) {
-            "es".to_string()
-        } else {
-            "en".to_string()
-        }
+        detect_map_language_impl(node_texts)
     }
 }
 
@@ -282,7 +205,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             return Ok(());
         }
 
-        let vector = EmbeddingService::embed_text(clean);
+        let vector = EmbeddingService::embed_text(clean)?;
         let rid = RecordId::new(
             TableKind::VectorEmbedding.table_name(),
             RecordIdKey::String(clean.to_string()),
@@ -310,7 +233,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             return Ok(vec![]);
         }
 
-        let query_vec = EmbeddingService::embed_text(clean);
+        let query_vec = EmbeddingService::embed_text(clean)?;
         let mut candidates = HashSet::new();
 
         let lang = language.as_deref().unwrap_or("en");
@@ -394,7 +317,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             let cand_lower = cand_norm.to_lowercase();
 
             // 1. Semantic Embedding Similarity (BERT unit vector dot product)
-            let cand_vec = EmbeddingService::embed_text(&candidate);
+            let cand_vec = EmbeddingService::embed_text(&candidate)?;
             let neural_sim = EmbeddingService::cosine_similarity(&query_vec, &cand_vec);
 
             // 2. Fuzzy Typo & Edit Distance Similarity
@@ -432,7 +355,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
     }
 
     fn detect_map_language(&self, node_texts: &[String]) -> String {
-        Self::detect_map_language_impl(node_texts)
+        detect_map_language_impl(node_texts)
     }
 
     async fn predict_relation_labels(
@@ -460,7 +383,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
 
             if !sys_res.is_empty() {
                 let context_prompt = format!("{} {}", src, tgt);
-                let context_vec = EmbeddingService::embed_text(&context_prompt);
+                let context_vec = EmbeddingService::embed_text(&context_prompt)?;
 
                 let mut candidates: Vec<(String, f32)> = Vec::with_capacity(sys_res.len());
                 for val in sys_res {
@@ -490,7 +413,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
                                 "fa" => fa_template.replace("{head}", src).replace("{tail}", tgt),
                                 _ => en_template.replace("{head}", src).replace("{tail}", tgt),
                             };
-                            let cand_vec = EmbeddingService::embed_text(&templated);
+                            let cand_vec = EmbeddingService::embed_text(&templated)?;
                             let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
                             let label = match lang {
                                 "fa" => fa_label,
@@ -518,7 +441,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
             }
 
             let context_prompt = format!("{} {}", src, tgt);
-            let context_vec = EmbeddingService::embed_text(&context_prompt);
+            let Ok(context_vec) = EmbeddingService::embed_text(&context_prompt) else { return vec![]; };
 
             let mut candidates: Vec<(String, f32)> = Vec::with_capacity(engine.ontology.len());
             for entry in &engine.ontology {
@@ -526,7 +449,7 @@ impl DictionaryRepository for SurrealDictionaryRepository {
                     "fa" => entry.fa_template.replace("{head}", src).replace("{tail}", tgt),
                     _ => entry.en_template.replace("{head}", src).replace("{tail}", tgt),
                 };
-                let cand_vec = EmbeddingService::embed_text(&templated);
+                let Ok(cand_vec) = EmbeddingService::embed_text(&templated) else { continue; };
                 let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
                 let label = match lang {
                     "fa" => entry.fa_label.clone(),
@@ -553,11 +476,11 @@ impl DictionaryRepository for SurrealDictionaryRepository {
         }
 
         let context_prompt = format!("{} {}", src, tgt);
-        let context_vec = EmbeddingService::embed_text(&context_prompt);
+        let context_vec = EmbeddingService::embed_text(&context_prompt)?;
 
         let mut scored: Vec<(String, f32)> = Vec::new();
         for cand in candidates {
-            let cand_vec = EmbeddingService::embed_text(cand);
+            let cand_vec = EmbeddingService::embed_text(cand)?;
             let score = EmbeddingService::cosine_similarity(&context_vec, &cand_vec);
             scored.push((cand.to_string(), score));
         }

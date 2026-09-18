@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -150,8 +151,8 @@ void main() {
     final mockQuery = _MockGraphDataQuery();
     final mockCommand = _MockGraphDataCommand();
 
-    when(() => mockQuery.nodeLookup).thenReturn({});
-    when(() => mockQuery.relationLookup).thenReturn({});
+    when(() => mockQuery.nodeLookup).thenReturn(UnmodifiableMapView({}));
+    when(() => mockQuery.relationLookup).thenReturn(UnmodifiableMapView({}));
     when(() => mockQuery.relations).thenReturn([]);
     when(() => mockQuery.onEntityUpdate).thenAnswer((_) => const Stream.empty());
 

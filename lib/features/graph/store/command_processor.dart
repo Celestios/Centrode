@@ -62,15 +62,18 @@ class CommandProcessor {
     final completer = Completer<void>();
     _processingFuture = completer.future;
 
+    GraphCommand? failedCmd;
     try {
       while (_executionQueue.isNotEmpty) {
-        final cmd = _executionQueue.removeFirst();
-        await cmd.execute();
-        cmd.onSuccess();
+        failedCmd = _executionQueue.removeFirst();
+        await failedCmd.execute();
+        failedCmd.onSuccess();
+        failedCmd = null;
       }
       completer.complete();
     } catch (e, stack) {
-      _log.severe('FFI Synchronization command execution failed.', e, stack);
+      _log.severe('FFI Synchronization command execution failed: $failedCmd, rolling back.', e, stack);
+      failedCmd?.undo();
       completer.completeError(e, stack);
       rethrow;
     } finally {

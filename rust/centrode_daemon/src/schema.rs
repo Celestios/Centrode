@@ -8,10 +8,7 @@ impl Schema {
     pub async fn init(db: &Surreal<Db>) -> Result<()> {
         let surql = include_str!("map_schema.surql");
         tracing::info!("Applying schema from map_schema.surql...");
-        db.query(surql).await.map_err(|e| {
-            tracing::error!("Schema initialization failed: {}", e);
-            anyhow::anyhow!("Schema initialization failed: {}", e)
-        })?;
+        db.query(surql).await?.check()?;
         tracing::info!("Map schema file applied successfully.");
 
         Ok(())
@@ -41,10 +38,7 @@ impl Seeder {
     pub async fn seed_system_data(db: &Surreal<Db>) -> Result<()> {
         tracing::debug!("Seeding system default relations into centrode:system...");
         let surql = include_str!("system_relations.surql");
-        db.query(surql).await.map_err(|e| {
-            tracing::error!("System relations seeding failed: {}", e);
-            anyhow::anyhow!("System relations seeding failed: {}", e)
-        })?;
+        db.query(surql).await?.check()?;
         Ok(())
     }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/shared/utils/color_theory_engine.dart';
-import 'package:centrode/presentation/theme/app_theme.dart';
 
 void main() {
   group('ColorTheoryEngine Mathematical & Perceptual Invariants', () {

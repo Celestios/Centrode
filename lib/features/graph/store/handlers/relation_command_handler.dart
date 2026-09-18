@@ -3,7 +3,6 @@ import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import '../../models/graph_relation.dart';
 import '../command_queue_processor.dart';
 import '../modules/graph_relation_mutations.dart';
-import '../api/relation_api.dart';
 import '../command_processor.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
@@ -11,13 +10,11 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 class RelationCommandHandler {
   final Logger _log = Logger('RelationCommandHandler');
   final CommandQueueProcessor context;
-  final RelationApi api;
   final CommandProcessor processor;
   late final GraphRelationMutations mutations;
 
   RelationCommandHandler({
     required this.context,
-    required this.api,
     required this.processor,
   }) {
     mutations = GraphRelationMutations(context);

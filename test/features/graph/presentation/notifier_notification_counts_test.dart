@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:centrode/features/graph/presentation/editor_state.dart';
@@ -30,8 +31,8 @@ void main() {
   setUp(() {
     mockQuery = MockGraphDataQuery();
     mockCommand = MockGraphDataCommand();
-    when(() => mockQuery.nodeLookup).thenReturn(testNodes);
-    when(() => mockQuery.relationLookup).thenReturn({});
+    when(() => mockQuery.nodeLookup).thenReturn(UnmodifiableMapView(testNodes));
+    when(() => mockQuery.relationLookup).thenReturn(UnmodifiableMapView({}));
     when(() => mockQuery.relations).thenReturn([]);
     when(
       () => mockQuery.onEntityUpdate,

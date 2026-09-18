@@ -39,25 +39,29 @@ class OverlayLayer extends StatelessWidget {
             // 1. Temporary Relation Drag Line
             if (interactionState is RelationDrawing)
               Positioned.fill(
-                child: ValueListenableBuilder<int>(
-                  valueListenable: dataController.relationEngine.cacheNotifier,
-                  builder: (context, _, __) {
-                    return CustomPaint(
-                      painter: TempRelationPainter(
-                        state: interactionState,
-                        nodeViewStates: renderState.viewStates,
-                        relationEngine: dataController.relationEngine,
-                      ),
-                    );
-                  },
+                child: RepaintBoundary(
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: dataController.relationEngine.cacheNotifier,
+                    builder: (context, _, __) {
+                      return CustomPaint(
+                        painter: TempRelationPainter(
+                          state: interactionState,
+                          nodeViewStates: renderState.viewStates,
+                          relationEngine: dataController.relationEngine,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
 
             // 2. Marquee Selection Box Layer
             if (interactionState is MarqueeSelecting)
               Positioned.fill(
-                child: CustomPaint(
-                  painter: MarqueePainter(state: interactionState),
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: MarqueePainter(state: interactionState),
+                  ),
                 ),
               ),
 
@@ -67,8 +71,10 @@ class OverlayLayer extends StatelessWidget {
               builder: (context, persistentOptRect, _) {
                 if (persistentOptRect == null) return const SizedBox.shrink();
                 return Positioned.fill(
-                  child: CustomPaint(
-                    painter: PersistentOptAreaPainter(rect: persistentOptRect),
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: PersistentOptAreaPainter(rect: persistentOptRect),
+                    ),
                   ),
                 );
               },
@@ -77,16 +83,20 @@ class OverlayLayer extends StatelessWidget {
             // 4. OptArea Drawing Box Layer
             if (interactionState is OptAreaDrawing)
               Positioned.fill(
-                child: CustomPaint(
-                  painter: OptAreaPainter(state: interactionState),
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: OptAreaPainter(state: interactionState),
+                  ),
                 ),
               ),
 
             // 5. Frame Drawing Live Box Layer
             if (interactionState is FrameDrawing)
               Positioned.fill(
-                child: CustomPaint(
-                  painter: FrameDrawingPainter(state: interactionState),
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: FrameDrawingPainter(state: interactionState),
+                  ),
                 ),
               ),
 

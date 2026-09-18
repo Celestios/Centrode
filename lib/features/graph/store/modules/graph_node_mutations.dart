@@ -81,8 +81,11 @@ class GraphNodeMutations {
           mediaType: mediaType ?? MediaType.image,
         );
         break;
-      default:
-        throw ArgumentError('Unsupported or unhandled node type: $type');
+      case UiNodes.comment:
+      case UiNodes.container:
+      case UiNodes.inter:
+      case UiNodes.shape:
+        throw ArgumentError('Node type $type is not supported for creation via createNode');
     }
     RawUuid id = node.id;
     controller.store.nodeLookup[id] = node;

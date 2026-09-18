@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/presentation/strategies/node_style_strategy.dart';
 import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/features/graph/presentation/shared/view_constants.dart';
 
 /// Isolated helper calculator for node resize and expand toggle hitboxes.
 abstract class NodeHitboxCalculator {
@@ -42,7 +43,7 @@ abstract class NodeHitboxCalculator {
   ) {
     final style =
         node.resolvedStyle ?? node.style ?? NodeStyleStrategy.fallbackStyle();
-    final fontScale = style.fontSize / 14.0;
+    final fontScale = style.fontSize / kDefaultFontDivisor;
     final toggleSpace = expandToggleSpace(
       isExpanded,
       fontScale,

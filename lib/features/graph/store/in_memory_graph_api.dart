@@ -370,6 +370,14 @@ class InMemoryGraphApi implements GraphApi {
   }
 
   @override
+  Future<GraphDelta?> applyHistoryRecordPatch({
+    required HistoryRecord record,
+    required bool isForward,
+  }) async {
+    return null;
+  }
+
+  @override
   Future<List<ComputedRelation>> computeRelations({
     required RelationEngineConfig config,
     List<TypedRecordId>? relationIds,

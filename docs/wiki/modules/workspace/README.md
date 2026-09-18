@@ -18,7 +18,6 @@ lib/features/workspace/
 │                                         #   MapManager + MapStorageGateway
 └── ui/
     ├── workspace_hub_screen.dart          # Main workspace screen
-    ├── liquid_glass_test_screen.dart      # Glass shader test screen
     └── widgets/
         ├── left_panel/
         │   ├── left_panel.dart            # Left sidebar
@@ -49,6 +48,12 @@ lib/features/workspace/
 - **MapSection/MapsSection** — Map cards with preview, open, delete actions
 - **ProjectsSection** — Project management
 - **TemplatesSection** — Template browsing and instantiation
+
+---
+
+## Test Harness
+
+`LiquidGlassDemo` lives in `test/prototype/liquid_glass_test_screen.dart`, outside the production workspace UI. It provides draggable [glass panels](../shared/glass-panel.md) and shader parameter sliders for testing. `test/liquid_glass_rendering_test.dart` mounts it in a `MaterialApp` and checks for four `GlassPanel` widgets and one `GlassGroup`.
 
 ---
 

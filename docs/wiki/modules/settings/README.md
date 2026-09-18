@@ -47,7 +47,6 @@ lib/features/settings/
 
 ## Related Specifications
 
-- [Settings Options Inventory & Roadmap](../../../artifacts/settings_options_inventory/design_settings_options.md) — Comprehensive catalog of configurable options across all categories
 - [Theme System](../../design/themes.md) — Application themes and color palettes
 - [Shaders](../../design/shaders.md) — GLSL liquid glass shader parameters
 - [Glass Panel](../shared/glass-panel.md) — Glassmorphic rendering components

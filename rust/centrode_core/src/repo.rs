@@ -2,6 +2,7 @@ use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
 pub mod analysis;
+pub(crate) mod utils;
 pub mod dictionaries;
 pub mod history;
 pub mod nodes;

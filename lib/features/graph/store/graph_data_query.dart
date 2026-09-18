@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection' show UnmodifiableMapView;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
@@ -46,8 +47,8 @@ abstract interface class GraphDataQuery {
   String? get errorMessage;
   SpatialHashGrid get spatialGrid;
   HierarchicalSpatialIndex get spatialIndex;
-  Map<RawUuid, UiNode> get nodeLookup;
-  Map<RawUuid, UiRelation> get relationLookup;
+  UnmodifiableMapView<RawUuid, UiNode> get nodeLookup;
+  UnmodifiableMapView<RawUuid, UiRelation> get relationLookup;
   Iterable<UiRelation> get relations;
   BoundingBox get canvasBounds;
   RelationEngineState get relationEngine;

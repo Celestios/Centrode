@@ -8,18 +8,12 @@ use crate::domain::traits::TableKind;
 use crate::repo::nodes::SurrealNodeRepository;
 use crate::repo::relations::SurrealRelationRepository;
 use crate::repo::traits::{NodeRepository, RelationRepository, TemplateRepository};
+use crate::repo::utils::key_to_uuid;
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
-use surrealdb::types::{RecordIdKey, SurrealValue, Value};
+use surrealdb::types::{SurrealValue, Value};
 use surrealdb::Surreal;
-
-fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
-    match key {
-        RecordIdKey::Uuid(u) => Ok(**u),
-        _ => Err(anyhow::anyhow!("Non-UUID template key")),
-    }
-}
 
 #[derive(Clone)]
 pub struct SurrealTemplateRepository {
@@ -47,7 +41,7 @@ impl TemplateRepository for SurrealTemplateRepository {
                 let record = Record::from_record_value(v)
                     .ok_or_else(|| anyhow::anyhow!("Failed to parse Template record"))?;
                 let mut template = Template::from_value(record.fields)?;
-                template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key)?);
+                    template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key, "template")?);
                 Ok(Some(template))
             }
             None => Ok(None),
@@ -79,7 +73,7 @@ impl TemplateRepository for SurrealTemplateRepository {
         for v in vals {
             if let Some(record) = Record::from_record_value(v) {
                 if let Ok(mut template) = Template::from_value(record.fields) {
-                    template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key)?);
+                template.key = TypedRecordId::new(TableKind::Template, key_to_uuid(&record.id.key, "template")?);
                     result.push(template);
                 }
             }

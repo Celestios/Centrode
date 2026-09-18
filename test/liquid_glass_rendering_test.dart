@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:centrode/features/workspace/ui/liquid_glass_test_screen.dart';
+import 'prototype/liquid_glass_test_screen.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
 void main() {

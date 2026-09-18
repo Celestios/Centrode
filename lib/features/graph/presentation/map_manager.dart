@@ -2,14 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/shared/logging.dart';
+import 'package:centrode/shared/traceable_notifier.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
 import 'package:centrode/shared/utils/name_generator.dart';
 import 'map_storage_gateway.dart';
 import 'workspace_tabs_controller.dart';
 
-class MapManager extends ChangeNotifier {
+class MapManager extends ChangeNotifier with TraceableNotifier {
   static final MapManager instance = MapManager._();
   MapManager._();
+
+  @override
+  String get notifierName => 'MapManager';
 
   final Logger _log = Logger('MapManager');
   WorkspaceTabsController? _tabsController;

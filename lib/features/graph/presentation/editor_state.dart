@@ -87,10 +87,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     }
   }
 
-  /// Aborts and closes active inline editing mode.
-  void cancelActiveEdit() {
-    activeEditId = null;
-    activeTextSelectionNotifier.value = null;
+  void _resetCallbacks() {
     applyFormatCallback = null;
     toggleHeadingCallback = null;
     clearBlockFormatCallback = null;
@@ -101,6 +98,13 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
     cycleHighlightColorCallback = null;
     cycleTextAlignCallback = null;
     commitActiveEditCallback = null;
+  }
+
+  /// Aborts and closes active inline editing mode.
+  void cancelActiveEdit() {
+    activeEditId = null;
+    activeTextSelectionNotifier.value = null;
+    _resetCallbacks();
     currentTextAlignNotifier.value = TextAlign.center;
     notifyListeners();
   }
@@ -220,16 +224,7 @@ class EditorState extends ChangeNotifier with TraceableNotifier {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    applyFormatCallback = null;
-    toggleHeadingCallback = null;
-    clearBlockFormatCallback = null;
-    cycleFontFamilyCallback = null;
-    setFontFamilyCallback = null;
-    cycleTextColorCallback = null;
-    toggleHighlightCallback = null;
-    cycleHighlightColorCallback = null;
-    cycleTextAlignCallback = null;
-    commitActiveEditCallback = null;
+    _resetCallbacks();
     activeTextSelectionNotifier.dispose();
     activeEditIdNotifier.dispose();
     toolbarOffsetNotifier.dispose();

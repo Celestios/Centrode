@@ -44,7 +44,6 @@ void main() {
   group('CentrodePaletteGenerator Tests', () {
     testWidgets('renders interlocking puzzle mosaic, toggles locks, and applies palette', (tester) async {
       List<Color>? applied;
-      Color? selectedColor;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -53,7 +52,6 @@ void main() {
               child: CentrodePaletteGenerator(
                 primaryAnchor: const Color(0xFF6366F1),
                 onApplyPalette: (pal) => applied = pal,
-                onColorSelected: (c) => selectedColor = c,
               ),
             ),
           ),

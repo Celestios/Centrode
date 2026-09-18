@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/traceable_notifier.dart';
@@ -349,10 +350,12 @@ class NodeRenderState extends ChangeNotifier
   HierarchicalSpatialIndex get spatialIndex => _dataQuery.spatialIndex;
 
   @override
-  Map<RawUuid, UiNode> get nodeLookup => _dataQuery.nodeLookup;
+  UnmodifiableMapView<RawUuid, UiNode> get nodeLookup =>
+      UnmodifiableMapView(_dataQuery.nodeLookup);
 
   @override
-  Map<RawUuid, UiRelation> get relationLookup => _dataQuery.relationLookup;
+  UnmodifiableMapView<RawUuid, UiRelation> get relationLookup =>
+      UnmodifiableMapView(_dataQuery.relationLookup);
 
   @override
   Iterable<UiRelation> get relations => _dataQuery.relations;
@@ -391,6 +394,10 @@ class NodeRenderState extends ChangeNotifier
     NodeStyle Function(NodeStyle style) updateFn,
   ) {
     _dataCommand.updateNodesStyle(ids, updateFn);
+  }
+
+  void updateRelationStyle(RawUuid id, RelationStyle newStyle) {
+    _dataCommand.updateRelationStyle(id, newStyle);
   }
 
   void addTagToNode(RawUuid nodeId, String name, int color) {

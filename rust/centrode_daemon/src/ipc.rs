@@ -4,6 +4,8 @@ use std::io::{Read, Write};
 
 pub const IPC_PIPE_NAME: &str = r"\\.\pipe\centrode-custodian-ipc";
 
+const MAX_IPC_FRAME_SIZE: usize = 32 * 1024 * 1024; // 32MB
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(tag = "method", content = "params")]
 pub enum IpcMessage {
@@ -38,6 +40,14 @@ fn read_frame<R: Read>(reader: &mut R) -> Result<Vec<u8>> {
     let mut len_buf = [0u8; 4];
     reader.read_exact(&mut len_buf)?;
     let len = u32::from_be_bytes(len_buf) as usize;
+
+    if len > MAX_IPC_FRAME_SIZE {
+        anyhow::bail!(
+            "IPC frame length {} exceeds max allowable size {}",
+            len,
+            MAX_IPC_FRAME_SIZE
+        );
+    }
 
     let mut payload = vec![0u8; len];
     reader.read_exact(&mut payload)?;

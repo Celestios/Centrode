@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart' hide Theme;
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/shared/elements/elements.dart';
 
 abstract final class AppConfig {

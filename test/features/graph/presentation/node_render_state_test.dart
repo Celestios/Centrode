@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
@@ -26,8 +27,8 @@ void main() {
       );
       when(
         () => mockQuery.nodeLookup,
-      ).thenReturn({RawUuid.fromString('node-1'): dummyNode});
-      when(() => mockQuery.relationLookup).thenReturn({});
+      ).thenReturn(UnmodifiableMapView({RawUuid.fromString('node-1'): dummyNode}));
+      when(() => mockQuery.relationLookup).thenReturn(UnmodifiableMapView({}));
       when(() => mockQuery.relations).thenReturn([]);
       when(
         () => mockQuery.onEntityUpdate,

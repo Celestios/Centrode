@@ -9,6 +9,8 @@ use surrealdb::engine::local::Db;
 use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
 
+const DEFAULT_HISTORY_LIMIT: usize = 100;
+
 #[derive(Debug, Clone, SurrealValue)]
 pub struct HistoryRecord {
     pub id: Option<RecordId>,
@@ -78,35 +80,37 @@ impl<'a> HistoryManager<'a> {
     }
 
     pub async fn undo(&self) -> Result<Option<HistoryRecord>> {
-        let mut response = self
-            .db
-            .query(
-                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at DESC, id DESC LIMIT 1",
-            )
-            .bind(("status", HistoryStatus::Applied.into_value()))
-            .await?;
-        let record: Option<HistoryRecord> = response.take(0)?;
-
-        let Some(mut rec) = record else { return Ok(None); };
-        let Some(ref record_id) = rec.id else { return Ok(Some(rec)); };
-
-        self.db
-            .query("UPDATE $id SET status = $status")
-            .bind(("id", record_id.clone()))
-            .bind(("status", HistoryStatus::Undone.into_value()))
-            .await?;
-
-        rec.status = HistoryStatus::Undone;
-        Ok(Some(rec))
+        self.flip_status(
+            HistoryStatus::Applied,
+            "DESC",
+            HistoryStatus::Undone,
+        )
+        .await
     }
 
     pub async fn redo(&self) -> Result<Option<HistoryRecord>> {
+        self.flip_status(
+            HistoryStatus::Undone,
+            "ASC",
+            HistoryStatus::Applied,
+        )
+        .await
+    }
+
+    async fn flip_status(
+        &self,
+        from: HistoryStatus,
+        sort_dir: &str,
+        to: HistoryStatus,
+    ) -> Result<Option<HistoryRecord>> {
+        let query = format!(
+            "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at {}, id {} LIMIT 1",
+            sort_dir, sort_dir,
+        );
         let mut response = self
             .db
-            .query(
-                "SELECT id, action_type, payload, status, created_at FROM History WHERE status = $status ORDER BY created_at ASC, id ASC LIMIT 1",
-            )
-            .bind(("status", HistoryStatus::Undone.into_value()))
+            .query(&query)
+            .bind(("status", from.into_value()))
             .await?;
         let record: Option<HistoryRecord> = response.take(0)?;
 
@@ -116,10 +120,10 @@ impl<'a> HistoryManager<'a> {
         self.db
             .query("UPDATE $id SET status = $status")
             .bind(("id", record_id.clone()))
-            .bind(("status", HistoryStatus::Applied.into_value()))
+            .bind(("status", to.into_value()))
             .await?;
 
-        rec.status = HistoryStatus::Applied;
+        rec.status = to;
         Ok(Some(rec))
     }
 }
@@ -146,7 +150,7 @@ impl HistoryRepository for SurrealHistoryRepository {
         forward: EntityPatch,
         reverse: EntityPatch,
     ) -> Result<()> {
-        let history_manager = HistoryManager::new(&self.db, 100);
+        let history_manager = HistoryManager::new(&self.db, DEFAULT_HISTORY_LIMIT);
         let history_payload = SymmetricEntityPatch {
             id,
             forward,
@@ -179,12 +183,12 @@ impl HistoryRepository for SurrealHistoryRepository {
     }
 
     async fn undo_event(&self) -> Result<Option<HistoryRecord>> {
-        let history_manager = HistoryManager::new(&self.db, 100);
+        let history_manager = HistoryManager::new(&self.db, DEFAULT_HISTORY_LIMIT);
         history_manager.undo().await
     }
 
     async fn redo_event(&self) -> Result<Option<HistoryRecord>> {
-        let history_manager = HistoryManager::new(&self.db, 100);
+        let history_manager = HistoryManager::new(&self.db, DEFAULT_HISTORY_LIMIT);
         history_manager.redo().await
     }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:centrode/src/rust/domain/patches.dart';
 import 'package:centrode/src/rust/repo/history.dart';
 
 abstract interface class HistoryApi {
@@ -6,4 +7,8 @@ abstract interface class HistoryApi {
   Future<int> undoCount();
   Future<HistoryRecord?> redo();
   Future<int> redoCount();
+  Future<GraphDelta?> applyHistoryRecordPatch({
+    required HistoryRecord record,
+    required bool isForward,
+  });
 }

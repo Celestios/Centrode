@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/elements/elements.dart';
 import 'relation_painter_dto.dart';
@@ -7,6 +6,18 @@ import '../../../../../presentation/theme/app_theme_manager.dart';
 class RelationPainter extends CustomPainter {
   final List<RelationPaintDto> paintDtos;
   final ThemeData theme;
+
+  final Paint _strokePaint = Paint()..style = PaintingStyle.stroke;
+  final Paint _labelBgPaint = Paint()..style = PaintingStyle.fill;
+  final Paint _labelBorderPaint = Paint()..style = PaintingStyle.stroke;
+  final Paint _handlePaint = Paint()..style = PaintingStyle.fill;
+  final Paint _handleBorderPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.0;
+  final Paint _segmentPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
+  final Paint _shapePaint = Paint()..strokeWidth = 2.0;
 
   RelationPainter({
     required this.paintDtos,
@@ -40,27 +51,24 @@ class RelationPainter extends CustomPainter {
       height: textPainter.height + paddingY * 2,
     );
 
-    final bgPaint = Paint()
-      ..color = theme.colorScheme.surface
-      ..style = PaintingStyle.fill;
+    _labelBgPaint.color = theme.colorScheme.surface;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         rect,
         const Radius.circular(CanvasPainterTokens.relationLabelRadius),
       ),
-      bgPaint,
+      _labelBgPaint,
     );
 
-    final borderPaint = Paint()
+    _labelBorderPaint
       ..color = strokeColor.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth * 0.5;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         rect,
         const Radius.circular(CanvasPainterTokens.relationLabelRadius),
       ),
-      borderPaint,
+      _labelBorderPaint,
     );
 
     final textOffset = Offset(
@@ -68,6 +76,7 @@ class RelationPainter extends CustomPainter {
       pos.dy - textPainter.height / 2,
     );
     textPainter.paint(canvas, textOffset);
+    textPainter.dispose();
   }
 
   Path _verticesToPath(List<Offset> points, {bool close = false}) {
@@ -104,12 +113,10 @@ class RelationPainter extends CustomPainter {
       final p1 = points[i];
       final p2 = points[i + 1];
       final w = i < widths.length ? widths[i] : (widths.isNotEmpty ? widths.last : 2.0);
-      final segmentPaint = Paint()
+      _segmentPaint
         ..color = color
-        ..strokeWidth = w
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(p1, p2, segmentPaint);
+        ..strokeWidth = w;
+      canvas.drawLine(p1, p2, _segmentPaint);
     }
   }
 
@@ -120,38 +127,35 @@ class RelationPainter extends CustomPainter {
     bool filled,
   ) {
     if (vertices.length < 2) return;
-    final paint = Paint()
+    _shapePaint
       ..color = color
-      ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke;
     if (filled) {
       final path = _verticesToPath(vertices, close: true);
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, _shapePaint);
     } else {
       final tip = vertices.first;
       for (int i = 1; i < vertices.length; i++) {
-        canvas.drawLine(tip, vertices[i], paint);
+        canvas.drawLine(tip, vertices[i], _shapePaint);
       }
     }
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke;
-
     for (final dto in paintDtos) {
-      paint.color = dto.color;
-      paint.strokeWidth = dto.strokeWidth;
+      _strokePaint
+        ..color = dto.color
+        ..strokeWidth = dto.strokeWidth;
 
       if (dto.isVariableWidth) {
-        _drawVariableWidthPoints(canvas, dto.bodyPoints, dto.widths, paint.color);
+        _drawVariableWidthPoints(canvas, dto.bodyPoints, dto.widths, _strokePaint.color);
       } else if (dto.strokePattern == 'dashed' || dto.strokePattern == 'dotted') {
         final decoratedPath = _createPatternedPath(dto.bodyPoints, dto.strokePattern);
-        canvas.drawPath(decoratedPath, paint);
+        canvas.drawPath(decoratedPath, _strokePaint);
       } else {
         final bodyPath = _verticesToPath(dto.bodyPoints);
-        canvas.drawPath(bodyPath, paint);
+        canvas.drawPath(bodyPath, _strokePaint);
       }
 
       _drawShape(canvas, dto.startShapeVertices, dto.color, dto.startShapeFilled);
@@ -162,24 +166,19 @@ class RelationPainter extends CustomPainter {
       }
 
       if (dto.verb.isNotEmpty) {
-        _drawText(canvas, dto.verb, dto.labelPos, paint.color, paint.strokeWidth);
+        _drawText(canvas, dto.verb, dto.labelPos, _strokePaint.color, _strokePaint.strokeWidth);
       }
     }
   }
 
   void _drawSelectionHandles(Canvas canvas, Offset start, Offset end) {
-    final handlePaint = Paint()
-      ..color = AppThemeManager.instance.currentTheme.canvasAccentColor
-      ..style = PaintingStyle.fill;
-    final borderPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+    _handlePaint.color = AppThemeManager.instance.currentTheme.canvasAccentColor;
+    _handleBorderPaint.color = Colors.white;
 
-    canvas.drawCircle(start, 6.0, borderPaint);
-    canvas.drawCircle(start, 5.0, handlePaint);
-    canvas.drawCircle(end, 6.0, borderPaint);
-    canvas.drawCircle(end, 5.0, handlePaint);
+    canvas.drawCircle(start, 6.0, _handleBorderPaint);
+    canvas.drawCircle(start, 5.0, _handlePaint);
+    canvas.drawCircle(end, 6.0, _handleBorderPaint);
+    canvas.drawCircle(end, 5.0, _handlePaint);
   }
 
   @override

@@ -63,12 +63,12 @@ void main() {
     // Bottom port: (150.0, 200.0)
 
     // Point near top port: (150.0, 90.0)
-    final topClosest = viewState.getClosestPort(const Offset(150.0, 90.0));
+    final topClosest = viewState.getClosestPortRecord(const Offset(150.0, 90.0));
     expect(topClosest.side.name, 'top');
     expect(topClosest.position, const Offset(150.0, 100.0));
 
     // Point near left port: (95.0, 155.0)
-    final leftClosest = viewState.getClosestPort(const Offset(95.0, 155.0));
+    final leftClosest = viewState.getClosestPortRecord(const Offset(95.0, 155.0));
     expect(leftClosest.side.name, 'left');
     expect(leftClosest.position, const Offset(100.0, 150.0));
   });

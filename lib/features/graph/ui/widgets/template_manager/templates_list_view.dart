@@ -23,6 +23,8 @@ class _TemplatesListViewState extends State<TemplatesListView> {
   String _searchQuery = '';
   TemplateSortOption _sortOption = TemplateSortOption.newest;
   String? _hoveredTemplateKey;
+  final ValueNotifier<List<Template>> _templatesNotifier =
+      ValueNotifier<List<Template>>([]);
 
   @override
   void initState() {
@@ -32,12 +34,22 @@ class _TemplatesListViewState extends State<TemplatesListView> {
         _searchQuery = _searchController.text.trim();
       });
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshTemplates();
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _templatesNotifier.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshTemplates() async {
+    final controller = context.read<CommandQueueProcessor>();
+    final templates = await controller.templateMutations.getAllTemplates();
+    _templatesNotifier.value = templates.whereType<Template>().toList();
   }
 
 
@@ -46,31 +58,9 @@ class _TemplatesListViewState extends State<TemplatesListView> {
     final controller = context.read<CommandQueueProcessor>();
     final theme = Theme.of(context);
 
-    return FutureBuilder<List<Template>>(
-      future: controller.templateMutations.getAllTemplates(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          debugPrint('TEMPLATES ERROR: ${snapshot.error}');
-          debugPrint('TEMPLATES STACK: ${snapshot.stackTrace}');
-        }
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData) {
-          return const SizedBox(
-            height: 100,
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: UiControlSize.dense,
-                child: CircularProgressIndicator(strokeWidth: UiStrokeWidth.thick),
-              ),
-            ),
-          );
-        }
-
-        final allTemplates = (snapshot.data ?? [])
-            .whereType<Template>()
-            .toList();
-
+    return ValueListenableBuilder<List<Template>>(
+      valueListenable: _templatesNotifier,
+      builder: (context, allTemplates, _) {
         // Apply search query filter
         var filteredTemplates = allTemplates;
         if (_searchQuery.isNotEmpty) {
@@ -246,6 +236,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           template.key.key.uuid,
                                           visibleCenter,
                                         );
+                                    await _refreshTemplates();
                                   },
                                   iconSize: 16,
                                   buttonSize: 24,
@@ -267,6 +258,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           .deleteTemplate(
                                             template.key.key.uuid,
                                           );
+                                      await _refreshTemplates();
                                     }
                                   },
                                   iconSize: 16,

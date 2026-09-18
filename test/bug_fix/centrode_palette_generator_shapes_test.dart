@@ -6,17 +6,15 @@ void main() {
   testWidgets('CentrodePaletteGenerator builds, renders shapes, and supports interactions', (tester) async {
     debugPrint('[TEST] Rendering CentrodePaletteGenerator');
     List<Color>? appliedPalette;
-    Color? selectedColor;
 
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: Center(
-            child: CentrodePaletteGenerator(
-              primaryAnchor: const Color(0xFF6366F1),
-              onApplyPalette: (palette) => appliedPalette = palette,
-              onColorSelected: (color) => selectedColor = color,
-            ),
+              child: CentrodePaletteGenerator(
+                primaryAnchor: const Color(0xFF6366F1),
+                onApplyPalette: (palette) => appliedPalette = palette,
+              ),
           ),
         ),
       ),

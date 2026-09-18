@@ -1,6 +1,5 @@
 library;
 
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
@@ -29,6 +28,7 @@ class LogManager {
   ReceivePort? _isolateReceivePort;
   bool _initialized = false;
   static const Duration _deltaT = Duration(milliseconds: 500);
+  static const Duration _isolateShutdownTimeout = Duration(milliseconds: 150);
   static const int _handShakeTimeOut = 5;
 
   Future<void> _checkForPreviousPanics(String logPath) async {
@@ -220,7 +220,7 @@ class LogManager {
     _batchTimer?.cancel();
     _flushBuffer();
 
-    await Future.delayed(UiMotion.fast);
+    await Future.delayed(_isolateShutdownTimeout);
 
     _isolate?.kill(priority: Isolate.immediate);
     _isolateReceivePort?.close();

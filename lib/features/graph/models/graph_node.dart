@@ -10,7 +10,6 @@ import 'package:centrode/src/rust/domain/base_models.dart' as frb;
 import 'package:centrode/src/rust/domain/base_models.dart' hide Size;
 import 'package:centrode/src/rust/domain/contents.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/shared/elements/elements.dart';
 
 part 'graph_node.ui.dart';
 
@@ -144,15 +143,15 @@ sealed class UiNode {
 
   // ──────────────────── layout engine ─────────────────────────────────────
   Color get defaultPreviewColor => switch (this) {
-    InfoUiNode() => CentrodeDerivedPalette.current.nodeTints.info,
-    TaskUiNode() => CentrodeDerivedPalette.current.nodeTints.task,
-    CommentUiNode() => CentrodeDerivedPalette.current.nodeTints.comment,
-    DrawingUiNode() => CentrodeDerivedPalette.current.nodeTints.drawing,
-    ShapeUiNode() => CentrodeDerivedPalette.current.nodeTints.shape,
-    FrameUiNode() => CentrodeDerivedPalette.current.nodeTints.frame,
-    ContainerUiNode() => CentrodeDerivedPalette.current.nodeTints.container,
-    MediaUiNode() => CentrodeDerivedPalette.current.nodeTints.media,
-    InterUiNode() => CentrodeDerivedPalette.current.nodeTints.inter,
+    InfoUiNode() => const Color(0xFF90CAF9),
+    TaskUiNode() => const Color(0xFF81C784),
+    CommentUiNode() => const Color(0xFFFFCC80),
+    DrawingUiNode() => const Color(0xFFE0E0E0),
+    ShapeUiNode() => const Color(0xFFCE93D8),
+    FrameUiNode() => const Color(0xFFB0BEC5),
+    ContainerUiNode() => const Color(0xFFB0BEC5),
+    MediaUiNode() => const Color(0xFFFFAB91),
+    InterUiNode() => const Color(0xFF80DEEA),
   };
 
   Size get previewSize {

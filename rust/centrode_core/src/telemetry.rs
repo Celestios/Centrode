@@ -168,11 +168,17 @@ pub fn init_telemetry() {
             .map(|pd| pd.data_local_dir().to_path_buf());
 
         if let Some(path) = log_path {
-            let _ = create_dir_all(&path);
+            if let Err(e) = create_dir_all(&path) {
+                eprintln!("Failed to create log directory: {}", e);
+            }
             let log_file = path.join("centrode.log");
             if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(log_file) {
-                let _ = file.write_all(fatal_log.as_bytes());
-                let _ = file.flush();
+                if let Err(e) = file.write_all(fatal_log.as_bytes()) {
+                    eprintln!("Failed to write crash log: {}", e);
+                }
+                if let Err(e) = file.flush() {
+                    eprintln!("Failed to flush crash log: {}", e);
+                }
             }
         }
 
@@ -182,8 +188,12 @@ pub fn init_telemetry() {
             .append(true)
             .open("centrode.log")
         {
-            let _ = file.write_all(fatal_log.as_bytes());
-            let _ = file.flush();
+            if let Err(e) = file.write_all(fatal_log.as_bytes()) {
+                eprintln!("Failed to write crash log: {}", e);
+            }
+            if let Err(e) = file.flush() {
+                eprintln!("Failed to flush crash log: {}", e);
+            }
         }
     }));
 }

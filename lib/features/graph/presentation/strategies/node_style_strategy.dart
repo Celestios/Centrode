@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
 import 'package:centrode/features/graph/models/graph_node.dart';
 import 'package:centrode/features/graph/models/node_style_resolver.dart'
@@ -23,12 +24,34 @@ abstract class NodeStyleStrategy {
 
   static NodeStyle scaleStyle(NodeStyle base) => resolver.scaleStyle(base);
 
+  static int get _containerBgColor =>
+      CentrodeDerivedPalette.current.canvas.containerBorder
+          .withValues(alpha: CentrodeDerivedPalette.current.alpha.containerFill)
+          .toARGB32();
+
+  static int get _containerStrokeColor =>
+      CentrodeDerivedPalette.current.canvas.containerBorder.toARGB32();
+
+  static int get _frameBgColor =>
+      CentrodeDerivedPalette.current.canvas.frameBorder
+          .withValues(alpha: CentrodeDerivedPalette.current.alpha.frameFill)
+          .toARGB32();
+
+  static int get _frameStrokeColor =>
+      CentrodeDerivedPalette.current.canvas.frameBorder.toARGB32();
+
   static NodeStyle resolveStyle(UiNode node, {GraphTheme? theme}) {
     if (node.resolvedStyle != null) return node.resolvedStyle!;
     if (theme != null) {
       return const DefaultNodeStyleStrategy().computeStyle(node, theme);
     }
-    return resolver.resolveStyle(node);
+    return resolver.resolveStyle(
+      node,
+      containerBgColor: _containerBgColor,
+      containerStrokeColor: _containerStrokeColor,
+      frameBgColor: _frameBgColor,
+      frameStrokeColor: _frameStrokeColor,
+    );
   }
 }
 
@@ -45,8 +68,8 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
         node.size.height,
         theme.bodyFontSize,
       ).copyWith(
-        bgColor: resolver.containerBgColor,
-        strokeColor: resolver.containerStrokeColor,
+        bgColor: NodeStyleStrategy._containerBgColor,
+        strokeColor: NodeStyleStrategy._containerStrokeColor,
         strokeWidth: UiStrokeWidth.thick.toInt(),
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
@@ -60,8 +83,8 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
         node.size.height,
         theme.bodyFontSize,
       ).copyWith(
-        bgColor: resolver.frameBgColor,
-        strokeColor: resolver.frameStrokeColor,
+        bgColor: NodeStyleStrategy._frameBgColor,
+        strokeColor: NodeStyleStrategy._frameStrokeColor,
         strokeWidth: UiStrokeWidth.thick.toInt(),
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
@@ -87,8 +110,8 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
     return switch (node) {
       TaskUiNode() => 0xFF34D399,
       DrawingUiNode() => 0x00000000,
-      ContainerUiNode() => resolver.containerBgColor,
-      FrameUiNode() => resolver.frameStrokeColor,
+      ContainerUiNode() => NodeStyleStrategy._containerBgColor,
+      FrameUiNode() => NodeStyleStrategy._frameStrokeColor,
       InfoUiNode() => theme.primaryColor.toARGB32(),
       _ => theme.primaryColor.toARGB32(),
     };

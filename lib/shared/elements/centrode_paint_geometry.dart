@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/painting.dart';
 
 /// Centralized tokens for canvas rendering, dashed geometry, and approach zoom.

@@ -72,14 +72,6 @@ class _GraphScreenState extends State<GraphScreen> {
               builder: (context, _) {
                 final mapTheme =
                     activeSession.themeController.currentGraphTheme;
-                ThemeData fallbackTheme() {
-                  try {
-                    return AppThemeManager.instance.themeNotifier.value
-                        .toThemeData();
-                  } catch (_) {
-                    return Theme.of(context);
-                  }
-                }
 
                 final ThemeData themeData;
                 if (mapTheme != null) {
@@ -95,7 +87,7 @@ class _GraphScreenState extends State<GraphScreen> {
                     });
                   }
                 } else {
-                  themeData = _lastThemeData ?? fallbackTheme();
+                  themeData = _lastThemeData ?? AppThemeManager.instance.themeNotifier.value.toThemeData();
                 }
 
                 final themeWidget = _isThemeAnimating
@@ -161,12 +153,7 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    ThemeData globalTheme;
-    try {
-      globalTheme = AppThemeManager.instance.themeNotifier.value.toThemeData();
-    } catch (_) {
-      globalTheme = Theme.of(context);
-    }
+    final ThemeData globalTheme = AppThemeManager.instance.themeNotifier.value.toThemeData();
     _initFuture = widget.session.initialize(globalTheme);
   }
 
@@ -174,13 +161,7 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
   void didUpdateWidget(ActiveSessionWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session.id != widget.session.id) {
-      ThemeData globalTheme;
-      try {
-        globalTheme = AppThemeManager.instance.themeNotifier.value
-            .toThemeData();
-      } catch (_) {
-        globalTheme = Theme.of(context);
-      }
+      final ThemeData globalTheme = AppThemeManager.instance.themeNotifier.value.toThemeData();
       _initFuture = widget.session.initialize(globalTheme);
     }
   }

@@ -188,6 +188,15 @@ class RustGraphApi implements GraphApi {
   @override
   Future<int> redoCount() => _call((api) => api.redoCount());
 
+  @override
+  Future<GraphDelta?> applyHistoryRecordPatch({
+    required HistoryRecord record,
+    required bool isForward,
+  }) => _call((api) => api.applyHistoryRecordPatch(
+        record: record,
+        isForward: isForward,
+      ));
+
   // ThemeApi
   @override
   Future<void> createTheme({required String key, required ThemeFields fields}) =>

@@ -196,11 +196,11 @@ class RelationPaintDtoBuilder {
 
     final liveStart = fromSide != null
         ? fromVs.getPortPosition(fromSide)
-        : fromVs.getClosestPort(startPoint).position;
+        : fromVs.getClosestPortRecord(startPoint).position;
 
     final liveEnd = toSide != null
         ? toVs.getPortPosition(toSide)
-        : toVs.getClosestPort(endPoint).position;
+        : toVs.getClosestPortRecord(endPoint).position;
 
     final bool needsTransform = isDraggingThisTip ||
         isNodeDragging ||

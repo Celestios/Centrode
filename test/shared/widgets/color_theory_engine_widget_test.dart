@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:centrode/prototype/color_theory_demo.dart';
-import 'package:centrode/shared/utils/color_theory_engine.dart';
+import '../../prototype/color_theory_demo.dart';
 
 void main() {
   testWidgets('ColorTheoryStudioApp interactive window renders, shuffles colors, and switches harmonies', (tester) async {

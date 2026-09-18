@@ -260,7 +260,7 @@ impl EmbeddingService {
                 Ok(())
             }
             Err(e) => {
-                warn!("Failed to initialize Candle Bert embedder: {}. Falling back to subword hash projection.", e);
+                warn!("Failed to initialize Candle Bert embedder: {}", e);
                 Err(e)
             }
         }
@@ -272,10 +272,10 @@ impl EmbeddingService {
     }
 
     /// Computes a normalized 384-dimensional semantic embedding vector for the given text.
-    pub fn embed_text(text: &str) -> Vec<f32> {
+    pub fn embed_text(text: &str) -> Result<Vec<f32>> {
         let clean = text.trim();
         if clean.is_empty() {
-            return vec![0.0; VECTOR_DIMENSION];
+            return Ok(vec![0.0; VECTOR_DIMENSION]);
         }
 
         // Normalize relation tokens (e.g. snake_case / kebab-case: "leads_to" -> "leads to")
@@ -285,31 +285,19 @@ impl EmbeddingService {
         if let Ok(cache_lock) = EMBEDDING_CACHE.read() {
             if let Some(ref map) = *cache_lock {
                 if let Some(cached) = map.get(&normalized) {
-                    return cached.clone();
+                    return Ok(cached.clone());
                 }
             }
         }
 
         // Try Candle ML model if initialized
-        let computed = if let Ok(lock) = CANDLE_ENGINE.read() {
-            if let Some(ref embedder) = *lock {
-                if let Ok(vec) = embedder.embed(&normalized) {
-                    if vec.len() == VECTOR_DIMENSION {
-                        Some(vec)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        } else {
-            None
-        };
+        let lock = CANDLE_ENGINE.read().map_err(|e| anyhow::anyhow!("Embedder model inference failed: {}", e))?;
+        let embedder = lock.as_ref().ok_or_else(|| anyhow::anyhow!("Embedder model inference failed"))?;
+        let result = embedder.embed(&normalized).map_err(|e| anyhow::anyhow!("Embedder model inference failed: {}", e))?;
 
-        let result = computed.unwrap_or_else(|| Self::fallback_subword_embed(clean));
+        if result.len() != VECTOR_DIMENSION {
+            return Err(anyhow::anyhow!("Embedder model inference failed"));
+        }
 
         // Store into cache
         if let Ok(mut cache_lock) = EMBEDDING_CACHE.write() {
@@ -317,48 +305,7 @@ impl EmbeddingService {
             map.insert(normalized, result.clone());
         }
 
-        result
-    }
-
-    /// Deterministic fast subword n-gram hash projection (384 dimensions).
-    fn fallback_subword_embed(text: &str) -> Vec<f32> {
-        let clean = text.to_lowercase();
-        let mut vector = vec![0.0f32; VECTOR_DIMENSION];
-        let words: Vec<&str> = clean.split_whitespace().collect();
-
-        for (word_idx, word) in words.iter().enumerate() {
-            let word_weight = 1.0 / (1.0 + (word_idx as f32) * 0.1);
-            let chars: Vec<char> = word.chars().collect();
-
-            // Word-level hash projection
-            let word_hash = Self::fnv1a_hash(word.as_bytes());
-            let primary_dim = (word_hash as usize) % VECTOR_DIMENSION;
-            let sign = if (word_hash >> 16) & 1 == 0 { 1.0 } else { -1.0 };
-            vector[primary_dim] += sign * 2.0 * word_weight;
-
-            // Character n-gram projections (lengths 2 to 4)
-            for n in 2..=4 {
-                if chars.len() >= n {
-                    for window in chars.windows(n) {
-                        let ngram: String = window.iter().collect();
-                        let ngram_hash = Self::fnv1a_hash(ngram.as_bytes());
-                        let dim = (ngram_hash as usize) % VECTOR_DIMENSION;
-                        let s = if (ngram_hash >> 8) & 1 == 0 { 1.0 } else { -1.0 };
-                        vector[dim] += s * 0.5 * word_weight;
-                    }
-                }
-            }
-        }
-
-        // L2 Normalization
-        let norm: f32 = vector.iter().map(|v| v * v).sum::<f32>().sqrt();
-        if norm > 0.0 {
-            for v in vector.iter_mut() {
-                *v /= norm;
-            }
-        }
-
-        vector
+        Ok(result)
     }
 
     /// Computes cosine similarity between two float vectors.
@@ -367,15 +314,6 @@ impl EmbeddingService {
         cosine_similarity(a, b)
     }
 
-    #[inline]
-    fn fnv1a_hash(bytes: &[u8]) -> u64 {
-        let mut hash: u64 = 0xcbf29ce484222325;
-        for &byte in bytes {
-            hash ^= byte as u64;
-            hash = hash.wrapping_mul(0x100000001b3);
-        }
-        hash
-    }
 }
 
 /// Standalone mathematical utility: computes cosine similarity between two float vectors.
@@ -407,9 +345,34 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 mod tests {
     use super::*;
 
+    fn ensure_model_initialized() -> bool {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        let model_path = root.join("assets/models/multilingual_5lang/model.safetensors");
+        let tok_path = root.join("assets/models/multilingual_5lang/tokenizer.json");
+        let cfg_path = root.join("assets/models/multilingual_5lang/config.json");
+
+        if model_path.exists() && tok_path.exists() && cfg_path.exists() {
+            let weights_bytes = std::fs::read(model_path).expect("Read model.safetensors");
+            let tok_bytes = std::fs::read(tok_path).expect("Read tokenizer.json");
+            let cfg_bytes = std::fs::read(cfg_path).expect("Read config.json");
+
+            let _ = EmbeddingService::init_model(&weights_bytes, &tok_bytes, Some(&cfg_bytes));
+            true
+        } else {
+            false
+        }
+    }
+
     #[test]
     fn test_embed_dimension_and_normalization() {
-        let v1 = EmbeddingService::embed_text("contradicts");
+        if !ensure_model_initialized() {
+            return;
+        }
+        let v1 = EmbeddingService::embed_text("contradicts").unwrap();
         assert_eq!(v1.len(), VECTOR_DIMENSION);
 
         let norm: f32 = v1.iter().map(|x| x * x).sum::<f32>().sqrt();
@@ -418,9 +381,12 @@ mod tests {
 
     #[test]
     fn test_similarity_ranking() {
-        let v_contra = EmbeddingService::embed_text("contradicts");
-        let v_contradict = EmbeddingService::embed_text("contradict");
-        let v_apple = EmbeddingService::embed_text("apple");
+        if !ensure_model_initialized() {
+            return;
+        }
+        let v_contra = EmbeddingService::embed_text("contradicts").unwrap();
+        let v_contradict = EmbeddingService::embed_text("contradict").unwrap();
+        let v_apple = EmbeddingService::embed_text("apple").unwrap();
 
         let sim_same = EmbeddingService::cosine_similarity(&v_contra, &v_contradict);
         let sim_diff = EmbeddingService::cosine_similarity(&v_contra, &v_apple);
@@ -459,7 +425,7 @@ mod tests {
 
             assert!(cache_path.is_file(), "Unpacked model file must exist on disk");
 
-            let v_en_1 = EmbeddingService::embed_text("causes");
+            let v_en_1 = EmbeddingService::embed_text("causes").unwrap();
 
             // 2. Second run: loads directly from disk cache with weights_bytes = None
             EmbeddingService::init_model_with_cache(
@@ -470,9 +436,9 @@ mod tests {
             )
             .expect("Failed to reload Candle model from disk cache");
 
-            let v_en_2 = EmbeddingService::embed_text("causes");
-            let v_fa = EmbeddingService::embed_text("علت");
-            let v_diff = EmbeddingService::embed_text("apple");
+            let v_en_2 = EmbeddingService::embed_text("causes").unwrap();
+            let v_fa = EmbeddingService::embed_text("علت").unwrap();
+            let v_diff = EmbeddingService::embed_text("apple").unwrap();
 
             assert_eq!(v_en_1.len(), VECTOR_DIMENSION);
             assert_eq!(v_en_2.len(), VECTOR_DIMENSION);
@@ -481,11 +447,11 @@ mod tests {
             let sim_reloaded = EmbeddingService::cosine_similarity(&v_en_1, &v_en_2);
             assert!((sim_reloaded - 1.0).abs() < 1e-4, "Reloaded model must produce identical embeddings");
 
-            let v_leads = EmbeddingService::embed_text("leads_to");
-            let v_blocks = EmbeddingService::embed_text("blocks");
-            let v_prevents = EmbeddingService::embed_text("prevents");
-            let v_es_causa = EmbeddingService::embed_text("causa");
-            let v_zh_cause = EmbeddingService::embed_text("导致");
+            let v_leads = EmbeddingService::embed_text("leads_to").unwrap();
+            let v_blocks = EmbeddingService::embed_text("blocks").unwrap();
+            let v_prevents = EmbeddingService::embed_text("prevents").unwrap();
+            let v_es_causa = EmbeddingService::embed_text("causa").unwrap();
+            let v_zh_cause = EmbeddingService::embed_text("导致").unwrap();
 
             let sim_cross_fa = EmbeddingService::cosine_similarity(&v_en_2, &v_fa);
             let sim_cross_es = EmbeddingService::cosine_similarity(&v_en_2, &v_es_causa);

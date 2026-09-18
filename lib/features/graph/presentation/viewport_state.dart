@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -10,6 +9,7 @@ import '../store/graph_data_query.dart';
 import '../models/models.dart';
 import 'strategies/node_layout_strategy.dart';
 import 'strategies/container_zoom_strategy.dart';
+import 'viewport_transform_math.dart';
 
 class ViewportStateGrid {
   final Rect visibleRect;
@@ -23,8 +23,6 @@ class ViewportStateGrid {
   });
 }
 
-/// Extension on Rect to check if one rect fully contains another.
-/// Extracted from GraphCanvas for Viewport Math.
 extension RectExtension on Rect {
   bool containsRect(Rect other) =>
       left <= other.left &&
@@ -33,8 +31,6 @@ extension RectExtension on Rect {
       bottom >= other.bottom;
 }
 
-/// Sole arbiter of coordinate transformations, hysteresis overscan buffering,
-/// viewport boundary math, and visible node culling.
 class ViewportController {
   final Logger _log = Logger('ViewportController');
   final GraphDataQuery _dataController;
@@ -42,14 +38,11 @@ class ViewportController {
   final TransformationController transformController =
       TransformationController();
 
-  /// Tracks the active hierarchy scope (Root vs Container level).
   final ValueNotifier<ViewportScope> activeScopeNotifier =
       ValueNotifier(const RootViewportScope());
 
-  /// When true, a scope transition is currently animating (interaction and zooming are disabled/decoupled).
   final ValueNotifier<bool> isTransitioningNotifier = ValueNotifier(false);
 
-  /// When true, auto-zoom transitions are suppressed (e.g. during active drag or drawing gestures).
   bool isGestureSuppressed = false;
 
   Rect _overscanBuffer = Rect.zero;
@@ -58,7 +51,6 @@ class ViewportController {
 
   AnimationController? _viewportAnimationController;
 
-  /// Notifier exposing the set of node IDs currently residing inside the overscan buffer.
   final ValueNotifier<Set<RawUuid>> visibleNodeIds = ValueNotifier({});
 
   final ValueNotifier<ViewportStateGrid> viewportStateNotifier = ValueNotifier(
@@ -69,7 +61,6 @@ class ViewportController {
     ),
   );
 
-  /// Notifier exposing the calculated elastic margins for CanvasInteractiveViewer.
   final ValueNotifier<EdgeInsets> elasticMargins = ValueNotifier(
     EdgeInsets.zero,
   );
@@ -112,8 +103,6 @@ class ViewportController {
     }
   }
 
-  /// Guarded dimension update injected by the Passive View's LayoutBuilder.
-  /// Guarantees O(1) performance by rejecting identical subsequent layouts.
   void updateViewportSize(Size size) {
     if (size == _currentViewportSize) return;
 
@@ -123,45 +112,36 @@ class ViewportController {
     recalculateElasticMargins();
   }
 
-  /// Mutates the Transformation Matrix to center the camera on the provided bounds.
   void focusOnBounds(BoundingBox bounds) {
     if (_currentViewportSize == Size.zero) return;
 
-    // Calculate the mathematical center of the nodes
-    final double centerX = (bounds.minX + bounds.maxX) / 2.0;
-    final double centerY = (bounds.minY + bounds.maxY) / 2.0;
+    final offset = ViewportTransformMath.computeCenterOnBounds(
+      bounds,
+      _currentViewportSize,
+    );
 
-    // Calculate translation required to place the center point in the middle of the InteractiveViewer widget
-    final double dx = (_currentViewportSize.width / 2) - centerX;
-    final double dy = (_currentViewportSize.height / 2) - centerY;
-
-    _log.info('Translating Camera Matrix to center: ($centerX, $centerY)');
+    _log.info('Translating Camera Matrix to center bounds');
     transformController.value = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1);
+      ..translateByDouble(offset.dx, offset.dy, 0, 1);
     recalculateElasticMargins();
   }
 
-  /// Mutates the Transformation Matrix to center the camera on a specific canvas coordinate.
   void centerOnCanvasPoint(Offset canvasPoint) {
     if (_currentViewportSize == Size.zero) return;
 
-    final currentMatrix = transformController.value;
-    final double currentScale = currentMatrix.getMaxScaleOnAxis();
-
-    final double dx =
-        (_currentViewportSize.width / 2) - (canvasPoint.dx * currentScale);
-    final double dy =
-        (_currentViewportSize.height / 2) - (canvasPoint.dy * currentScale);
+    final currentScale =
+        transformController.value.getMaxScaleOnAxis();
 
     _log.finest(
       'Centering Camera Matrix on canvas point: $canvasPoint at scale $currentScale',
     );
-    transformController.value = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(currentScale, currentScale, currentScale, 1);
+    transformController.value = ViewportTransformMath.buildCenterOnPointMatrix(
+      canvasPoint,
+      _currentViewportSize,
+      currentScale,
+    );
   }
 
-  /// Updates the zoom scale while keeping the current viewport center fixed.
   void updateScale(double newScale) {
     if (_currentViewportSize == Size.zero) return;
 
@@ -169,40 +149,30 @@ class ViewportController {
       Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2),
     );
 
-    final dx = (_currentViewportSize.width / 2) - (canvasCenter.dx * newScale);
-    final dy = (_currentViewportSize.height / 2) - (canvasCenter.dy * newScale);
-
-    transformController.value = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(newScale, newScale, newScale, 1);
+    transformController.value = ViewportTransformMath.buildScaleAtCenterMatrix(
+      newScale,
+      canvasCenter,
+      _currentViewportSize,
+    );
     recalculateElasticMargins();
   }
 
-  /// Gets the current logical viewport size.
   Size get viewportSize => _currentViewportSize;
 
-  /// Converts a screen position to canvas coordinates based on the current transform matrix.
   Offset screenToCanvas(Offset screenPos) {
-    final transform = transformController.value;
-    if (transform.determinant() == 0.0) return screenPos;
-    return MatrixUtils.transformPoint(Matrix4.inverted(transform), screenPos);
+    return ViewportTransformMath.screenToCanvas(
+      transformController.value,
+      screenPos,
+    );
   }
 
-  /// Translates the camera viewport matrix by a screen delta.
   void panViewport(Offset deltaScreen) {
     if (_currentViewportSize == Size.zero || deltaScreen == Offset.zero) return;
-    final currentMatrix = transformController.value;
-    final double currentScale = currentMatrix.getMaxScaleOnAxis();
-    final translation = currentMatrix.getTranslation();
 
-    transformController.value = Matrix4.identity()
-      ..translateByDouble(
-        translation.x + deltaScreen.dx,
-        translation.y + deltaScreen.dy,
-        0,
-        1,
-      )
-      ..scaleByDouble(currentScale, currentScale, currentScale, 1);
+    transformController.value = ViewportTransformMath.buildPanMatrix(
+      transformController.value,
+      deltaScreen,
+    );
 
     recalculateElasticMargins();
   }
@@ -210,7 +180,8 @@ class ViewportController {
   TickerProvider? vsync;
   Offset? _lastMouseScreenPos;
   int _lastTransitionTimestamp = 0;
-  void Function(RawUuid id, Offset newPosition, Size newSize, bool isClosed)? onContainerOpenStateChanged;
+  void Function(RawUuid id, Offset newPosition, Size newSize, bool isClosed)?
+      onContainerOpenStateChanged;
 
   void updateMouseScreenPos(Offset? screenPos) {
     _lastMouseScreenPos = screenPos;
@@ -221,10 +192,12 @@ class ViewportController {
   }
 
   void _recalculate() {
-    // Prevent math execution before initial layout constraints are fed
     if (_currentViewportSize == Size.zero) return;
 
-    final viewport = _calculateCanvasViewport();
+    final viewport = ViewportTransformMath.calculateCanvasViewport(
+      transformController.value,
+      _currentViewportSize,
+    );
     if (viewport == Rect.zero) return;
 
     final scale = transformController.value.getMaxScaleOnAxis();
@@ -234,7 +207,6 @@ class ViewportController {
       viewportSize: _currentViewportSize,
     );
 
-    // Viewport Hysteresis Logic
     if (!_overscanBuffer.containsRect(viewport)) {
       final inflatedBuffer = viewport.inflate(
         viewport.width * AppConfig.canvas.overscanRatio,
@@ -245,7 +217,6 @@ class ViewportController {
     checkContainerZoomTransition(_lastMouseScreenPos);
   }
 
-  /// Gets the current minimum scale floor for the active scope.
   double get currentMinScale {
     final scope = activeScopeNotifier.value;
     if (scope is ContainerViewportScope) {
@@ -254,7 +225,6 @@ class ViewportController {
     return AppConfig.canvas.minScale;
   }
 
-  /// Gets the current maximum scale ceiling for the active scope.
   double get currentMaxScale {
     final scope = activeScopeNotifier.value;
     if (scope is ContainerViewportScope) {
@@ -263,17 +233,20 @@ class ViewportController {
     return AppConfig.canvas.maxScale;
   }
 
-  /// Checks whether a container crossed the transition threshold during zoom-in or zoom-out and triggers the state toggle.
   void checkContainerZoomTransition(Offset? mouseScreenPos) {
     if (_currentViewportSize == Size.zero) return;
     if (isGestureSuppressed) return;
-    if (_viewportAnimationController != null && _viewportAnimationController!.isAnimating) return;
+    if (_viewportAnimationController != null &&
+        _viewportAnimationController!.isAnimating) {
+      return;
+    }
 
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - _lastTransitionTimestamp < 800) return;
 
     final scale = transformController.value.getMaxScaleOnAxis();
-    final cursorScreen = mouseScreenPos ?? Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2);
+    final cursorScreen = mouseScreenPos ??
+        Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2);
     final cursorCanvas = screenToCanvas(cursorScreen);
 
     for (final node in _dataController.nodeLookup.values) {
@@ -304,14 +277,15 @@ class ViewportController {
         );
 
         void applyOpenState() {
-          node.isClosed = false;
+          onContainerOpenStateChanged?.call(
+              node.id, node.position, node.size, false);
           activeScopeNotifier.value = newScope;
-          final containerDx = (_currentViewportSize.width / 2.0) - ((result.internalSize.width / 2.0) * result.containerInitScale);
-          final containerDy = (_currentViewportSize.height / 2.0) - ((result.internalSize.height / 2.0) * result.containerInitScale);
-          transformController.value = Matrix4.identity()
-            ..translateByDouble(containerDx, containerDy, 0, 1)
-            ..scaleByDouble(result.containerInitScale, result.containerInitScale, result.containerInitScale, 1);
-          onContainerOpenStateChanged?.call(node.id, node.position, node.size, false);
+          transformController.value =
+              ViewportTransformMath.buildContainerOpenMatrix(
+            result.internalSize,
+            result.containerInitScale,
+            _currentViewportSize,
+          );
           _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
           recalculateVisibleSet();
         }
@@ -327,7 +301,8 @@ class ViewportController {
           applyOpenState();
         }
         break;
-      } else if (currentScope is ContainerViewportScope && currentScope.containerId == node.id) {
+      } else if (currentScope is ContainerViewportScope &&
+          currentScope.containerId == node.id) {
         final result = _zoomStrategy.checkZoomOut(
           node: node,
           currentScope: currentScope,
@@ -341,11 +316,13 @@ class ViewportController {
         _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
         final Matrix4 parentTransform = currentScope.savedParentTransform;
 
-        activeScopeNotifier.value = currentScope.parentScope ?? const RootViewportScope();
+        activeScopeNotifier.value =
+            currentScope.parentScope ?? const RootViewportScope();
 
         void applyExitState() {
           transformController.value = parentTransform;
-          onContainerOpenStateChanged?.call(node.id, node.position, node.size, true);
+          onContainerOpenStateChanged?.call(
+              node.id, node.position, node.size, true);
           _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
           recalculateVisibleSet();
         }
@@ -367,7 +344,6 @@ class ViewportController {
     }
   }
 
-  /// Programmatically transitions the active scope into a container node.
   void openContainer(
     ContainerUiNode node, {
     bool animate = true,
@@ -377,7 +353,8 @@ class ViewportController {
     if (!node.isClosed) return;
     final currentScope = activeScopeNotifier.value;
     final scale = transformController.value.getMaxScaleOnAxis();
-    final cursorCanvas = screenToCanvas(Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2));
+    final cursorCanvas = screenToCanvas(
+        Offset(_currentViewportSize.width / 2, _currentViewportSize.height / 2));
 
     final result = _zoomStrategy.checkZoomIn(
       node: node,
@@ -386,7 +363,11 @@ class ViewportController {
       viewportSize: _currentViewportSize,
       cursorCanvas: cursorCanvas,
       layoutStrategy: const DefaultNodeLayoutStrategy(),
-    ) ?? _calculateContainerZoomResult(node);
+    ) ?? ViewportTransformMath.calculateContainerZoomResult(
+      node,
+      _currentViewportSize,
+      _dataController.nodeLookup,
+    );
 
     _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
     final savedTransform = transformController.value.clone();
@@ -401,11 +382,12 @@ class ViewportController {
 
     void applyOpenState() {
       activeScopeNotifier.value = newScope;
-      final containerDx = (_currentViewportSize.width / 2.0) - ((result.internalSize.width / 2.0) * result.containerInitScale);
-      final containerDy = (_currentViewportSize.height / 2.0) - ((result.internalSize.height / 2.0) * result.containerInitScale);
-      transformController.value = Matrix4.identity()
-        ..translateByDouble(containerDx, containerDy, 0, 1)
-        ..scaleByDouble(result.containerInitScale, result.containerInitScale, result.containerInitScale, 1);
+      transformController.value =
+          ViewportTransformMath.buildContainerOpenMatrix(
+        result.internalSize,
+        result.containerInitScale,
+        _currentViewportSize,
+      );
       onContainerOpenStateChanged?.call(node.id, node.position, node.size, false);
       _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
       recalculateVisibleSet();
@@ -425,7 +407,6 @@ class ViewportController {
     }
   }
 
-  /// Programmatically transitions the active scope out of a container node back to its parent scope.
   void closeContainer(
     ContainerUiNode node, {
     bool animate = true,
@@ -433,24 +414,31 @@ class ViewportController {
     VoidCallback? onComplete,
   }) {
     final currentScope = activeScopeNotifier.value;
-    if (currentScope is! ContainerViewportScope || currentScope.containerId != node.id) return;
+    if (currentScope is! ContainerViewportScope ||
+        currentScope.containerId != node.id) {
+      return;
+    }
 
     final parentScope = currentScope.parentScope ?? const RootViewportScope();
     final Matrix4 parentTransform = currentScope.savedParentTransform;
 
     const layoutStrategy = DefaultNodeLayoutStrategy();
-    final nodeSize = (currentScope.outerSize.width > 0 && currentScope.outerSize.height > 0)
+    final nodeSize = (currentScope.outerSize.width > 0 &&
+            currentScope.outerSize.height > 0)
         ? currentScope.outerSize
         : layoutStrategy.calculateSize(node).size;
-    final availW = _currentViewportSize.width > 0 ? _currentViewportSize.width - 160.0 : 800.0;
-    final availH = _currentViewportSize.height > 0 ? _currentViewportSize.height - 160.0 : 600.0;
-    final targetScale = math.min(availW / nodeSize.width, availH / nodeSize.height).clamp(1.0, 50.0);
-    final nodeCenter = currentScope.containerPositionInParent + Offset(nodeSize.width / 2.0, nodeSize.height / 2.0);
-    final targetDx = (_currentViewportSize.width / 2.0) - (nodeCenter.dx * targetScale);
-    final targetDy = (_currentViewportSize.height / 2.0) - (nodeCenter.dy * targetScale);
-    final startZoomedMatrix = Matrix4.identity()
-      ..translateByDouble(targetDx, targetDy, 0, 1)
-      ..scaleByDouble(targetScale, targetScale, targetScale, 1);
+    final nodeCenter = currentScope.containerPositionInParent +
+        Offset(nodeSize.width / 2.0, nodeSize.height / 2.0);
+    final targetScale = ViewportTransformMath.computeContainerExitScale(
+      nodeSize,
+      _currentViewportSize,
+    );
+    final startZoomedMatrix =
+        ViewportTransformMath.buildContainerExitStartMatrix(
+      nodeCenter,
+      targetScale,
+      _currentViewportSize,
+    );
 
     _lastTransitionTimestamp = DateTime.now().millisecondsSinceEpoch;
     activeScopeNotifier.value = parentScope;
@@ -477,61 +465,22 @@ class ViewportController {
     }
   }
 
-  ContainerZoomResult _calculateContainerZoomResult(ContainerUiNode node) {
-    final worldPos = node.getAbsoluteWorldPosition(_dataController.nodeLookup);
-    const layoutStrategy = DefaultNodeLayoutStrategy();
-    final nodeSize = layoutStrategy.calculateSize(node).size;
-    final availW = _currentViewportSize.width > 0 ? _currentViewportSize.width - 160.0 : 800.0;
-    final availH = _currentViewportSize.height > 0 ? _currentViewportSize.height - 160.0 : 600.0;
-    final nodeCenter = worldPos + Offset(nodeSize.width / 2.0, nodeSize.height / 2.0);
-    final targetScale = math.min(availW / nodeSize.width, availH / nodeSize.height).clamp(1.0, 50.0);
-    final targetDx = (_currentViewportSize.width / 2.0) - (nodeCenter.dx * targetScale);
-    final targetDy = (_currentViewportSize.height / 2.0) - (nodeCenter.dy * targetScale);
-    final targetMatrix = Matrix4.identity()
-      ..translateByDouble(targetDx, targetDy, 0, 1)
-      ..scaleByDouble(targetScale, targetScale, targetScale, 1);
-
-    final aspectRatio = nodeSize.height / (nodeSize.width > 0 ? nodeSize.width : 1.0);
-    final internalW = 1600.0;
-    final internalH = 1600.0 * aspectRatio;
-    final containerInitScale = math.min(availW / internalW, availH / internalH).clamp(0.2, 5.0);
-
-    return ContainerZoomResult(
-      targetMatrix: targetMatrix,
-      nodeSize: nodeSize,
-      containerInitScale: containerInitScale,
-      internalSize: Size(internalW, internalH),
-    );
-  }
-
   Rect get contentBounds {
     final bounds = _dataController.canvasBounds;
     final padding = AppConfig.canvas.boundaryMargin;
     final initialPadding = AppConfig.canvas.initialBoundaryMargin;
-    final effectivePadding = math.max(padding, initialPadding);
 
-    final minX = bounds.minX.toDouble() - effectivePadding;
-    final minY = bounds.minY.toDouble() - effectivePadding;
-    final maxX = bounds.maxX.toDouble() + effectivePadding;
-    final maxY = bounds.maxY.toDouble() + effectivePadding;
-    return Rect.fromLTRB(minX, minY, maxX, maxY);
+    return ViewportTransformMath.computeContentBounds(bounds, padding, initialPadding);
   }
 
-  /// Calculates and updates the elastic margins boundaries.
-  /// Derives directly from [contentBounds] so that the EdgeInsets fed into
-  /// [CanvasInteractiveViewer.boundaryMargin] and the world-space
-  /// [contentBounds] rect always agree — eliminating the two-rectangle bug
-  /// where different gesture paths clamped against different boundaries.
   void recalculateElasticMargins() {
     if (_currentViewportSize == Size.zero) return;
 
     final cb = contentBounds;
 
-    final calculatedMargins = EdgeInsets.fromLTRB(
-      -cb.left,
-      -cb.top,
-      cb.right - _currentViewportSize.width,
-      cb.bottom - _currentViewportSize.height,
+    final calculatedMargins = ViewportTransformMath.computeElasticMargins(
+      cb,
+      _currentViewportSize,
     );
 
     if (elasticMargins.value != calculatedMargins) {
@@ -540,7 +489,10 @@ class ViewportController {
   }
 
   void recalculateVisibleSet() {
-    final currentViewport = _calculateCanvasViewport();
+    final currentViewport = ViewportTransformMath.calculateCanvasViewport(
+      transformController.value,
+      _currentViewportSize,
+    );
     if (currentViewport == Rect.zero) return;
     final inflatedBuffer = currentViewport.inflate(
       currentViewport.width * AppConfig.canvas.overscanRatio,
@@ -552,12 +504,12 @@ class ViewportController {
     _overscanBuffer = bufferRect;
     final currentOverscan = bufferRect;
 
-    // Dispatch the spatial grid query asynchronously on the event loop
     Future(() {
       if (_isDisposed) return;
       final scale = transformController.value.getMaxScaleOnAxis();
       final activeScope = activeScopeNotifier.value;
-      final activeContainerId = activeScope is ContainerViewportScope ? activeScope.containerId : null;
+      final activeContainerId =
+          activeScope is ContainerViewportScope ? activeScope.containerId : null;
       final newVisible = _dataController.spatialIndex.queryViewport(
         currentOverscan,
         scale,
@@ -576,28 +528,6 @@ class ViewportController {
     });
   }
 
-  Rect _calculateCanvasViewport() {
-    final Matrix4 transform = transformController.value;
-
-    // Guard against singular matrix to prevent unhandled render exceptions
-    if (transform.determinant() == 0.0) {
-      _log.severe(
-        'Singular matrix detected in canvas transform (Scale = 0). Aborting viewport calculation.',
-      );
-      return Rect.zero;
-    }
-
-    final Matrix4 inverse = Matrix4.inverted(transform);
-    final Offset topLeft = MatrixUtils.transformPoint(inverse, Offset.zero);
-    final Offset bottomRight = MatrixUtils.transformPoint(
-      inverse,
-      Offset(_currentViewportSize.width, _currentViewportSize.height),
-    );
-
-    return Rect.fromPoints(topLeft, bottomRight);
-  }
-
-  /// Animates the viewport translation and scale dynamically using a [vsync] ticker.
   void animateViewportTo(
     Matrix4 targetMatrix,
     TickerProvider vsync, {
@@ -621,7 +551,8 @@ class ViewportController {
     );
 
     _viewportAnimationController!.addListener(() {
-      final t = Curves.easeInOutCubic.transform(_viewportAnimationController!.value);
+      final t = Curves.easeInOutCubic
+          .transform(_viewportAnimationController!.value);
       final interpScale = startScale + (targetScale - startScale) * t;
       final interpTranslation = Offset.lerp(
         Offset(startTranslation.x, startTranslation.y),
@@ -651,18 +582,18 @@ class ViewportController {
     _viewportAnimationController!.forward();
   }
 
-  /// Projects canvas coordinates to screen-space coordinates.
   Offset projectCanvasToScreen(Offset canvasPos) {
-    final Matrix4 transform = transformController.value;
-    if (transform.determinant() == 0.0) return canvasPos;
-    return MatrixUtils.transformPoint(transform, canvasPos);
+    return ViewportTransformMath.projectCanvasToScreen(
+      transformController.value,
+      canvasPos,
+    );
   }
 
-  /// Projects a canvas Rect to a screen-space Rect.
   Rect projectCanvasRectToScreen(Rect canvasRect) {
-    final topLeft = projectCanvasToScreen(canvasRect.topLeft);
-    final bottomRight = projectCanvasToScreen(canvasRect.bottomRight);
-    return Rect.fromPoints(topLeft, bottomRight);
+    return ViewportTransformMath.projectCanvasRectToScreen(
+      transformController.value,
+      canvasRect,
+    );
   }
 
   void dispose() {

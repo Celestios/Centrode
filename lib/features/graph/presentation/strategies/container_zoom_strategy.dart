@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import '../../models/models.dart';
+import '../shared/view_constants.dart';
 import '../viewport_state.dart';
 import 'node_layout_strategy.dart';
 
@@ -66,7 +67,7 @@ class DefaultContainerZoomStrategy extends ContainerZoomStrategy {
   static const double _zoomInScreenWidthThreshold = 180.0;
   static const double _zoomInHitAreaInflation = 60.0;
   static const double _zoomOutHitAreaInflation = 200.0;
-  static const double _internalWidth = 1600.0;
+  static const double _internalWidth = kInternalContainerWidth;
   static const double _margin = 80.0;
 
   @override

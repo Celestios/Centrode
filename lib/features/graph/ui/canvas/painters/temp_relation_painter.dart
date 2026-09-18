@@ -56,18 +56,18 @@ class TempRelationPainter extends CustomPainter {
           final startPos =
               sourcePort?.position ??
               sourceVs.getPortPosition(
-                sourceVs.getClosestPort(targetVs.rect.center).side,
+                sourceVs.getClosestPortRecord(targetVs.rect.center).side,
               );
           final endPos =
               targetPort?.position ??
-              targetVs.getPortPosition(targetVs.getClosestPort(startPos).side);
+              targetVs.getPortPosition(targetVs.getClosestPortRecord(startPos).side);
           canvas.drawLine(startPos, endPos, strokePaint);
         }
       } else {
         final startPos =
             sourcePort?.position ??
             sourceVs.getPortPosition(
-              sourceVs.getClosestPort(state.currentCursorPosition).side,
+              sourceVs.getClosestPortRecord(state.currentCursorPosition).side,
             );
         canvas.drawLine(startPos, state.currentCursorPosition, strokePaint);
         canvas.drawCircle(

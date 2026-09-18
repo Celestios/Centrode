@@ -371,7 +371,7 @@ abstract final class ColorTheoryEngine {
   /// Calculates WCAG relative luminance of a color in [0.0, 1.0].
   static double relativeLuminance(Color color) {
     double transform(double val) {
-      return (val <= 0.03928) ? (val / 12.92) : math.pow((val + 0.055) / 1.055, 2.4).toDouble();
+      return (val <= 0.04045) ? (val / 12.92) : math.pow((val + 0.055) / 1.055, 2.4).toDouble();
     }
 
     final r = transform(color.r);

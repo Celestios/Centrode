@@ -2,27 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'picker_color_model.dart';
 
-/// Horizontal hue spectrum painter (0–360°).
-class HuePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const stops = [0.0, 60.0, 120.0, 180.0, 240.0, 300.0, 360.0];
-    final colors = stops.map((h) => HSVColor.fromAHSV(1.0, h, 1.0, 1.0).toColor()).toList();
-    final grad = LinearGradient(
-      colors: colors,
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..shader = grad.createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 /// Hue slider (0–360°). Horizontal drag sets the hue.
 class ColorPickerHueSlider extends StatelessWidget {
   final PickerColorModel model;

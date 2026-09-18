@@ -3,18 +3,12 @@ use crate::domain::id::TypedRecordId;
 use crate::domain::theme::{MapTheme, ThemeFields};
 use crate::domain::traits::TableKind;
 use crate::repo::traits::ThemeRepository;
+use crate::repo::utils::key_to_uuid;
 
 use anyhow::Result;
 use surrealdb::engine::local::Db;
-use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, Value};
+use surrealdb::types::{RecordId, SurrealValue, Value};
 use surrealdb::Surreal;
-
-fn key_to_uuid(key: &RecordIdKey) -> Result<uuid::Uuid> {
-    match key {
-        RecordIdKey::Uuid(u) => Ok(**u),
-        _ => Err(anyhow::anyhow!("Non-UUID key")),
-    }
-}
 
 #[derive(Clone)]
 pub struct SurrealThemeRepository {
@@ -80,7 +74,7 @@ impl ThemeRepository for SurrealThemeRepository {
         for v in vals {
             if let Some(record) = Record::from_record_value(v) {
                 if let Ok(fields) = ThemeFields::from_value(record.fields) {
-                    let key = TypedRecordId::new(TableKind::MapTheme, key_to_uuid(&record.id.key)?);
+                    let key = TypedRecordId::new(TableKind::MapTheme, key_to_uuid(&record.id.key, "theme")?);
                     result.push(MapTheme { key, fields });
                 }
             }

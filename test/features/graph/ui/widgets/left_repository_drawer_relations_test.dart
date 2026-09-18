@@ -9,7 +9,6 @@ import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/graph_data_query.dart';
 import 'package:centrode/features/graph/ui/widgets/overlays/left_repository_drawer.dart';
 import 'package:centrode/features/graph/ui/widgets/relation_manager/global_relations_manager_panel.dart';
-import 'package:centrode/features/graph/ui/widgets/relation_manager/relations_list_view.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 
 class MockGraphDataQueryController extends Mock implements GraphDataQueryController {}

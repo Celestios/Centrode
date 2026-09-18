@@ -21,9 +21,10 @@ class ColorPickerAlphaSlider extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         const height = 12.0;
+        final clampedWidth = width > 0 ? width : 1.0;
         return GestureDetector(
-          onPanDown: (d) => model.setAlpha(d.localPosition.dx / width),
-          onPanUpdate: (d) => model.setAlpha(d.localPosition.dx / width),
+          onPanDown: (d) => model.setAlpha(d.localPosition.dx / clampedWidth),
+          onPanUpdate: (d) => model.setAlpha(d.localPosition.dx / clampedWidth),
           child: Container(
             height: height,
             decoration: BoxDecoration(

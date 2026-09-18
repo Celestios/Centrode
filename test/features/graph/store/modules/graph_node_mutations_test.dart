@@ -81,10 +81,11 @@ void main() {
         const Offset(0, 0),
       );
 
-      controller.nodeMutations.updateNodeWidth(id, 0.0, 350.0);
+      controller.nodeMutations.updateNodeWidth(id, 0.0, 360.0);
 
       final node = queryController.nodeLookup[id]!;
-      expect(node.size.width, equals(350.0));
+      expect(node.size.width, equals(360.0));
+      expect(node.style?.width, equals(360));
     });
 
     test('toggleNodeExpansion toggles isExpanded state', () {

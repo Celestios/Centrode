@@ -1503,19 +1503,6 @@ workspace_components:
       - Platform detection for layout
       - Drag-to-move area on desktop
 
-  - name: LiquidGlassDemo
-    path: lib/features/workspace/ui/liquid_glass_test_screen.dart
-    description: "Interactive demo for liquid glass shader with draggable panels and control sliders."
-    styles:
-      glassPanels:
-        - { name: "Amber Glass", width: 250, height: 80, borderRadius: 40, color: amber 100 }
-        - { name: "Green ECO", width: 100, height: 100, borderRadius: 50, color: lightGreen 200 }
-        - { name: "Tall Icons", width: 80, height: 120, borderRadius: 20 }
-        - { name: "Dark Circle", width: 60, height: 60, borderRadius: 30, color: black 150 }
-    behaviors:
-      - Drag panels within constraints
-      - Slider controls for shader parameters
-
   - name: LeftPanel
     path: lib/features/workspace/ui/widgets/left_panel/left_panel.dart
     description: "Fixed-width left sidebar with rounded right corners and Material background."
@@ -1564,6 +1551,21 @@ workspace_components:
       defaultBackground: white 0.08
       hoveredBackground: white 0.16
       closeHoveredBackground: red 0.85
+
+test_harnesses:
+
+  - name: LiquidGlassDemo
+    path: test/prototype/liquid_glass_test_screen.dart
+    description: "Test-only liquid glass demo with draggable panels and shader parameter sliders, mounted by test/liquid_glass_rendering_test.dart; not a production workspace screen."
+    styles:
+      glassPanels:
+        - { name: "Amber Glass", width: 250, height: 80, borderRadius: 40, color: amber 100 }
+        - { name: "Green ECO", width: 100, height: 100, borderRadius: 50, color: lightGreen 200 }
+        - { name: "Tall Icons", width: 80, height: 120, borderRadius: 20 }
+        - { name: "Dark Circle", width: 60, height: 60, borderRadius: 30, color: black 150 }
+    behaviors:
+      - Drag panels within constraints
+      - Slider controls for shader parameters
 
 # =============================================================================
 # SECTION 9: DRAWING & TAG COMPONENTS

@@ -94,12 +94,5 @@
 |----------|-------------|
 | [Centrode](app_philosophy.md) | Product vision, problem statement, design principles |
 | [GUI Specification](gui_specification.yaml) | Full GUI spec (YAML, 1700+ lines) |
-| [Container Nodes & Infinite Zoom](../artifacts/Container%20Nodes%20&%20True%20Continuous%20Infinite%20Zoom/architecture_context_memory_ports_notifiers.md) | Deep-dive design artifact on nested infinite zoom mechanics |
-| [OptArea & Layout Engine](../artifacts/optarea_&_layout_engine/design_layout_engine.md) | Architecture report on bounded sub-graph physics optimization |
-| [Snap Relation Recompute](../artifacts/snap_relation_recompute/design_relation_snap_recompute.md) | Dynamic port snapping & live relation routing during drags |
-| [Graph Notifier & Listener Optimization](../artifacts/graph_notifier_listener_optimization/design_summary.md) | Repaint boundary and memory tuning |
-| [Workspace Hub Architecture](../artifacts/workspace_hub/design_workspace_hub.md) | Project and map management hub design |
-| [Logical Gates & Data Flows](../artifacts/logical_data_flows/design_logical_data_flows.md) | Reactive dataflow engine, transfer functions, and visual gates architecture |
-| [Code Health Reports](../artifacts/code_health_reports/code_health_audit.md) | Subsystem SOLID and architecture audit logs |
-| [Settings Options Inventory](../artifacts/settings_options_inventory/design_settings_options.md) | Configurable settings catalog, domain constants, and roadmap |
+
 

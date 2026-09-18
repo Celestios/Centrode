@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -103,8 +104,8 @@ void main() {
       () => mockQuery.onEntityUpdate,
     ).thenAnswer((_) => const Stream.empty());
     when(() => mockQuery.relations).thenReturn([]);
-    when(() => mockQuery.nodeLookup).thenReturn({});
-    when(() => mockQuery.relationLookup).thenReturn({});
+    when(() => mockQuery.nodeLookup).thenReturn(UnmodifiableMapView({}));
+    when(() => mockQuery.relationLookup).thenReturn(UnmodifiableMapView({}));
     when(() => mockQuery.isLoading).thenReturn(false);
     when(() => mockQuery.isLoadingNotifier).thenReturn(ValueNotifier(false));
     when(() => mockQuery.errorMessage).thenReturn(null);
@@ -131,8 +132,8 @@ void main() {
     when(() => mockRenderState.draggingNodes).thenReturn({});
     when(() => mockRenderState.onEntityUpdate).thenAnswer((_) => const Stream.empty());
     when(() => mockRenderState.relations).thenReturn([]);
-    when(() => mockRenderState.nodeLookup).thenReturn({});
-    when(() => mockRenderState.relationLookup).thenReturn({});
+    when(() => mockRenderState.nodeLookup).thenReturn(UnmodifiableMapView({}));
+    when(() => mockRenderState.relationLookup).thenReturn(UnmodifiableMapView({}));
     when(() => mockRenderState.isLoading).thenReturn(false);
     when(() => mockRenderState.errorMessage).thenReturn(null);
     when(() => mockRenderState.addListener(any())).thenAnswer((_) {});

@@ -220,5 +220,5 @@ Future<String?> showCentrodeInputDialog({
         ],
       );
     },
-  );
+  ).whenComplete(() => textController.dispose());
 }

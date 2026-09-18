@@ -3,7 +3,6 @@ import 'package:centrode/features/graph/ui/canvas/paste_handler.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/store/in_memory_graph_api.dart';
-import 'package:centrode/features/graph/models/models.dart';
 
 void main() {
   late CommandQueueProcessor controller;

@@ -1,3 +1,4 @@
+import 'dart:collection' show UnmodifiableMapView;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_async/fake_async.dart';
@@ -15,16 +16,18 @@ class MockSpatialHashGrid extends Mock implements SpatialHashGrid {}
 class MockHierarchicalSpatialIndex extends Mock implements HierarchicalSpatialIndex {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUpAll(() {
-    TestWidgetsFlutterBinding.ensureInitialized();
     registerFallbackValue(Rect.zero);
+    registerFallbackValue(Offset.zero);
   });
 
-  group('ViewportController', () {
-    late ViewportController controller;
+  group('ViewportController Tests', () {
     late MockGraphDataQuery mockQuery;
     late MockSpatialHashGrid mockSpatial;
     late MockHierarchicalSpatialIndex mockSpatialIndex;
+    late ViewportController controller;
     late ValueNotifier<BoundingBox> mockBoundsNotifier;
     late Stream<GraphEntityUpdate> mockEntityUpdates;
 
@@ -39,7 +42,7 @@ void main() {
 
       when(() => mockQuery.spatialGrid).thenReturn(mockSpatial);
       when(() => mockQuery.spatialIndex).thenReturn(mockSpatialIndex);
-      when(() => mockQuery.nodeLookup).thenReturn({});
+      when(() => mockQuery.nodeLookup).thenReturn(UnmodifiableMapView({}));
       when(
         () => mockQuery.canvasBounds,
       ).thenAnswer((_) => mockBoundsNotifier.value);

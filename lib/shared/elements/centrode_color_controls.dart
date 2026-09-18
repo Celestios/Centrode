@@ -84,7 +84,6 @@ class CentrodeColorPillButton<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final currentOpt = options.firstWhere(
       (opt) => opt.value == selectedValue,
-      orElse: () => options.first,
     );
 
     return PopupMenuButton<T>(
