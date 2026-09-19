@@ -20,6 +20,11 @@ lib/shared/
 │   └── raw_uuid.dart                  # UUID v4 type
 ├── elements/                          # Shared UI elements
 │   ├── centrode_button.dart           # Primary button
+│   ├── centrode_color_picker.dart     # Color picker widget
+│   ├── color_picker/
+│   │   ├── base_color_slider.dart     # Polymorphic slider primitive for hue & alpha
+│   │   ├── color_picker_hue_slider.dart   # Dedicated hue slider
+│   │   └── color_picker_alpha_slider.dart # Dedicated alpha slider
 │   ├── centrode_icon_button.dart      # Icon button
 │   ├── centrode_icon_tile.dart        # Icon tile
 │   ├── centrode_segmented_control.dart # Segmented control
@@ -44,7 +49,10 @@ lib/shared/
 └── widgets/
     ├── canvas_camera_physics.dart       # Rubber-band & spring math
     ├── canvas_interactive_viewer.dart  # Custom InteractiveViewer (re-exports interactive_viewer/)
-    ├── context_menu_overlay.dart       # Context menu system
+    ├── context_menu_overlay.dart       # Context menu system (re-exports context_menu/)
+    ├── context_menu/
+    │   ├── context_menu_item.dart      # Context menu data and item models
+    │   └── context_menu_layout_delegate.dart # Custom single-child layout delegate
     ├── unbounded_stack.dart            # Stack without bounds
     ├── color_palette/
     │   └── color_palette.dart          # Color palette picker

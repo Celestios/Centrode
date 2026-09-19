@@ -20,9 +20,12 @@ lib/features/settings/
     └── widgets/
         ├── settings_category_sidebar.dart # Left pod (195px, vertical category navigation)
         ├── settings_canvas_pod.dart       # Right pod (continuous scrollable canvas, Telegram-style blur header)
-        ├── floating_search_bar.dart       # Expandable live search field & circular close button
         └── sections/
-            └── top_sections.dart        # Theme, Shader, and Canvas settings cards
+            ├── top_sections.dart              # Theme, Shader, and Canvas settings cards
+            ├── ontology_settings_section.dart # Node types and taxonomy settings
+            ├── physics_settings_section.dart  # Force-directed layout and simulation settings
+            ├── relations_settings_section.dart# Default routing and line style settings
+            └── storage_settings_section.dart  # Auto-save and persistence settings
 ```
 
 ---

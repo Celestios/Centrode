@@ -54,7 +54,7 @@ services.rs                   # Module root
 - `set_opt_area()`, `get_opt_area()`
 
 ### Metadata Operations (`metadata.rs`)
-- Theme CRUD: `get_all_themes()`, `create_theme()`, `update_theme()`, `set_active_theme()`
+- Theme CRUD: `get_all_themes()`, `get_theme_by_key()`, `create_theme()`, `update_theme()`, `delete_theme()`, `set_active_theme()`
 - Tag CRUD: `create_tag()`, `update_tag()`, `delete_tag()`, `get_all_tags()`
 - Template CRUD: `save_template_from_selection()`, `instantiate_template()`, `delete_template()`
 - Relation specs: `get_relation_spec(verb)`, `list_relation_specs()`
@@ -68,7 +68,7 @@ services.rs                   # Module root
 - `resolve_path(asset_dir, hash, ext)` — resolve hash to absolute file path
 
 ### Embedding Service (`embedding_service.rs`)
-Native BERT embedder built on candle (MiniLM-L6, 384-dim vectors), with a hash-based fallback embedder when no model weights are loaded:
+Native BERT embedder built on candle (MiniLM-L6, 384-dim vectors) with bounded in-memory cache (`MAX_EMBEDDING_CACHE_SIZE = 2048`), with a hash-based fallback embedder when no model weights are loaded:
 - `init_model(weights, tokenizer, config)` — load candle model artifacts
 - `embed_text(text)` — produce a 384-dim vector
 - `cosine_similarity(a, b)` — vector similarity
