@@ -52,7 +52,6 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
 
     final activeIndex = widget.items.indexWhere((item) => item.mode == widget.currentMode);
     assert(activeIndex >= 0, 'currentMode ${widget.currentMode} not found in items');
-    final itemWidth = widget.isCompact ? 34.0 : 88.0;
 
     return Listener(
       onPointerDown: (event) {
@@ -82,108 +81,113 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
             width: UiStrokeWidth.subtle,
           ),
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            AnimatedPositioned(
-              duration: UiMotion.standard,
-              curve: Curves.easeOutCubic,
-              left: activeIndex * itemWidth,
-              top: 0,
-              bottom: 0,
-              width: itemWidth,
-              child: AnimatedScale(
-                scale: _isPressed ? 1.14 : 1.0,
-                duration: UiMotion.fast,
-                curve: Curves.easeOutBack,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(UiRadius.card),
-                    gradient: LinearGradient(
-                      colors: [
-                        primaryColor.withValues(alpha: _isPressed ? 0.58 : 0.45),
-                        primaryColor.withValues(alpha: _isPressed ? 0.35 : 0.22),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(
-                      color: primaryColor.withValues(alpha: _isPressed ? 0.9 : 0.65),
-                      width: UiStrokeWidth.thick,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryColor.withValues(alpha: _isPressed ? 0.5 : 0.35),
-                        blurRadius: _isPressed ? 18 : 12,
-                        spreadRadius: _isPressed ? 1 : -0.5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final dynamicItemWidth = constraints.maxWidth / widget.items.length;
+            return Stack(
+              clipBehavior: Clip.none,
               children: [
-                for (int i = 0; i < widget.items.length; i++) ...[
-                  SizedBox(
-                    width: itemWidth,
-                    height: UiControlSize.dense,
-                    child: Tooltip(
-                      message: widget.items[i].tooltip ?? widget.items[i].label,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            widget.items[i].icon,
-                            size: UiIconSize.dense,
-                            color: i == activeIndex
-                                ? textColor
-                                : textColor.withValues(alpha: 0.75),
+                AnimatedPositioned(
+                  duration: UiMotion.standard,
+                  curve: Curves.easeOutCubic,
+                  left: activeIndex * dynamicItemWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: dynamicItemWidth,
+                  child: AnimatedScale(
+                    scale: _isPressed ? 1.14 : 1.0,
+                    duration: UiMotion.fast,
+                    curve: Curves.easeOutBack,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(UiRadius.card),
+                        gradient: LinearGradient(
+                          colors: [
+                            primaryColor.withValues(alpha: _isPressed ? 0.58 : 0.45),
+                            primaryColor.withValues(alpha: _isPressed ? 0.35 : 0.22),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        border: Border.all(
+                          color: primaryColor.withValues(alpha: _isPressed ? 0.9 : 0.65),
+                          width: UiStrokeWidth.thick,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryColor.withValues(alpha: _isPressed ? 0.5 : 0.35),
+                            blurRadius: _isPressed ? 18 : 12,
+                            spreadRadius: _isPressed ? 1 : -0.5,
+                            offset: const Offset(0, 2),
                           ),
-                          if (!widget.isCompact) ...[
-                            const SizedBox(width: UiSpacing.tight),
-                            Flexible(
-                              child: Text(
-                                widget.items[i].label,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: UiFont.compact,
-                                  fontWeight: i == activeIndex ? FontWeight.bold : FontWeight.w500,
-                                  color: i == activeIndex
-                                      ? textColor
-                                      : textColor.withValues(alpha: 0.75),
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (!widget.isCompact && widget.items[i].accentBadge != null) ...[
-                            const SizedBox(width: 3),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Text(
-                                widget.items[i].accentBadge!,
-                                style: const TextStyle(
-                                  fontSize: 7,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
                   ),
-                ],
+                ),
+                Row(
+                  children: [
+                    for (int i = 0; i < widget.items.length; i++) ...[
+                      Expanded(
+                        child: SizedBox(
+                          height: UiControlSize.dense,
+                          child: Tooltip(
+                            message: widget.items[i].tooltip ?? widget.items[i].label,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  widget.items[i].icon,
+                                  size: UiIconSize.dense,
+                                  color: i == activeIndex
+                                      ? textColor
+                                      : textColor.withValues(alpha: 0.75),
+                                ),
+                                if (!widget.isCompact) ...[
+                                  const SizedBox(width: UiSpacing.tight),
+                                  Flexible(
+                                    child: Text(
+                                      widget.items[i].label,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: UiFont.compact,
+                                        fontWeight: i == activeIndex ? FontWeight.bold : FontWeight.w500,
+                                        color: i == activeIndex
+                                            ? textColor
+                                            : textColor.withValues(alpha: 0.75),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                if (!widget.isCompact && widget.items[i].accentBadge != null) ...[
+                                  const SizedBox(width: 3),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: primaryColor,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: Text(
+                                      widget.items[i].accentBadge!,
+                                      style: const TextStyle(
+                                        fontSize: 7,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

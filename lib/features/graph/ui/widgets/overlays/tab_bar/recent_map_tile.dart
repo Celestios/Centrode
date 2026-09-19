@@ -1,7 +1,7 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
+import 'package:centrode/shared/elements/hover_scale_button.dart';
 
 class RecentMapTile extends StatelessWidget {
   final MapInfo map;

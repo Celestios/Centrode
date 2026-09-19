@@ -7,6 +7,7 @@ import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/presentation/viewport_state.dart';
 import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/features/graph/engine/interaction_context.dart';
 import 'package:centrode/features/graph/engine/interaction_engine.dart';
 import 'package:centrode/features/graph/engine/base_interaction_state.dart';
@@ -573,7 +574,7 @@ class ContextToolbarOverlay extends StatelessWidget {
         },
         onCycleTextColor: () {
           if (singleNodeId != null) {
-            final textColors = AppConfig.visuals.textColors;
+            final textColors = AppConfig.visuals.textColors(CentrodeDerivedPalette.of(context));
             interactionController.updateNodeStyle(singleNodeId, (style) {
               final index = textColors.indexOf(style.textColor);
               final nextColor = textColors[(index + 1) % textColors.length];

@@ -153,25 +153,10 @@ class ContentBuilder {
 
 /// Extension methods for Content to provide additional functionality.
 extension ContentExtensions on Content {
-  /// Helper to convert a list of blocks to plain text.
-  static String computePlainText(List<ContentBlock> blocks) {
-    final buffer = StringBuffer();
-    for (final block in blocks) {
-      for (final inline in block.content) {
-        buffer.write(inline.text);
-      }
-      buffer.writeln();
-    }
-    final result = buffer.toString();
-    return result.endsWith('\n')
-        ? result.substring(0, result.length - 1)
-        : result;
-  }
-
   /// Convert Content to plain text string.
   /// Derives text from all blocks and inline nodes.
   String toPlainText() {
-    return computePlainText(blocks);
+    return ContentFactory.computePlainText(blocks);
   }
 
   /// Check if content is empty (no blocks or all blocks are empty).

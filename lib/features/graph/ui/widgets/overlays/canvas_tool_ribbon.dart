@@ -6,7 +6,6 @@ import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 const _labelModes = ['auto', 'always', 'never'];
 const _labelIcons = {

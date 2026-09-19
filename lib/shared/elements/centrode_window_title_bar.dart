@@ -16,6 +16,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
   final double height;
   final bool enableGlass;
   final Color? backgroundColor;
+  final List<Widget> stackChildren;
 
   const CentrodeWindowTitleBar({
     super.key,
@@ -27,6 +28,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
     this.height = UiControlSize.tile,
     this.enableGlass = true,
     this.backgroundColor,
+    this.stackChildren = const [],
   });
 
   @override
@@ -81,6 +83,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
               ),
             ),
           ),
+        ...stackChildren,
       ],
     );
 

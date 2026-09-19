@@ -10,8 +10,8 @@ import '../../../store/graph_data_query.dart';
 import 'delete_tag_dialog.dart';
 import 'tag_color_picker_panel.dart';
 
-List<int> get _presetColors =>
-    CentrodeDerivedPalette.current.swatches.map((c) => c.toARGB32()).toList();
+List<int> _presetColors(BuildContext context) =>
+    CentrodeDerivedPalette.of(context).swatches.map((c) => c.toARGB32()).toList();
 
 class TagsListView extends StatefulWidget {
   final TagManagerCoordinator? coordinator;
@@ -180,7 +180,7 @@ class _TagsListViewState extends State<TagsListView> {
     await _coordinator.createTag(name, _newTagColor);
     _createController.clear();
     setState(() {
-      _newTagColor = (List<int>.from(_presetColors)..shuffle()).first;
+      _newTagColor = (List<int>.from(_presetColors(context))..shuffle()).first;
     });
   }
 

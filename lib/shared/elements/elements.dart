@@ -17,6 +17,7 @@ export 'centrode_paint_geometry.dart';
 export 'centrode_segmented_control.dart';
 export 'centrode_square_toggle.dart';
 export 'centrode_window_title_bar.dart';
+export 'hover_scale_button.dart';
 export 'glass_divider.dart';
 export 'glass_presets.dart';
 export 'history_badge_button.dart';

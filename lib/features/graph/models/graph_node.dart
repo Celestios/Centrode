@@ -141,6 +141,13 @@ sealed class UiNode {
     ShapeUiNode() => (this as ShapeUiNode).copyWith(id: newId),
   };
 
+  bool get hasAttachments => switch (this) {
+    InfoUiNode() => (this as InfoUiNode).attachments.isNotEmpty,
+    TaskUiNode() => (this as TaskUiNode).attachments.isNotEmpty,
+    MediaUiNode() => true,
+    _ => false,
+  };
+
   // ──────────────────── layout engine ─────────────────────────────────────
   Color get defaultPreviewColor => switch (this) {
     InfoUiNode() => const Color(0xFF90CAF9),

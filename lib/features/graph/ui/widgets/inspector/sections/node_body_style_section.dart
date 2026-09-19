@@ -4,7 +4,6 @@ import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 import '../components/sub_block_shell.dart';
-import '../components/segmented_glass_switcher.dart';
 import '../components/glass_color_pill_button.dart';
 import '../components/compact_slider_box.dart';
 import '../components/node_shape_definitions.dart';
@@ -148,10 +147,14 @@ class NodeBodyStyleSection extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: SegmentedGlassSwitcher<String>(
-                  height: UiControlSize.standard,
-                  activeColor: accentColor,
-                  selectedValue: fillStyle,
+                child: CentrodeSegmentedControl<String>(
+                  items: const [
+                    (icon: Icons.circle, label: 'Solid', mode: 'solid', tooltip: null, accentBadge: null),
+                    (icon: Icons.circle_outlined, label: 'Glass', mode: 'glass', tooltip: null, accentBadge: null),
+                    (icon: Icons.rectangle_outlined, label: 'Outline', mode: 'outline', tooltip: null, accentBadge: null),
+                  ],
+                  currentMode: fillStyle,
+                  isCompact: false,
                   onSelected: (val) {
                     onFillStyleChanged(val);
                     final nodeIds =
@@ -163,11 +166,6 @@ class NodeBodyStyleSection extends StatelessWidget {
                           nodeIds, (s) => s.copyWith(bgColor: bgInt));
                     }
                   },
-                  segments: const [
-                    SegmentData(value: 'solid', label: 'Solid'),
-                    SegmentData(value: 'glass', label: 'Glass'),
-                    SegmentData(value: 'outline', label: 'Outline'),
-                  ],
                 ),
               ),
               const SizedBox(width: UiSpacing.standard),

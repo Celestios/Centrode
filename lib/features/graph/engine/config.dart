@@ -85,8 +85,8 @@ class _Node {
   final double metadataPreviewWidth = 140.0;
   final double metadataPreviewBorderRadius = UiRadius.card;
   final double metadataPreviewBlur = 10.0;
-  List<int> get defaultTagColors =>
-      CentrodeDerivedPalette.current.tagColors.map((c) => c.toARGB32()).toList();
+  List<int> defaultTagColors(CentrodeDerivedPalette palette) =>
+      palette.tagColors.map((c) => c.toARGB32()).toList();
 }
 
 class _Toolbar {
@@ -110,8 +110,8 @@ class _Visuals {
     'Roboto',
     'Consolas',
   ];
-  List<int> get textColors =>
-      CentrodeDerivedPalette.current.swatches.map((c) => c.toARGB32()).toList();
+  List<int> textColors(CentrodeDerivedPalette palette) =>
+      palette.swatches.map((c) => c.toARGB32()).toList();
 }
 
 class _Port {

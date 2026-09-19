@@ -27,7 +27,7 @@ import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import 'package:centrode/presentation/widgets/search/search_command_palette.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import 'package:centrode/presentation/theme/app_theme.dart';
-import 'package:centrode/presentation/widgets/window_title_bar.dart';
+import '../widgets/overlays/undo_redo_buttons.dart';
 
 class CanvasOverlayLayout extends StatelessWidget {
   final BoxConstraints constraints;
@@ -128,23 +128,14 @@ class CanvasOverlayLayout extends StatelessWidget {
                               targetRect: targetRect,
                               items: [
                                 CentrodeMenuItem.action(
-                                  label: 'Force Sync Save',
-                                  leadingIcon: Icons.save_outlined,
-                                  shortcut: 'Ctrl+S',
-                                  onTap: () {
-                                    session.commandProcessor.flushSync();
-                                  },
-                                ),
-                                CentrodeMenuItem.action(
                                   label: 'Toggle Theme',
                                   leadingIcon: Icons.palette_outlined,
                                   onTap: () {
                                     final current = AppThemeManager
-                                        .instance.themeNotifier.value;
+                                        .instance.currentTheme;
                                     final isDark =
                                         current.brightness == Brightness.dark;
-                                    AppThemeManager
-                                            .instance.themeNotifier.value =
+                                    AppThemeManager.instance.currentTheme =
                                         AppTheme(
                                       brightness: isDark
                                           ? Brightness.light
@@ -408,7 +399,6 @@ class _AnimatedLeftPanel extends StatefulWidget {
 class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
   LeftPanelType _displayedPanel = LeftPanelType.none;
   double _measuredHeight = 240.0;
-  final GlobalKey _contentKey = GlobalKey();
 
   @override
   void initState() {
@@ -426,24 +416,6 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
     }
   }
 
-  void _checkHeight() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final ctx = _contentKey.currentContext;
-      if (ctx != null) {
-        final renderBox = ctx.findRenderObject() as RenderBox?;
-        if (renderBox != null && renderBox.hasSize) {
-          final h = renderBox.size.height;
-          if (h > 0 && (_measuredHeight - h).abs() > 4) {
-            setState(() {
-              _measuredHeight = h;
-            });
-          }
-        }
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final isOpen = widget.isLeftVisible && widget.activePanel != LeftPanelType.none;
@@ -452,10 +424,6 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
         .clamp(140, 10000)
         .toDouble();
     final double targetHeight = _measuredHeight.clamp(140.0, maxPanelHeight);
-
-    if (isOpen) {
-      _checkHeight();
-    }
 
     return AnimatedPositioned(
       duration: UiMotion.standard,
@@ -479,14 +447,23 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
             minHeight: 0.0,
             maxHeight: maxPanelHeight,
             child: ConstrainedBox(
-              key: _contentKey,
               constraints: BoxConstraints(
                 minWidth: targetWidth,
                 maxWidth: targetWidth,
                 minHeight: 0.0,
                 maxHeight: maxPanelHeight,
               ),
-              child: _buildContent(_displayedPanel),
+              child: _ContentSizer(
+                onSizeChanged: (size) {
+                  if (size.height > 0 &&
+                      (_measuredHeight - size.height).abs() > 4) {
+                    setState(() {
+                      _measuredHeight = size.height;
+                    });
+                  }
+                },
+                child: _buildContent(_displayedPanel),
+              ),
             ),
           ),
         ),
@@ -507,5 +484,49 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
       case LeftPanelType.none:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _ContentSizer extends StatefulWidget {
+  final Widget child;
+  final void Function(Size size) onSizeChanged;
+
+  const _ContentSizer({required this.child, required this.onSizeChanged});
+
+  @override
+  State<_ContentSizer> createState() => _ContentSizerState();
+}
+
+class _ContentSizerState extends State<_ContentSizer> {
+  final GlobalKey _key = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContentSizer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+  }
+
+  void _measure() {
+    if (!mounted) return;
+    final ctx = _key.currentContext;
+    if (ctx == null) return;
+    final renderBox = ctx.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      widget.onSizeChanged(renderBox.size);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: _key,
+      child: widget.child,
+    );
   }
 }

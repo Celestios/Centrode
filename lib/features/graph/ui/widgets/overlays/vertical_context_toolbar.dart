@@ -248,21 +248,6 @@ class VerticalContextToolbar extends StatelessWidget {
                             'widthModulate',
                           ),
                         ),
-                        SubmenuButtonData(
-                          icon: Icons.arrow_forward_rounded,
-                          tooltip: 'One-Way Direction',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.swap_horiz_rounded,
-                          tooltip: 'Bi-Directional',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.colorize_rounded,
-                          tooltip: 'Relation Color',
-                          onPressed: () {},
-                        ),
                       ],
                     ),
                     VerticalToolbarGroupButton(
@@ -353,87 +338,11 @@ class VerticalContextToolbar extends StatelessWidget {
                       ],
                     ),
                   ] else if (isMulti) ...[
-                    // Multi-selection specific groups
-                    VerticalToolbarGroupButton(
-                      positionOnRight: positionOnRight,
-                      triggerIcon: Icons.align_horizontal_left_rounded,
-                      triggerTooltip: 'Align & Distribute',
-                      submenuButtons: [
-                        SubmenuButtonData(
-                          icon: Icons.align_horizontal_left_rounded,
-                          tooltip: 'Align Left',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.align_horizontal_center_rounded,
-                          tooltip: 'Align Center (Horiz)',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.align_horizontal_right_rounded,
-                          tooltip: 'Align Right',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.align_vertical_top_rounded,
-                          tooltip: 'Align Top',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.align_vertical_center_rounded,
-                          tooltip: 'Align Middle (Vert)',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.align_vertical_bottom_rounded,
-                          tooltip: 'Align Bottom',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.horizontal_distribute_rounded,
-                          tooltip: 'Distribute Horizontally',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.vertical_distribute_rounded,
-                          tooltip: 'Distribute Vertically',
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                    VerticalToolbarGroupButton(
-                      positionOnRight: positionOnRight,
-                      triggerIcon: Icons.text_format_rounded,
-                      triggerTooltip: 'Batch Format Text',
-                      iconSize: 26,
-                      submenuButtons: [
-                        SubmenuButtonData(
-                          icon: Icons.format_bold_rounded,
-                          tooltip: 'Bold',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.format_italic_rounded,
-                          tooltip: 'Italic',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.palette_outlined,
-                          tooltip: 'Text Color',
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
                     VerticalToolbarGroupButton(
                       positionOnRight: positionOnRight,
                       triggerIcon: Icons.settings_outlined,
                       triggerTooltip: 'Group Actions',
                       submenuButtons: [
-                        SubmenuButtonData(
-                          icon: Icons.group_work_outlined,
-                          tooltip: 'Group Items',
-                          onPressed: () {},
-                        ),
                         SubmenuButtonData(
                           icon: Icons.bookmark_add_outlined,
                           tooltip: 'Save Group as Template',
@@ -442,7 +351,6 @@ class VerticalContextToolbar extends StatelessWidget {
                       ],
                     ),
                   ] else ...[
-                    // Single Node style & format groups
                     VerticalToolbarGroupButton(
                       positionOnRight: positionOnRight,
                       triggerIcon: Icons.category_rounded,
@@ -454,29 +362,9 @@ class VerticalContextToolbar extends StatelessWidget {
                           onPressed: () => onShapeChanged?.call('rectangle'),
                         ),
                         SubmenuButtonData(
-                          icon: Icons.rounded_corner_rounded,
-                          tooltip: 'Rounded Rectangle Shape',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.stadium_outlined,
-                          tooltip: 'Pill Shape',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
                           icon: Icons.circle_outlined,
                           tooltip: 'Circle Shape',
                           onPressed: () => onShapeChanged?.call('circle'),
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.format_color_fill_rounded,
-                          tooltip: 'Background Fill Color',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.line_weight_rounded,
-                          tooltip: 'Border Style',
-                          onPressed: () {},
                         ),
                       ],
                     ),
@@ -489,16 +377,6 @@ class VerticalContextToolbar extends StatelessWidget {
                           icon: Icons.bookmark_add_outlined,
                           tooltip: 'Save as Template',
                           onPressed: onSaveTemplate ?? () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.lock_outline_rounded,
-                          tooltip: 'Lock/Unlock Position',
-                          onPressed: () {},
-                        ),
-                        SubmenuButtonData(
-                          icon: Icons.unfold_less_rounded,
-                          tooltip: 'Collapse/Expand Subtree',
-                          onPressed: () {},
                         ),
                       ],
                     ),

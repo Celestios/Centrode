@@ -5,7 +5,6 @@ import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/engine/config.dart';
 import 'package:centrode/features/graph/ui/canvas/text/text_format_models.dart';
 import '../components/sub_block_shell.dart';
-import '../components/segmented_glass_switcher.dart';
 import '../components/glass_dropdown.dart';
 import '../components/square_icon_group.dart';
 import '../components/glass_color_pill_button.dart';
@@ -377,10 +376,15 @@ class NodeTypographySection extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: SegmentedGlassSwitcher<String>(
-                  height: UiControlSize.standard,
-                  selectedValue: letterCase,
-                  activeColor: accentColor,
+                child: CentrodeSegmentedControl<String>(
+                  items: const [
+                    (icon: Icons.text_fields, label: 'Aa', mode: 'normal', tooltip: 'Normal: Aa', accentBadge: null),
+                    (icon: Icons.text_fields, label: 'AA', mode: 'uppercase', tooltip: 'UPPERCASE: AA', accentBadge: null),
+                    (icon: Icons.text_fields, label: 'aa', mode: 'lowercase', tooltip: 'lowercase: aa', accentBadge: null),
+                    (icon: Icons.text_fields, label: 'Ab', mode: 'capitalize', tooltip: 'Capitalize: Ab', accentBadge: null),
+                  ],
+                  currentMode: letterCase,
+                  isCompact: false,
                   onSelected: (val) {
                     onLetterCaseChanged(val);
                     for (final node in _getSelectedNodes(effectiveRenderState)) {
@@ -388,32 +392,6 @@ class NodeTypographySection extends StatelessWidget {
                       effectiveRenderState.commitEntityText(node.id, newContent);
                     }
                   },
-                  segments: const [
-                    SegmentData(
-                      value: 'normal',
-                      label: 'Aa',
-                      tooltip: 'Normal: Aa',
-                      style: TextStyle(fontSize: UiFont.standard),
-                    ),
-                    SegmentData(
-                      value: 'uppercase',
-                      label: 'AA',
-                      tooltip: 'UPPERCASE: AA',
-                      style: TextStyle(fontSize: UiFont.standard),
-                    ),
-                    SegmentData(
-                      value: 'lowercase',
-                      label: 'aa',
-                      tooltip: 'lowercase: aa',
-                      style: TextStyle(fontSize: UiFont.standard),
-                    ),
-                    SegmentData(
-                      value: 'capitalize',
-                      label: 'Ab',
-                      tooltip: 'Capitalize: Ab',
-                      style: TextStyle(fontSize: UiFont.standard),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(width: UiSpacing.standard),

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/src/rust/domain/styles.dart' hide EndpointShape;
@@ -15,6 +16,18 @@ abstract class NodeStyleStrategy {
 
   NodeStyle computeStyle(UiNode node, GraphTheme theme);
 
+  static CentrodeDerivedPalette? _palette;
+
+  static void setPalette(CentrodeDerivedPalette palette) => _palette = palette;
+
+  static CentrodeDerivedPalette get _currentPalette {
+    return _palette ?? CentrodeDerivedPalette.fromColors(
+      primary: const Color(0xFF1976D2),
+      accent: const Color(0xFFFF4081),
+      canvasAccent: const Color(0xFF2196F3),
+    );
+  }
+
   static NodeStyle fallbackStyle([
     double? width,
     double? height,
@@ -24,43 +37,52 @@ abstract class NodeStyleStrategy {
 
   static NodeStyle scaleStyle(NodeStyle base) => resolver.scaleStyle(base);
 
-  static int get _containerBgColor =>
-      CentrodeDerivedPalette.current.canvas.containerBorder
-          .withValues(alpha: CentrodeDerivedPalette.current.alpha.containerFill)
+  static int _containerBgColor(CentrodeDerivedPalette palette) =>
+      palette.canvas.containerBorder
+          .withValues(alpha: palette.alpha.containerFill)
           .toARGB32();
 
-  static int get _containerStrokeColor =>
-      CentrodeDerivedPalette.current.canvas.containerBorder.toARGB32();
+  static int _containerStrokeColor(CentrodeDerivedPalette palette) =>
+      palette.canvas.containerBorder.toARGB32();
 
-  static int get _frameBgColor =>
-      CentrodeDerivedPalette.current.canvas.frameBorder
-          .withValues(alpha: CentrodeDerivedPalette.current.alpha.frameFill)
+  static int _frameBgColor(CentrodeDerivedPalette palette) =>
+      palette.canvas.frameBorder
+          .withValues(alpha: palette.alpha.frameFill)
           .toARGB32();
 
-  static int get _frameStrokeColor =>
-      CentrodeDerivedPalette.current.canvas.frameBorder.toARGB32();
+  static int _frameStrokeColor(CentrodeDerivedPalette palette) =>
+      palette.canvas.frameBorder.toARGB32();
 
-  static NodeStyle resolveStyle(UiNode node, {GraphTheme? theme}) {
+  static NodeStyle resolveStyle(UiNode node, {GraphTheme? theme, CentrodeDerivedPalette? palette}) {
     if (node.resolvedStyle != null) return node.resolvedStyle!;
+    final p = palette ?? _currentPalette;
     if (theme != null) {
-      return const DefaultNodeStyleStrategy().computeStyle(node, theme);
+      return DefaultNodeStyleStrategy(palette: p).computeStyle(node, theme);
     }
     return resolver.resolveStyle(
       node,
-      containerBgColor: _containerBgColor,
-      containerStrokeColor: _containerStrokeColor,
-      frameBgColor: _frameBgColor,
-      frameStrokeColor: _frameStrokeColor,
+      containerBgColor: _containerBgColor(p),
+      containerStrokeColor: _containerStrokeColor(p),
+      frameBgColor: _frameBgColor(p),
+      frameStrokeColor: _frameStrokeColor(p),
     );
   }
 }
 
 class DefaultNodeStyleStrategy implements NodeStyleStrategy {
-  const DefaultNodeStyleStrategy();
+  final CentrodeDerivedPalette? palette;
+
+  const DefaultNodeStyleStrategy({this.palette});
 
   @override
   NodeStyle computeStyle(UiNode node, GraphTheme theme) {
     if (node.style != null) return node.style!;
+
+    final p = palette ?? CentrodeDerivedPalette.fromColors(
+      primary: const Color(0xFF1976D2),
+      accent: const Color(0xFFFF4081),
+      canvasAccent: const Color(0xFF2196F3),
+    );
 
     if (node is ContainerUiNode) {
       return NodeStyleStrategy.fallbackStyle(
@@ -68,8 +90,8 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
         node.size.height,
         theme.bodyFontSize,
       ).copyWith(
-        bgColor: NodeStyleStrategy._containerBgColor,
-        strokeColor: NodeStyleStrategy._containerStrokeColor,
+        bgColor: NodeStyleStrategy._containerBgColor(p),
+        strokeColor: NodeStyleStrategy._containerStrokeColor(p),
         strokeWidth: UiStrokeWidth.thick.toInt(),
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
@@ -83,8 +105,8 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
         node.size.height,
         theme.bodyFontSize,
       ).copyWith(
-        bgColor: NodeStyleStrategy._frameBgColor,
-        strokeColor: NodeStyleStrategy._frameStrokeColor,
+        bgColor: NodeStyleStrategy._frameBgColor(p),
+        strokeColor: NodeStyleStrategy._frameStrokeColor(p),
         strokeWidth: UiStrokeWidth.thick.toInt(),
         fontFamily: theme.fontFamily,
         textColor: 0xFFFFFFFF,
@@ -92,7 +114,7 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
       );
     }
 
-    final int bgColor = _computeBaseColor(node, theme);
+    final int bgColor = _computeBaseColor(node, theme, p);
     return NodeStyleStrategy.fallbackStyle(
       null,
       null,
@@ -106,12 +128,12 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
     );
   }
 
-  int _computeBaseColor(UiNode node, GraphTheme theme) {
+  int _computeBaseColor(UiNode node, GraphTheme theme, CentrodeDerivedPalette palette) {
     return switch (node) {
       TaskUiNode() => 0xFF34D399,
       DrawingUiNode() => 0x00000000,
-      ContainerUiNode() => NodeStyleStrategy._containerBgColor,
-      FrameUiNode() => NodeStyleStrategy._frameStrokeColor,
+      ContainerUiNode() => NodeStyleStrategy._containerBgColor(palette),
+      FrameUiNode() => NodeStyleStrategy._frameStrokeColor(palette),
       InfoUiNode() => theme.primaryColor.toARGB32(),
       _ => theme.primaryColor.toARGB32(),
     };

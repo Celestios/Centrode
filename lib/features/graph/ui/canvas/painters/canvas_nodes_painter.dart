@@ -265,62 +265,59 @@ class CanvasNodesPainter extends CustomPainter {
       );
     }
 
-    if (node is DrawingUiNode) {
-      ShapeNodeRenderer.paintDrawingPaths(
-        canvas,
-        node,
-        Offset.zero,
-        resolvedStyle,
-        Size(w, h),
-        isHighlighted: isHighlighted,
-        isEditing: entry.isEditing,
-        isSelected: entry.isSelected,
-        isHovered: isHovered,
-        selectionColor: selectionColor,
-        hoverColor: hoverColor,
-      );
-    } else if (node is ContainerUiNode) {
-      ContainerNodeRenderer.paintContainerCard(
-        canvas: canvas,
-        node: node,
-        resolvedStyle: resolvedStyle,
-        rect: rect,
-        w: w,
-        h: h,
-        screenWidth: screenWidth,
-        fontScale: fontScale,
-        containerBaseColor: containerBaseColor,
-        containerBorderColor: containerBorderColor,
-        containerBgColor: containerBgColor,
-        nodeLookup: nodeLookup,
-        relations: relations,
-        relationEngine: relationEngine,
-      );
-    } else if (node is FrameUiNode) {
-      FrameNodeRenderer.paintFrameCard(
-        canvas: canvas,
-        node: node,
-        resolvedStyle: resolvedStyle,
-        rect: rect,
-        fontScale: fontScale,
-        isEditing: entry.isEditing,
-      );
-    } else {
-      final hasAttachments = (node is InfoUiNode && node.attachments.isNotEmpty) ||
-          (node is TaskUiNode && node.attachments.isNotEmpty) ||
-          node is MediaUiNode;
-
-      if (!entry.isEditing && !hasAttachments) {
-        TextNodeRenderer.paintText(canvas, entry, rect, resolvedStyle);
-        TextNodeRenderer.paintMetadataSphere(canvas, node, rect, fontScale);
-        TextNodeRenderer.paintExpandToggle(
+    switch (node) {
+      case DrawingUiNode():
+        ShapeNodeRenderer.paintDrawingPaths(
           canvas,
-          entry,
-          rect,
+          node,
+          Offset.zero,
           resolvedStyle,
-          fontScale,
+          Size(w, h),
+          isHighlighted: isHighlighted,
+          isEditing: entry.isEditing,
+          isSelected: entry.isSelected,
+          isHovered: isHovered,
+          selectionColor: selectionColor,
+          hoverColor: hoverColor,
         );
-      }
+      case ContainerUiNode():
+        ContainerNodeRenderer.paintContainerCard(
+          canvas: canvas,
+          node: node,
+          resolvedStyle: resolvedStyle,
+          rect: rect,
+          w: w,
+          h: h,
+          screenWidth: screenWidth,
+          fontScale: fontScale,
+          containerBaseColor: containerBaseColor,
+          containerBorderColor: containerBorderColor,
+          containerBgColor: containerBgColor,
+          nodeLookup: nodeLookup,
+          relations: relations,
+          relationEngine: relationEngine,
+        );
+      case FrameUiNode():
+        FrameNodeRenderer.paintFrameCard(
+          canvas: canvas,
+          node: node,
+          resolvedStyle: resolvedStyle,
+          rect: rect,
+          fontScale: fontScale,
+          isEditing: entry.isEditing,
+        );
+      default:
+        if (!entry.isEditing && !node.hasAttachments) {
+          TextNodeRenderer.paintText(canvas, entry, rect, resolvedStyle);
+          TextNodeRenderer.paintMetadataSphere(canvas, node, rect, fontScale);
+          TextNodeRenderer.paintExpandToggle(
+            canvas,
+            entry,
+            rect,
+            resolvedStyle,
+            fontScale,
+          );
+        }
     }
 
     if (node is! DrawingUiNode && isInteractableNode) {

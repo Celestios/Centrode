@@ -1,12 +1,15 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/shared/elements/centrode_icon_button.dart';
 import 'package:centrode/shared/utils/date_utils.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
 import '../../../../engine/config.dart';
+import '../../../../store/command_queue_processor.dart';
 import '../../inspector/components/glass_section_shell.dart';
 
 class DataTab extends StatefulWidget {
@@ -27,7 +30,13 @@ class _DataTabState extends State<DataTab> {
 
   bool _isAddingTag = false;
   int? _selectedTagColor;
-  List<int> _currentPalette = [...AppConfig.node.defaultTagColors];
+  late List<int> _currentPalette;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _currentPalette = [...AppConfig.node.defaultTagColors(CentrodeDerivedPalette.of(context))];
+  }
 
   @override
   void dispose() {
@@ -79,7 +88,7 @@ class _DataTabState extends State<DataTab> {
     }
 
     final color = _selectedTagColor ?? _currentPalette.first;
-    widget.renderState.addTagToNode(node.id, text, color);
+    context.read<CommandQueueProcessor>().addTagToNode(node.id, text, color);
 
     _tagController.clear();
     setState(() {
@@ -91,7 +100,7 @@ class _DataTabState extends State<DataTab> {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    widget.renderState.addCommentToNode(node.id, text);
+    context.read<CommandQueueProcessor>().addCommentToNode(node.id, text);
 
     _commentController.clear();
     _commentFocusNode.requestFocus();
@@ -259,7 +268,7 @@ class _DataTabState extends State<DataTab> {
       _isAddingTag = false;
       _tagController.clear();
       _commentController.clear();
-      _currentPalette = [...AppConfig.node.defaultTagColors];
+      _currentPalette = [...AppConfig.node.defaultTagColors(CentrodeDerivedPalette.of(context))];
     }
   }
 
@@ -321,9 +330,9 @@ class _DataTabState extends State<DataTab> {
                             const SizedBox(width: UiSpacing.tight),
                             CentrodeIconButton(
                               icon: Icons.close_rounded,
-                              onPressed: () => widget.renderState.removeTagFromNode(
+                              onPressed: () => context.read<CommandQueueProcessor>().removeTagFromNode(
                                 node.id,
-                                tag.key.key.uuid,
+                                tag.keyString,
                               ),
                               iconSize: UiIconSize.dense,
                               buttonSize: 18,
@@ -428,8 +437,7 @@ class _DataTabState extends State<DataTab> {
                               ),
                               CentrodeIconButton(
                                 icon: Icons.delete_outline_rounded,
-                                onPressed: () => widget.renderState
-                                    .removeCommentFromNode(node.id, comment),
+                                onPressed: () => context.read<CommandQueueProcessor>().removeCommentFromNode(node.id, comment),
                                 iconSize: 16,
                                 enableHover: false,
                               ),

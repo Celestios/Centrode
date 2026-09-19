@@ -218,10 +218,17 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     _activePointer = null;
     _downPos = null;
     _isInteracting = false;
+    final handleCenter = _metrics.margin + _u;
+    final pos = _metrics.computePositions(_u);
+    final targetIndex = _metrics.nearestIndex(handleCenter, pos);
+    _lastReportedIndex = targetIndex;
+    _animateTo(_metrics.anchorU(targetIndex));
+    widget.onSelectFinalized?.call(targetIndex);
   }
 
   void _onPointerSignal(PointerSignalEvent event) {
     if (event is PointerScrollEvent) {
+      if (_activePointer != null) return;
       _settleController.stop();
       _isInteracting = true;
       _scrollSettleTimer?.cancel();
@@ -319,7 +326,7 @@ class _UnravelSliderState<T> extends State<UnravelSlider<T>>
     final handleBoxExtent = _metrics.handleBoxExtent;
     final mainCell = _metrics.mainCellExtent;
     final n = widget.items.length;
-    final selected = _metrics.nearestIndex(handleCenter, pos).clamp(0, n - 1);
+    final selected = n > 0 ? _metrics.nearestIndex(handleCenter, pos).clamp(0, n - 1) : 0;
 
     final trackW = _isVertical ? _metrics.crossCellExtent : _metrics.trackExtent;
     final trackH = _isVertical ? _metrics.trackExtent : _metrics.crossCellExtent;

@@ -62,12 +62,15 @@ class NodeWidget extends StatelessWidget {
           rawSize.height,
         );
 
-        final attachments = liveNode is InfoUiNode
-            ? liveNode.attachments
-            : (liveNode is TaskUiNode ? liveNode.attachments : null);
-        final hasImageAttachment = attachments != null &&
+        final attachments = switch (liveNode) {
+          InfoUiNode() => liveNode.attachments,
+          TaskUiNode() => liveNode.attachments,
+          _ => const <Attachment>[],
+        };
+
+        final hasImageAttachment = attachments.isNotEmpty &&
             attachments.any((a) => a.mimeType.startsWith('image/'));
-        final hasOther = attachments != null &&
+        final hasOther = attachments.isNotEmpty &&
             attachments.any((a) => !a.mimeType.startsWith('image/'));
 
         final double scale = NodeVisualConstants.fontScale(resolvedStyle.fontSize);
@@ -237,12 +240,14 @@ class NodeWidget extends StatelessWidget {
       );
     }
 
-    final attachments = liveNode is InfoUiNode
-        ? liveNode.attachments
-        : (liveNode is TaskUiNode ? liveNode.attachments : null);
+    final attachments = switch (liveNode) {
+      InfoUiNode() => liveNode.attachments,
+      TaskUiNode() => liveNode.attachments,
+      _ => const <Attachment>[],
+    };
 
-    final imageAttachment = attachments?.where((a) => a.mimeType.startsWith('image/')).firstOrNull;
-    final otherAttachments = attachments?.where((a) => !a.mimeType.startsWith('image/')).toList();
+    final imageAttachment = attachments.where((a) => a.mimeType.startsWith('image/')).firstOrNull;
+    final otherAttachments = attachments.where((a) => !a.mimeType.startsWith('image/')).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -253,7 +258,7 @@ class NodeWidget extends StatelessWidget {
             attachment: imageAttachment,
             scale: scale,
           ),
-        if (otherAttachments != null && otherAttachments.isNotEmpty)
+        if (otherAttachments.isNotEmpty)
           Padding(
             padding: imageAttachment != null
                 ? EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 2 * scale)

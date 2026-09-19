@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/presentation/view_state.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
+import 'package:centrode/features/graph/store/graph_data_query.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/ui/canvas/layers/relation_layer.dart';
@@ -233,6 +234,7 @@ void main() {
               InheritedProvider<GraphDataQueryController>.value(
                 value: mockQueryController,
               ),
+              Provider<GraphDataQuery>.value(value: mockQueryController),
               InheritedProvider<CommandQueueProcessor>.value(
                 value: mockCommandProcessor,
               ),
@@ -415,6 +417,7 @@ void main() {
               InheritedProvider<GraphDataQueryController>.value(
                 value: mockQueryController,
               ),
+              Provider<GraphDataQuery>.value(value: mockQueryController),
               InheritedProvider<CommandQueueProcessor>.value(
                 value: mockCommandProcessor,
               ),

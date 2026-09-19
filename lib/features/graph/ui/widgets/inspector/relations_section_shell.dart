@@ -6,7 +6,6 @@ import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/shared/widgets/unravel_slider/unravel_slider.dart';
 import 'components/glass_section_shell.dart';
 import 'components/sub_block_shell.dart';
-import 'components/segmented_glass_switcher.dart';
 import 'components/compact_slider_box.dart';
 import 'components/glass_color_pill_button.dart';
 import 'components/relation_shape_definitions.dart';
@@ -175,10 +174,15 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             },
             child: Column(
               children: [
-                SegmentedGlassSwitcher<String>(
-                  height: UiControlSize.standard,
-                  activeColor: primaryAccent,
-                  selectedValue: _selectedShape,
+                CentrodeSegmentedControl<String>(
+                  items: const [
+                    (icon: Icons.circle_outlined, label: 'Capsule', mode: 'capsule', tooltip: null, accentBadge: null),
+                    (icon: Icons.circle_outlined, label: 'Rounded', mode: 'rounded', tooltip: null, accentBadge: null),
+                    (icon: Icons.square_outlined, label: 'Sharp', mode: 'sharp', tooltip: null, accentBadge: null),
+                    (icon: Icons.close, label: 'None', mode: 'none', tooltip: null, accentBadge: null),
+                  ],
+                  currentMode: _selectedShape,
+                  isCompact: false,
                   onSelected: (val) {
                     setState(() => _selectedShape = val);
                     for (final rel in selectedRelations) {
@@ -191,22 +195,20 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                       }
                     }
                   },
-                  segments: const [
-                    SegmentData(value: 'capsule', label: 'Capsule'),
-                    SegmentData(value: 'rounded', label: 'Rounded'),
-                    SegmentData(value: 'sharp', label: 'Sharp'),
-                    SegmentData(value: 'none', label: 'None'),
-                  ],
                 ),
                 const SizedBox(height: UiSpacing.tight),
                 Row(
                   children: [
                     Expanded(
                       flex: 2,
-                      child: SegmentedGlassSwitcher<String>(
-                        height: UiControlSize.standard,
-                        activeColor: primaryAccent,
-                        selectedValue: _selectedFill,
+                      child: CentrodeSegmentedControl<String>(
+                        items: const [
+                          (icon: Icons.circle, label: 'Solid', mode: 'solid', tooltip: null, accentBadge: null),
+                          (icon: Icons.circle_outlined, label: 'Glass', mode: 'glass', tooltip: null, accentBadge: null),
+                          (icon: Icons.rectangle_outlined, label: 'Outline', mode: 'outline', tooltip: null, accentBadge: null),
+                        ],
+                        currentMode: _selectedFill,
+                        isCompact: false,
                         onSelected: (val) {
                           setState(() => _selectedFill = val);
                           for (final rel in selectedRelations) {
@@ -219,11 +221,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                             }
                           }
                         },
-                        segments: const [
-                          SegmentData(value: 'solid', label: 'Solid'),
-                          SegmentData(value: 'glass', label: 'Glass'),
-                          SegmentData(value: 'outline', label: 'Outline'),
-                        ],
                       ),
                     ),
                     const SizedBox(width: UiSpacing.standard),
@@ -305,10 +302,14 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: SegmentedGlassSwitcher<String>(
-                        height: UiControlSize.standard,
-                        activeColor: primaryAccent,
-                        selectedValue: _selectedFont,
+                      child: CentrodeSegmentedControl<String>(
+                        items: const [
+                          (icon: Icons.font_download, label: 'Inter', mode: 'inter', tooltip: null, accentBadge: null),
+                          (icon: Icons.font_download, label: 'Outfit', mode: 'outfit', tooltip: null, accentBadge: null),
+                          (icon: Icons.font_download, label: 'Mono', mode: 'mono', tooltip: null, accentBadge: null),
+                        ],
+                        currentMode: _selectedFont,
+                        isCompact: false,
                         onSelected: (val) {
                           setState(() => _selectedFont = val);
                           for (final rel in selectedRelations) {
@@ -321,11 +322,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                             }
                           }
                         },
-                        segments: const [
-                          SegmentData(value: 'inter', label: 'Inter'),
-                          SegmentData(value: 'outfit', label: 'Outfit'),
-                          SegmentData(value: 'mono', label: 'Mono'),
-                        ],
                       ),
                     ),
                     const SizedBox(width: UiSpacing.tight),
@@ -451,10 +447,14 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: SegmentedGlassSwitcher<String>(
-                        height: UiControlSize.standard,
-                        activeColor: primaryAccent,
-                        selectedValue: _strokePattern,
+                      child: CentrodeSegmentedControl<String>(
+                        items: const [
+                          (icon: Icons.horizontal_rule, label: 'Solid', mode: 'solid', tooltip: null, accentBadge: null),
+                          (icon: Icons.linear_scale, label: 'Dash', mode: 'dashed', tooltip: null, accentBadge: null),
+                          (icon: Icons.grain, label: 'Dot', mode: 'dotted', tooltip: null, accentBadge: null),
+                        ],
+                        currentMode: _strokePattern,
+                        isCompact: false,
                         onSelected: (val) {
                           setState(() => _strokePattern = val);
                           for (final rel in selectedRelations) {
@@ -467,11 +467,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                             }
                           }
                         },
-                        segments: const [
-                          SegmentData(value: 'solid', label: '━ Solid', style: TextStyle(fontSize: UiFont.compact)),
-                          SegmentData(value: 'dashed', label: '┅ Dash', style: TextStyle(fontSize: UiFont.compact)),
-                          SegmentData(value: 'dotted', label: '┈ Dot', style: TextStyle(fontSize: UiFont.compact)),
-                        ],
                       ),
                     ),
                     const SizedBox(width: UiSpacing.standard),
@@ -510,28 +505,26 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                 Row(
                   children: [
                     Expanded(
-                      child: SegmentedGlassSwitcher<String>(
-                        height: UiControlSize.standard,
-                        activeColor: primaryAccent,
-                        selectedValue: _startCap,
-                        onSelected: (val) => setState(() => _startCap = val),
-                        segments: const [
-                          SegmentData(value: 'none', label: 'Start: ⊸ None', style: TextStyle(fontSize: UiFont.micro)),
-                          SegmentData(value: 'circle', label: 'Dot ●', style: TextStyle(fontSize: UiFont.micro)),
+                      child: CentrodeSegmentedControl<String>(
+                        items: const [
+                          (icon: Icons.arrow_back, label: 'None', mode: 'none', tooltip: null, accentBadge: null),
+                          (icon: Icons.circle, label: 'Dot', mode: 'circle', tooltip: null, accentBadge: null),
                         ],
+                        currentMode: _startCap,
+                        isCompact: false,
+                        onSelected: (val) => setState(() => _startCap = val),
                       ),
                     ),
                     const SizedBox(width: UiSpacing.tight),
                     Expanded(
-                      child: SegmentedGlassSwitcher<String>(
-                        height: UiControlSize.standard,
-                        activeColor: primaryAccent,
-                        selectedValue: _endCap,
-                        onSelected: (val) => setState(() => _endCap = val),
-                        segments: const [
-                          SegmentData(value: 'arrow', label: 'End: ➔ Arrow', style: TextStyle(fontSize: UiFont.micro)),
-                          SegmentData(value: 'diamond', label: 'Diamond ◆', style: TextStyle(fontSize: UiFont.micro)),
+                      child: CentrodeSegmentedControl<String>(
+                        items: const [
+                          (icon: Icons.arrow_forward, label: 'Arrow', mode: 'arrow', tooltip: null, accentBadge: null),
+                          (icon: Icons.diamond, label: 'Diamond', mode: 'diamond', tooltip: null, accentBadge: null),
                         ],
+                        currentMode: _endCap,
+                        isCompact: false,
+                        onSelected: (val) => setState(() => _endCap = val),
                       ),
                     ),
                   ],
@@ -572,16 +565,15 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             },
             child: Column(
               children: [
-                SegmentedGlassSwitcher<String>(
-                  height: UiControlSize.standard,
-                  activeColor: primaryAccent,
-                  selectedValue: _crossingStrategy,
-                  onSelected: (val) => setState(() => _crossingStrategy = val),
-                  segments: const [
-                    SegmentData(value: 'bridge', label: 'Arc Bridge'),
-                    SegmentData(value: 'break', label: 'Break Gap'),
-                    SegmentData(value: 'blend', label: 'Pass-Through'),
+                CentrodeSegmentedControl<String>(
+                  items: const [
+                    (icon: Icons.route, label: 'Arc Bridge', mode: 'bridge', tooltip: null, accentBadge: null),
+                    (icon: Icons.cut, label: 'Break Gap', mode: 'break', tooltip: null, accentBadge: null),
+                    (icon: Icons.merge, label: 'Pass-Through', mode: 'blend', tooltip: null, accentBadge: null),
                   ],
+                  currentMode: _crossingStrategy,
+                  isCompact: false,
+                  onSelected: (val) => setState(() => _crossingStrategy = val),
                 ),
                 const SizedBox(height: UiSpacing.tight),
                 CompactSliderBox(

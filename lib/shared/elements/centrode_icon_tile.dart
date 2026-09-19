@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
+import 'hover_scale_button.dart';
 import '../theme/design_tokens.dart';
 
 class CentrodeIconTile extends StatelessWidget {

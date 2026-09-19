@@ -2,6 +2,7 @@ import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import '../components/node_shape_definitions.dart';
+import 'inspector_showcase_card_shell.dart';
 import 'showcase_painters.dart';
 
 /// Live Node Showcase Object rendering in real-time with subtle blueprint background.
@@ -176,65 +177,47 @@ class NodeShowcaseCard extends StatelessWidget {
       height: lineHeight,
     );
 
-    return Container(
-      height: 85,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(UiRadius.card),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-          width: UiStrokeWidth.subtle,
-        ),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: Size.infinite,
-            painter: ShowcaseGridPainter(accentColor.withValues(alpha: 0.12)),
-          ),
-          AnimatedContainer(
-            duration: UiMotion.fast,
-            width: targetWidth,
-            height: targetHeight,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: ShapeNodePainter(
-                      shape: shape,
-                      fillColor: nodeBgColor,
-                      borderStyle: borderStyle,
-                      borderWidth: borderWidth,
-                      borderColor: borderColor,
-                      cornerRadius: cornerRadius,
-                      accentColor: accentColor,
-                      shadowMode: shadowMode,
-                      shadowBlur: shadowBlur,
-                      shadowDistance: shadowDistance,
-                      shadowColor: customShadowColor ?? accentColor,
-                    ),
-                  ),
+    return InspectorShowcaseCardShell(
+      accentColor: accentColor,
+      child: AnimatedContainer(
+        duration: UiMotion.fast,
+        width: targetWidth,
+        height: targetHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: ShapeNodePainter(
+                  shape: shape,
+                  fillColor: nodeBgColor,
+                  borderStyle: borderStyle,
+                  borderWidth: borderWidth,
+                  borderColor: borderColor,
+                  cornerRadius: cornerRadius,
+                  accentColor: accentColor,
+                  shadowMode: shadowMode,
+                  shadowBlur: shadowBlur,
+                  shadowDistance: shadowDistance,
+                  shadowColor: customShadowColor ?? accentColor,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                  child: Directionality(
-                    textDirection: textDirection,
-                    child: Text(
-                      displayedTopic,
-                      textAlign: align,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: previewTextStyle,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+              child: Directionality(
+                textDirection: textDirection,
+                child: Text(
+                  displayedTopic,
+                  textAlign: align,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: previewTextStyle,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

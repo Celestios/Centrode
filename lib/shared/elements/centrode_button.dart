@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../presentation/widgets/hover_scale_button.dart';
+import 'hover_scale_button.dart';
 import '../theme/design_tokens.dart';
 
 class CentrodeButton extends StatelessWidget {

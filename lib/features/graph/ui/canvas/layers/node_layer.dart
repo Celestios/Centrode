@@ -130,9 +130,7 @@ class NodeLayer extends StatelessWidget {
             ),
             for (final entry in entries.where((e) =>
                 e.isEditing ||
-                e.node is MediaUiNode ||
-                (e.node is InfoUiNode && (e.node as InfoUiNode).attachments.isNotEmpty) ||
-                (e.node is TaskUiNode && (e.node as TaskUiNode).attachments.isNotEmpty)))
+                e.node.hasAttachments))
               Builder(
                 key: ValueKey('widget_host_${entry.node.id}'),
                 builder: (context) {
@@ -221,16 +219,14 @@ class NodeLayer extends StatelessWidget {
                         );
                       }
 
-                      final Widget nodeWidget;
-                      if (entry.node is DrawingUiNode) {
-                        nodeWidget = DrawNodeWidget(
+                      final Widget nodeWidget = switch (entry.node) {
+                        DrawingUiNode() => DrawNodeWidget(
                           node: entry.node as DrawingUiNode,
                           viewState: entry.viewState,
                           isSelected: entry.isSelected,
                           isEditing: entry.isEditing,
-                        );
-                      } else if (entry.node is MediaUiNode) {
-                        nodeWidget = HighlightFrame(
+                        ),
+                        MediaUiNode() => HighlightFrame(
                           isEditing: false,
                           isSelected: entry.isSelected,
                           isHovered: isHovered,
@@ -242,9 +238,8 @@ class NodeLayer extends StatelessWidget {
                             node: entry.node as MediaUiNode,
                             isSelected: entry.isSelected,
                           ),
-                        );
-                      } else {
-                        nodeWidget = HighlightFrame(
+                        ),
+                        _ => HighlightFrame(
                           isEditing: entry.isEditing,
                           isSelected: entry.isSelected,
                           isHovered: isHovered,
@@ -258,8 +253,8 @@ class NodeLayer extends StatelessWidget {
                             isSelected: entry.isSelected,
                             isEditing: entry.isEditing,
                           ),
-                        );
-                      }
+                        ),
+                      };
 
                       return Positioned(
                         key: ValueKey('active_node_${entry.node.id}'),

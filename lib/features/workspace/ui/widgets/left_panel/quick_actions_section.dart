@@ -6,7 +6,6 @@ import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
 
 class QuickActionsSection extends StatelessWidget {
   final WorkspaceHubController? controller;

@@ -1,7 +1,7 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:centrode/presentation/widgets/hover_scale_button.dart';
+import 'hover_scale_button.dart';
 
 class WindowControlButtons extends StatefulWidget {
   const WindowControlButtons({super.key});

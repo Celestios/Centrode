@@ -67,6 +67,18 @@ class _CentrodeColorPickerState extends State<CentrodeColorPicker> {
   }
 
   @override
+  void didUpdateWidget(CentrodeColorPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialColor != oldWidget.initialColor) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _model.commitColor(widget.initialColor, pushRecent: false);
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _model.dispose();
     super.dispose();

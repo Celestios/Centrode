@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/glass_presets.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
-import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
 import 'recent_map_tile.dart';
 
@@ -219,12 +218,21 @@ class _AddTabButtonState extends State<AddTabButton> {
 
   void _createMap() async {
     final name = _searchQuery.isNotEmpty ? _searchQuery : null;
-    await MapManager.instance.createAndOpenMap(name: name);
+    final finalName = name ?? 'Untitled';
+    final path = 'maps/$finalName.db';
+    widget.tabsController.addTab(path, finalName);
     _close();
   }
 
   void _openMap(MapInfo map) {
-    MapManager.instance.openMap(map.path, map.name, mapId: map.id);
+    final existingIndex = widget.tabsController.tabs.indexWhere(
+      (t) => t.storagePath == map.path,
+    );
+    if (existingIndex >= 0) {
+      widget.tabsController.selectTab(existingIndex);
+    } else {
+      widget.tabsController.addTab(map.path, map.name);
+    }
     _close();
   }
 
@@ -397,7 +405,8 @@ class _AddTabButtonState extends State<AddTabButton> {
         onExit: (_) => _scheduleClose(),
         child: GestureDetector(
           onTap: () async {
-            await MapManager.instance.createAndOpenMap();
+            final path = 'maps/Untitled.db';
+            widget.tabsController.addTab(path, 'Untitled');
           },
           child: _overlayEntry == null
               ? Container(

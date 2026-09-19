@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import '../components/sub_block_shell.dart';
-import '../components/segmented_glass_switcher.dart';
 import '../components/glass_color_pill_button.dart';
 import '../components/compact_slider_box.dart';
 
@@ -64,10 +63,15 @@ class NodeShadowSection extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: SegmentedGlassSwitcher<String>(
-                  height: UiControlSize.standard,
-                  activeColor: accentColor,
-                  selectedValue: shadowMode,
+                child: CentrodeSegmentedControl<String>(
+                  items: const [
+                    (icon: Icons.circle_outlined, label: 'None', mode: 'none', tooltip: null, accentBadge: null),
+                    (icon: Icons.circle_outlined, label: 'Soft', mode: 'soft', tooltip: null, accentBadge: null),
+                    (icon: Icons.circle_outlined, label: 'Hard', mode: 'hard', tooltip: null, accentBadge: null),
+                    (icon: Icons.circle_outlined, label: 'Glow', mode: 'glow', tooltip: null, accentBadge: null),
+                  ],
+                  currentMode: shadowMode,
+                  isCompact: false,
                   onSelected: (val) {
                     onShadowModeChanged(val);
                     final nodeIds =
@@ -90,12 +94,6 @@ class NodeShadowSection extends StatelessWidget {
                       );
                     }
                   },
-                  segments: const [
-                    SegmentData(value: 'none', label: 'None'),
-                    SegmentData(value: 'soft', label: 'Soft'),
-                    SegmentData(value: 'crisp', label: 'Hard'),
-                    SegmentData(value: 'glow', label: 'Glow'),
-                  ],
                 ),
               ),
               const SizedBox(width: UiSpacing.standard),

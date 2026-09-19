@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
-import '../../../../presentation/widgets/window_title_bar.dart';
+import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import '../store/graph_data_query_controller.dart';
 import '../store/command_queue_processor.dart';
 import '../presentation/node_render_state.dart';
 import '../presentation/workspace_tabs_controller.dart';
 import '../presentation/map_manager.dart';
 import '../presentation/theme_manager.dart';
+import '../presentation/strategies/node_style_strategy.dart';
 import '../store/graph_data_query.dart';
 import 'canvas/graph_canvas.dart';
 import 'widgets/init_error_widget.dart';
 import 'package:centrode/shared/copy_buffer.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
+import 'package:centrode/presentation/widgets/search/search_command_palette.dart';
+import 'widgets/overlays/undo_redo_buttons.dart';
 
 class GraphScreen extends StatefulWidget {
   const GraphScreen({super.key});
@@ -24,6 +28,7 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   late final WorkspaceTabsController _tabsController;
   final CopyBuffer _copyBuffer = CopyBuffer();
+  final _searchFocusNotifier = ValueNotifier<bool>(false);
   ThemeData? _lastThemeData;
   bool _isThemeAnimating = false;
 
@@ -44,11 +49,13 @@ class _GraphScreenState extends State<GraphScreen> {
   void dispose() {
     MapManager.instance.onAllTabsClosed = null;
     _copyBuffer.dispose();
+    _searchFocusNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    NodeStyleStrategy.setPalette(CentrodeDerivedPalette.of(context));
     return ChangeNotifierProvider<CopyBuffer>.value(
       value: _copyBuffer,
       child: ChangeNotifierProvider<WorkspaceTabsController>.value(
@@ -126,11 +133,195 @@ class _GraphScreenState extends State<GraphScreen> {
               }).toList(),
             ),
           ),
-          const Positioned(
+          Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: WorkspaceWindowTitleBar(),
+            child: Builder(
+              builder: (context) {
+                final session = tabsController.activeSession;
+                final theme = Theme.of(context);
+                return CentrodeWindowTitleBar(
+                  leading: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(left: 8, right: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LogoHomeButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            const SizedBox(width: UiSpacing.tight),
+                            HoverExpandableMenuBar(
+                              sections: [
+                                CentrodeMenuSection(
+                                  title: 'File',
+                                  items: [
+                                    CentrodeMenuItem.action(
+                                      label: 'Force Sync Save',
+                                      leadingIcon: Icons.save_outlined,
+                                      shortcut: 'Ctrl+S',
+                                      onTap: () {
+                                        session.commandProcessor.flushSync();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                CentrodeMenuSection(
+                                  title: 'View',
+                                  items: [
+                                    CentrodeMenuItem.action(
+                                      label: 'Toggle Left Sidebar',
+                                      leadingIcon: Icons.menu_open_rounded,
+                                      onTap: () {
+                                        session.showLeftPanel.value =
+                                            !session.showLeftPanel.value;
+                                      },
+                                    ),
+                                    CentrodeMenuItem.action(
+                                      label: 'Toggle Right Inspector',
+                                      leadingIcon:
+                                          Icons.chrome_reader_mode_outlined,
+                                      onTap: () {
+                                        session.showRightPanel.value =
+                                            !session.showRightPanel.value;
+                                      },
+                                    ),
+                                    CentrodeMenuItem.action(
+                                      label: 'Toggle Status Bar',
+                                      leadingIcon:
+                                          Icons.call_to_action_outlined,
+                                      onTap: () {
+                                        session.showBottomPanel.value =
+                                            !session.showBottomPanel.value;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                CentrodeMenuSection(
+                                  title: 'Help',
+                                  items: [
+                                    CentrodeMenuItem.action(
+                                      label: 'About Centrode',
+                                      leadingIcon: Icons.info_outline,
+                                      onTap: () {
+                                        showAboutDialog(
+                                          context: context,
+                                          applicationName: 'Centrode',
+                                          applicationVersion: '1.0.0',
+                                          applicationIcon: Icon(
+                                            Icons.hub_outlined,
+                                            color: theme.colorScheme.primary,
+                                            size: 36,
+                                          ),
+                                          children: const [
+                                            Text(
+                                              'Centrode is a fast Labeled Property Graph Editor designed in Flutter, powered by SurrealDB and Rust.',
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    ValueListenableBuilder<bool>(
+                      valueListenable: session.showLeftPanel,
+                      builder: (context, visible, _) {
+                        return CentrodeIconButton(
+                          icon: Icons.menu_open_rounded,
+                          onPressed: () => session.showLeftPanel.value =
+                              !session.showLeftPanel.value,
+                          tooltip: 'Toggle Left Panel',
+                          iconSize: UiIconSize.standard,
+                          buttonSize: 30,
+                          enableHover: false,
+                          iconColor: visible
+                              ? theme.colorScheme.primary
+                              : theme.hintColor.withValues(alpha: 0.6),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: UiSpacing.tight),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: session.showRightPanel,
+                      builder: (context, visible, _) {
+                        return CentrodeIconButton(
+                          icon: Icons.chrome_reader_mode_outlined,
+                          onPressed: () => session.showRightPanel.value =
+                              !session.showRightPanel.value,
+                          tooltip: 'Toggle Right Panel',
+                          iconSize: UiIconSize.standard,
+                          buttonSize: 30,
+                          enableHover: false,
+                          iconColor: visible
+                              ? theme.colorScheme.primary
+                              : theme.hintColor.withValues(alpha: 0.6),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: UiSpacing.tight),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: session.showBottomPanel,
+                      builder: (context, visible, _) {
+                        return CentrodeIconButton(
+                          icon: Icons.call_to_action_outlined,
+                          onPressed: () => session.showBottomPanel.value =
+                              !session.showBottomPanel.value,
+                          tooltip: 'Toggle Bottom Panel',
+                          iconSize: UiIconSize.standard,
+                          buttonSize: 30,
+                          enableHover: false,
+                          iconColor: visible
+                              ? theme.colorScheme.primary
+                              : theme.hintColor.withValues(alpha: 0.6),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: UiSpacing.container),
+                  ],
+                  stackChildren: [
+                    IgnorePointer(
+                      ignoring: false,
+                      child: Center(
+                        child: SearchCommandPalette(
+                          focusNotifier: _searchFocusNotifier,
+                        ),
+                      ),
+                    ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _searchFocusNotifier,
+                      builder: (context, isFocused, _) {
+                        final offset = isFocused ? -265.0 : -175.0;
+                        return Positioned(
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Transform.translate(
+                              offset: Offset(offset, 0),
+                              child: UndoRedoButtons(session: session),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),

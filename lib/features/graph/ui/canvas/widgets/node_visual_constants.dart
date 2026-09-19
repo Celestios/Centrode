@@ -44,7 +44,8 @@ class NodeVisualConstants {
     required bool hasTags,
     required bool hasComments,
   }) {
-    final tags = CentrodeDerivedPalette.current.tagColors;
+    final palette = CentrodeDerivedPalette.fromTheme(AppThemeManager.instance.currentTheme);
+    final tags = palette.tagColors;
     if (hasTags && hasComments) return tags[1].toARGB32();
     if (hasTags) return tags[0].toARGB32();
     return tags[2].toARGB32();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/unbounded_stack.dart';
-import '../../../store/graph_data_query_controller.dart';
+import '../../../store/graph_data_query.dart';
 import '../../../presentation/node_render_state.dart';
 import '../../../engine/interaction_engine.dart';
 import '../../../models/models.dart';
@@ -18,7 +18,7 @@ class RelationLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final queryController = context.read<GraphDataQueryController>();
+    final queryController = context.read<GraphDataQuery>();
     final uiController = context.read<NodeRenderState>();
     final interactionController = context.read<InteractionController>();
     final viewport = context.read<ViewportController>();

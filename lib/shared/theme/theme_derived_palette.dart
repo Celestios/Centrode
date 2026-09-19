@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/presentation/theme/app_theme.dart';
-import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/shared/utils/color_theory_engine.dart';
 
@@ -356,11 +355,6 @@ class CentrodeDerivedPalette {
   Color glassBackground({bool isHeader = false}) =>
       surface.cardBackground.withValues(alpha: isHeader ? alpha.glassHeader : alpha.glassBody);
 
-  /// Global current derived palette from [AppThemeManager].
-  static CentrodeDerivedPalette get current =>
-      CentrodeDerivedPalette.fromTheme(AppThemeManager.instance.currentTheme);
-
-  /// Convenience accessor to obtain the derived palette from context (or fallback to AppThemeManager).
   static CentrodeDerivedPalette of(BuildContext context) {
     final materialTheme = Theme.of(context);
     return CentrodeDerivedPalette.fromColors(

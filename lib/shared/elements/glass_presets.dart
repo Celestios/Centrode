@@ -25,11 +25,11 @@ class GlassPresets {
   GlassPresets._();
 
   static GlassPreset toolbar(BuildContext context) => GlassPreset(
-        borderRadius: 10,
+        borderRadius: UiRadius.card,
         blur: 12,
-        color: Theme.of(context).cardColor.withValues(alpha: 0.9),
+        color: Theme.of(context).cardColor.withValues(alpha: UiAlpha.glassBody),
         shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.15),
+          color: Colors.black.withValues(alpha: UiAlpha.borderSubtle),
           blurRadius: 10,
           offset: const Offset(0, 4),
         ),
@@ -37,34 +37,34 @@ class GlassPresets {
 
   static GlassPreset submenu(BuildContext context, {required bool isRight}) =>
       GlassPreset(
-        borderRadius: 8,
+        borderRadius: UiRadius.card,
         blur: 10,
-        color: Theme.of(context).cardColor.withValues(alpha: 0.92),
+        color: Theme.of(context).cardColor.withValues(alpha: UiAlpha.glassBody),
         shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.12),
+          color: Colors.black.withValues(alpha: UiAlpha.borderSubtle),
           blurRadius: 8,
           offset: Offset(isRight ? 2 : -2, 2),
         ),
       );
 
   static GlassPreset iconButton(BuildContext context) => GlassPreset(
-        borderRadius: 14,
+        borderRadius: UiRadius.panel,
         width: 40,
         height: UiControlSize.tile,
       );
 
   static GlassPreset tab(BuildContext context, {required bool isActive}) =>
       GlassPreset(
-        borderRadius: 10,
+        borderRadius: UiRadius.card,
         color: Theme.of(context)
             .cardColor
-            .withValues(alpha: isActive ? 0.72 : 0.45),
+            .withValues(alpha: isActive ? UiAlpha.muted : UiAlpha.half),
         shadow: isActive
             ? BoxShadow(
                 color: Theme.of(context)
                     .colorScheme
                     .primary
-                    .withValues(alpha: 0.08),
+                    .withValues(alpha: UiAlpha.subtle),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               )
@@ -72,10 +72,10 @@ class GlassPresets {
       );
 
   static GlassPreset ribbon(BuildContext context) => GlassPreset(
-        borderRadius: 20,
+        borderRadius: UiRadius.panel,
         blur: 16,
         shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.22),
+          color: Colors.black.withValues(alpha: UiAlpha.borderSubtle),
           blurRadius: 16,
           spreadRadius: -2,
           offset: const Offset(0, 6),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import '../components/sub_block_shell.dart';
-import '../components/segmented_glass_switcher.dart';
 import '../components/glass_color_pill_button.dart';
 import '../components/compact_slider_box.dart';
 
@@ -62,25 +61,15 @@ class NodeBorderSection extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: SegmentedGlassSwitcher<String>(
-                  height: UiControlSize.standard,
-                  activeColor: accentColor,
-                  selectedValue: borderStyle,
-                  onSelected: onBorderStyleChanged,
-                  segments: const [
-                    SegmentData(
-                        value: 'solid',
-                        label: '━ Solid',
-                        style: TextStyle(fontSize: UiFont.compact)),
-                    SegmentData(
-                        value: 'dashed',
-                        label: '┅ Dash',
-                        style: TextStyle(fontSize: UiFont.compact)),
-                    SegmentData(
-                        value: 'dotted',
-                        label: '┈ Dot',
-                        style: TextStyle(fontSize: UiFont.compact)),
+                child: CentrodeSegmentedControl<String>(
+                  items: const [
+                    (icon: Icons.horizontal_rule, label: 'Solid', mode: 'solid', tooltip: null, accentBadge: null),
+                    (icon: Icons.linear_scale, label: 'Dash', mode: 'dashed', tooltip: null, accentBadge: null),
+                    (icon: Icons.grain, label: 'Dot', mode: 'dotted', tooltip: null, accentBadge: null),
                   ],
+                  currentMode: borderStyle,
+                  isCompact: false,
+                  onSelected: onBorderStyleChanged,
                 ),
               ),
               const SizedBox(width: UiSpacing.standard),

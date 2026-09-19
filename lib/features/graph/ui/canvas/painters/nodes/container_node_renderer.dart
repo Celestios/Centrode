@@ -304,84 +304,83 @@ class ContainerNodeRenderer {
     final childRRect =
         ShapeNodeRenderer.buildRRect(childRect, childStyle, 0.0, 1.0);
 
-    if (child is DrawingUiNode) {
-      ShapeNodeRenderer.paintDrawingPaths(
-        canvas,
-        child,
-        childPos,
-        childStyle,
-        childSize,
-        isHighlighted: false,
-        isEditing: false,
-        isSelected: false,
-        isHovered: false,
-        selectionColor: Colors.blueAccent,
-        hoverColor: const Color(0xFF64B5F6),
-      );
-    } else if (child is ContainerUiNode) {
-      final childBaseColor = getContainerBaseColor(child, childStyle);
-      final hsl = HSLColor.fromColor(childBaseColor);
-      final childBorderColor = hsl
-          .withSaturation((hsl.saturation * 1.35).clamp(0.0, 1.0))
-          .withLightness(hsl.lightness.clamp(0.4, 0.75))
-          .toColor()
-          .withValues(alpha: 0.85);
-      final childBgColor = hsl
-          .withSaturation((hsl.saturation * 1.1).clamp(0.0, 1.0))
-          .toColor()
-          .withValues(alpha: 0.08);
-
-      canvas.drawRRect(childRRect, Paint()..color = childBgColor);
-      final childBorderPaint = Paint()
-        ..color = childBorderColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(childStyle.strokeWidth.toDouble(), 2.0);
-      drawDashedRRect(canvas, childRRect, childBorderPaint, 16.0, 10.0);
-      paintContainerTitleCentered(
-        canvas,
-        childRect,
-        child.title,
-        childStyle,
-        1.0,
-        1.0,
-      );
-    } else {
-      // Background & Shadow
-      if (childStyle.shadowBlur > 0) {
-        final shadowOffset =
-            Offset(childStyle.shadowOffsetX, childStyle.shadowOffsetY);
-        final shadowRRect = ShapeNodeRenderer.buildRRect(
-          childRect.shift(shadowOffset),
+    switch (child) {
+      case DrawingUiNode():
+        ShapeNodeRenderer.paintDrawingPaths(
+          canvas,
+          child,
+          childPos,
           childStyle,
-          0.0,
+          childSize,
+          isHighlighted: false,
+          isEditing: false,
+          isSelected: false,
+          isHovered: false,
+          selectionColor: Colors.blueAccent,
+          hoverColor: const Color(0xFF64B5F6),
+        );
+      case ContainerUiNode():
+        final childBaseColor = getContainerBaseColor(child, childStyle);
+        final hsl = HSLColor.fromColor(childBaseColor);
+        final childBorderColor = hsl
+            .withSaturation((hsl.saturation * 1.35).clamp(0.0, 1.0))
+            .withLightness(hsl.lightness.clamp(0.4, 0.75))
+            .toColor()
+            .withValues(alpha: 0.85);
+        final childBgColor = hsl
+            .withSaturation((hsl.saturation * 1.1).clamp(0.0, 1.0))
+            .toColor()
+            .withValues(alpha: 0.08);
+
+        canvas.drawRRect(childRRect, Paint()..color = childBgColor);
+        final childBorderPaint = Paint()
+          ..color = childBorderColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(childStyle.strokeWidth.toDouble(), 2.0);
+        drawDashedRRect(canvas, childRRect, childBorderPaint, 16.0, 10.0);
+        paintContainerTitleCentered(
+          canvas,
+          childRect,
+          child.title,
+          childStyle,
+          1.0,
           1.0,
         );
+      default:
+        if (childStyle.shadowBlur > 0) {
+          final shadowOffset =
+              Offset(childStyle.shadowOffsetX, childStyle.shadowOffsetY);
+          final shadowRRect = ShapeNodeRenderer.buildRRect(
+            childRect.shift(shadowOffset),
+            childStyle,
+            0.0,
+            1.0,
+          );
+          canvas.drawRRect(
+            shadowRRect,
+            Paint()
+              ..color = Color(childStyle.shadowColor)
+              ..maskFilter =
+                  MaskFilter.blur(BlurStyle.normal, childStyle.shadowBlur),
+          );
+        }
+        canvas.drawRRect(childRRect, Paint()..color = Color(childStyle.bgColor));
         canvas.drawRRect(
-          shadowRRect,
+          childRRect,
           Paint()
-            ..color = Color(childStyle.shadowColor)
-            ..maskFilter =
-                MaskFilter.blur(BlurStyle.normal, childStyle.shadowBlur),
+            ..color = Color(childStyle.strokeColor)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = childStyle.strokeWidth.toDouble(),
         );
-      }
-      canvas.drawRRect(childRRect, Paint()..color = Color(childStyle.bgColor));
-      canvas.drawRRect(
-        childRRect,
-        Paint()
-          ..color = Color(childStyle.strokeColor)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = childStyle.strokeWidth.toDouble(),
-      );
 
-      // Text Content
-      if (child.content.text.isNotEmpty) {
-        TextNodeRenderer.paintPreviewText(
-          canvas,
-          child.content,
-          childRect,
-          childStyle,
-        );
-      }
+        if (child.content.text.isNotEmpty) {
+          TextNodeRenderer.paintPreviewText(
+            canvas,
+            child.content,
+            childRect,
+            childStyle,
+          );
+        }
     }
   }
 }
