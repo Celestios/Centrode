@@ -35,7 +35,7 @@ lib/shared/
 ├── utils/
 │   ├── app_paths.dart                 # Application directory paths
 │   ├── boot_cache.dart                # Boot-phase cache helpers
-│   ├── color_harmony_generator.dart   # Color harmony algorithms
+│   ├── color_theory_engine.dart       # OKLCH perceptual color theory engine
 │   ├── color_utils.dart               # Color utilities
 │   ├── date_utils.dart                # Date formatting
 │   ├── geometry.dart                  # Geometric calculations

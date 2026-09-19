@@ -74,10 +74,10 @@ class AutoPanManager {
       _lastTickTime = DateTime.now();
       _timer = Timer.periodic(const Duration(milliseconds: 16), (_) {
         final now = DateTime.now();
-        final dt = (_lastTickTime != null
-                ? now.difference(_lastTickTime!).inMicroseconds
-                : 16000) /
-            1000000.0;
+        final diffUs = _lastTickTime != null
+            ? now.difference(_lastTickTime!).inMicroseconds
+            : 16000;
+        final dt = (diffUs <= 0 ? 16000 : diffUs) / 1000000.0;
         _lastTickTime = now;
 
         if (_lastScreenPos == null) {

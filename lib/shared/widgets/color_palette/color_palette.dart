@@ -1,7 +1,7 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/utils/color_harmony_generator.dart';
+import 'package:centrode/shared/utils/color_theory_engine.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/utils/color_utils.dart';
 
@@ -69,13 +69,10 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
   }
 
   void _generateShuffledColors() {
-    final random = math.Random();
-    _shuffledColors = List.generate(6, (_) {
-      final hue = random.nextDouble() * 360.0;
-      final saturation = 0.5 + random.nextDouble() * 0.4; // vibrant
-      final value = 0.7 + random.nextDouble() * 0.2; // bright
-      return HSVColor.fromAHSV(1.0, hue, saturation, value).toColor();
-    });
+    _shuffledColors = ColorTheoryEngine.generateThemedExplorationPalette(
+      count: 6,
+      mood: PaletteMood.vibrant,
+    );
   }
 
   void _updateColor(Color newColor) {
@@ -331,7 +328,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
   Widget _buildAdvanced(BuildContext context) {
     final theme = Theme.of(context);
     final baseColorNoAlpha = _selectedColor.withValues(alpha: 1.0);
-    final harmonyColors = ColorHarmonyGenerator.generateHarmony(
+    final harmonyColors = ColorTheoryEngine.generateHarmony(
       baseColorNoAlpha,
       _selectedHarmonyType,
     );

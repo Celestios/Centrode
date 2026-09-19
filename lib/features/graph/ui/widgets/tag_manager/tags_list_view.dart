@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:centrode/shared/domain/raw_uuid.dart';
 import 'package:centrode/shared/elements/elements.dart';
-import '../../../models/graph_node.dart';
-import '../../../store/graph_data_query_controller.dart';
-import '../../../store/command_queue_processor.dart';
+import 'package:centrode/presentation/widgets/search/searchable_sort_list_header.dart';
 import '../../../../../src/rust/domain/types.dart';
 import '../../../../../src/rust/domain/tags.dart';
-import 'package:centrode/presentation/widgets/search/searchable_sort_list_header.dart';
+import '../../../presentation/tag_manager_coordinator.dart';
+import '../../../store/command_queue_processor.dart';
+import '../../../store/graph_data_query.dart';
 import 'delete_tag_dialog.dart';
-import '../../../models/commands/patch_helpers.dart';
 import 'tag_color_picker_panel.dart';
 
 List<int> get _presetColors =>
     CentrodeDerivedPalette.current.swatches.map((c) => c.toARGB32()).toList();
 
-enum TagSortOption { alphabeticalAsc, alphabeticalDesc, usageDesc, usageAsc }
-
 class TagsListView extends StatefulWidget {
-  const TagsListView({super.key});
+  final TagManagerCoordinator? coordinator;
+
+  const TagsListView({super.key, this.coordinator});
 
   @override
   State<TagsListView> createState() => _TagsListViewState();
@@ -33,8 +31,9 @@ class _TagsListViewState extends State<TagsListView> {
   final FocusNode _renameFocusNode = FocusNode();
   final GlobalKey _newColorDotKey = GlobalKey();
 
-  String _searchQuery = '';
-  TagSortOption _sortOption = TagSortOption.usageDesc;
+  TagManagerCoordinator? _internalCoordinator;
+  TagManagerCoordinator get _coordinator =>
+      widget.coordinator ?? _internalCoordinator!;
 
   String? _hoveredTagKey;
   String? _editingTagKey;
@@ -43,19 +42,25 @@ class _TagsListViewState extends State<TagsListView> {
   // State for creating a new tag color
   int _newTagColor = 0xFF5C6BC0; // Default Indigo
 
-  final ValueNotifier<List<Tag>> _tagsNotifier = ValueNotifier<List<Tag>>([]);
-
   @override
   void initState() {
     super.initState();
     _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.trim();
-      });
+      _coordinator.setSearchQuery(_searchController.text);
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshTags();
-    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.coordinator == null && _internalCoordinator == null) {
+      _internalCoordinator = TagManagerCoordinator(
+        commandProcessor: context.read<CommandQueueProcessor>(),
+        query: context.read<GraphDataQuery>(),
+      );
+      _internalCoordinator!.setSortOption(TagSortOption.usageDesc);
+      _internalCoordinator!.refresh();
+    }
   }
 
   @override
@@ -65,33 +70,14 @@ class _TagsListViewState extends State<TagsListView> {
     _renameController.dispose();
     _createFocusNode.dispose();
     _renameFocusNode.dispose();
-    _tagsNotifier.dispose();
+    _internalCoordinator?.dispose();
     super.dispose();
-  }
-
-  Future<void> _refreshTags() async {
-    final controller = context.read<CommandQueueProcessor>();
-    final tags = await controller.propertyMutations.getAllTags();
-    _tagsNotifier.value = tags.whereType<Tag>().toList();
-  }
-
-  int _getTagUsageCount(String tagKey, GraphDataQueryController controller) {
-    int count = 0;
-    for (final node in controller.nodeLookup.values) {
-      if (node is InfoUiNode) {
-        if (node.tags.any((t) => t.key.key.uuid == tagKey)) {
-          count++;
-        }
-      }
-    }
-    return count;
   }
 
   void _showColorPicker(
     BuildContext context,
     Offset anchorPos,
     Tag tag,
-    CommandQueueProcessor controller,
   ) {
     showDialog(
       context: context,
@@ -126,8 +112,7 @@ class _TagsListViewState extends State<TagsListView> {
                         updatedAt: DateTime.now().millisecondsSinceEpoch,
                       ),
                     );
-                    await controller.updateTag(updatedTag);
-                    await _refreshTags();
+                    await _coordinator.updateTag(updatedTag);
                   },
                 ),
               ),
@@ -176,15 +161,13 @@ class _TagsListViewState extends State<TagsListView> {
     );
   }
 
-  void _submitCreateTag(
-    CommandQueueProcessor controller,
-    List<Tag> allTags,
-  ) async {
+  void _submitCreateTag() async {
     final name = _createController.text.trim();
     if (name.isEmpty) return;
 
-    // Check duplicate
-    if (allTags.any((t) => t.fields.name.toLowerCase() == name.toLowerCase())) {
+    if (_coordinator.allTags.any(
+      (t) => t.fields.name.toLowerCase() == name.toLowerCase(),
+    )) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Tag "$name" already exists!'),
@@ -194,30 +177,14 @@ class _TagsListViewState extends State<TagsListView> {
       return;
     }
 
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final newTag = Tag(
-      key: parseTypedRecordId('Tag', RawUuid.v4()),
-      fields: TagFields(
-        name: name,
-        color: _newTagColor,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      ),
-    );
-
-    await controller.createTag(newTag);
+    await _coordinator.createTag(name, _newTagColor);
     _createController.clear();
     setState(() {
       _newTagColor = (List<int>.from(_presetColors)..shuffle()).first;
     });
-    await _refreshTags();
   }
 
-  void _submitRename(
-    Tag tag,
-    CommandQueueProcessor controller,
-    List<Tag> allTags,
-  ) async {
+  void _submitRename(Tag tag) async {
     final newName = _renameController.text.trim();
     if (newName.isEmpty) {
       setState(() => _validationError = 'Name cannot be empty');
@@ -230,8 +197,7 @@ class _TagsListViewState extends State<TagsListView> {
       });
       return;
     }
-    // Check duplicates
-    if (allTags.any(
+    if (_coordinator.allTags.any(
       (t) =>
           t.key != tag.key &&
           t.fields.name.toLowerCase() == newName.toLowerCase(),
@@ -249,12 +215,11 @@ class _TagsListViewState extends State<TagsListView> {
         updatedAt: DateTime.now().millisecondsSinceEpoch,
       ),
     );
-    await controller.updateTag(updatedTag);
+    await _coordinator.updateTag(updatedTag);
     setState(() {
       _editingTagKey = null;
       _validationError = null;
     });
-    await _refreshTags();
   }
 
   void _startEditing(Tag tag) {
@@ -270,58 +235,12 @@ class _TagsListViewState extends State<TagsListView> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<CommandQueueProcessor>();
-    final queryController = context.read<GraphDataQueryController>();
     final theme = Theme.of(context);
 
-    return ValueListenableBuilder<List<Tag>>(
-      valueListenable: _tagsNotifier,
-      builder: (context, allTags, _) {
-
-        // Apply search query filter
-        var filteredTags = allTags;
-        if (_searchQuery.isNotEmpty) {
-          filteredTags = allTags
-              .where(
-                (t) => t.fields.name.toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ),
-              )
-              .toList();
-        }
-
-        // Pre-compute tag usage counts in O(num_nodes) single pass
-        final Map<String, int> usageCounts = {};
-        for (final node in queryController.nodeLookup.values) {
-          if (node is InfoUiNode) {
-            for (final tag in node.tags) {
-              usageCounts[tag.key.key.uuid] =
-                  (usageCounts[tag.key.key.uuid] ?? 0) + 1;
-            }
-          }
-        }
-
-        // Apply sorting option
-        filteredTags.sort((a, b) {
-          switch (_sortOption) {
-            case TagSortOption.alphabeticalAsc:
-              return a.fields.name.toLowerCase().compareTo(
-                b.fields.name.toLowerCase(),
-              );
-            case TagSortOption.alphabeticalDesc:
-              return b.fields.name.toLowerCase().compareTo(
-                a.fields.name.toLowerCase(),
-              );
-            case TagSortOption.usageDesc:
-              return (usageCounts[b.key.key.uuid] ?? 0).compareTo(
-                usageCounts[a.key.key.uuid] ?? 0,
-              );
-            case TagSortOption.usageAsc:
-              return (usageCounts[a.key.key.uuid] ?? 0).compareTo(
-                usageCounts[b.key.key.uuid] ?? 0,
-              );
-          }
-        });
+    return ListenableBuilder(
+      listenable: _coordinator,
+      builder: (context, _) {
+        final filteredTags = _coordinator.filteredTags;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -329,7 +248,7 @@ class _TagsListViewState extends State<TagsListView> {
             SearchableSortedListHeader<TagSortOption>(
               searchController: _searchController,
               hintText: 'Search tags...',
-              currentSort: _sortOption,
+              currentSort: _coordinator.sortOption,
               sortOptions: const [
                 SortOption(
                   value: TagSortOption.usageDesc,
@@ -352,11 +271,7 @@ class _TagsListViewState extends State<TagsListView> {
                   icon: Icons.sort_by_alpha_rounded,
                 ),
               ],
-              onSortChanged: (option) {
-                setState(() {
-                  _sortOption = option;
-                });
-              },
+              onSortChanged: (option) => _coordinator.setSortOption(option),
               tooltip: 'Sort tags',
               leading: Row(
                 children: [
@@ -382,21 +297,32 @@ class _TagsListViewState extends State<TagsListView> {
                           filled: true,
                           fillColor: Colors.black.withValues(alpha: 0.1),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(UiRadius.control),
+                            borderRadius: BorderRadius.circular(
+                              UiRadius.control,
+                            ),
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        onSubmitted: (_) =>
-                            _submitCreateTag(controller, allTags),
+                        onSubmitted: (_) => _submitCreateTag(),
                       ),
                     ),
                   ),
                   const SizedBox(width: UiSpacing.tight),
                   CentrodeButton(
                     onTap: () {
-                      final RenderBox? renderBox = _newColorDotKey.currentContext?.findRenderObject() as RenderBox?;
+                      final RenderBox? renderBox =
+                          _newColorDotKey.currentContext?.findRenderObject()
+                              as RenderBox?;
                       if (renderBox != null) {
-                        _showNewColorPicker(context, renderBox.localToGlobal(Offset(renderBox.size.width / 2, renderBox.size.height / 2)));
+                        _showNewColorPicker(
+                          context,
+                          renderBox.localToGlobal(
+                            Offset(
+                              renderBox.size.width / 2,
+                              renderBox.size.height / 2,
+                            ),
+                          ),
+                        );
                       }
                     },
                     enableHover: false,
@@ -423,7 +349,9 @@ class _TagsListViewState extends State<TagsListView> {
                 padding: const EdgeInsets.symmetric(vertical: 32.0),
                 child: Center(
                   child: Text(
-                    _searchQuery.isEmpty ? 'No tags yet' : 'No matching tags',
+                    _coordinator.searchQuery.isEmpty
+                        ? 'No tags yet'
+                        : 'No matching tags',
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                       fontSize: UiFont.compact,
@@ -439,9 +367,8 @@ class _TagsListViewState extends State<TagsListView> {
                   padding: UiInsets.verticalTight,
                   itemBuilder: (context, index) {
                     final tag = filteredTags[index];
-                    final usageCount = _getTagUsageCount(
+                    final usageCount = _coordinator.getTagUsageCount(
                       tag.key.key.uuid,
-                      queryController,
                     );
                     final isEditing = _editingTagKey == tag.key.key.uuid;
 
@@ -475,7 +402,6 @@ class _TagsListViewState extends State<TagsListView> {
                                   context,
                                   details.globalPosition,
                                   tag,
-                                  controller,
                                 );
                               },
                               child: MouseRegion(
@@ -516,11 +442,8 @@ class _TagsListViewState extends State<TagsListView> {
                                               isDense: true,
                                               border: InputBorder.none,
                                             ),
-                                            onSubmitted: (_) => _submitRename(
-                                              tag,
-                                              controller,
-                                              allTags,
-                                            ),
+                                            onSubmitted: (_) =>
+                                                _submitRename(tag),
                                           ),
                                         ),
                                         if (_validationError != null)
@@ -569,8 +492,7 @@ class _TagsListViewState extends State<TagsListView> {
                                   ),
                                   CentrodeIconButton(
                                     icon: Icons.check_rounded,
-                                    onPressed: () =>
-                                        _submitRename(tag, controller, allTags),
+                                    onPressed: () => _submitRename(tag),
                                     iconSize: UiIconSize.dense,
                                     buttonSize: 24,
                                     enableHover: false,
@@ -598,10 +520,9 @@ class _TagsListViewState extends State<TagsListView> {
                                         tag.fields.name,
                                       );
                                       if (confirm == true) {
-                                        await controller.deleteTag(
+                                        await _coordinator.deleteTag(
                                           tag.key.key.uuid,
                                         );
-                                        await _refreshTags();
                                       }
                                     },
                                     iconSize: UiIconSize.dense,
@@ -622,7 +543,9 @@ class _TagsListViewState extends State<TagsListView> {
                                   color: theme.colorScheme.primary.withValues(
                                     alpha: 0.1,
                                   ),
-                                  borderRadius: BorderRadius.circular(UiRadius.card),
+                                  borderRadius: BorderRadius.circular(
+                                    UiRadius.card,
+                                  ),
                                 ),
                                 child: Text(
                                   '$usageCount',

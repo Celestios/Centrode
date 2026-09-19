@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/shared/utils/date_utils.dart';
-import '../../../store/command_queue_processor.dart';
-import '../../../presentation/viewport_state.dart';
-import '../../../models/models.dart';
 import 'package:centrode/presentation/widgets/search/searchable_sort_list_header.dart';
+import '../../../store/command_queue_processor.dart';
+import '../../../models/models.dart';
+import '../../../presentation/viewport_state.dart';
+import '../../../presentation/template_manager_coordinator.dart';
 import 'template_preview_painter.dart';
 import 'delete_template_dialog.dart';
 
-enum TemplateSortOption { alphabeticalAsc, alphabeticalDesc, newest, oldest }
-
 class TemplatesListView extends StatefulWidget {
-  const TemplatesListView({super.key});
+  final TemplateManagerCoordinator? coordinator;
+
+  const TemplatesListView({super.key, this.coordinator});
 
   @override
   State<TemplatesListView> createState() => _TemplatesListViewState();
@@ -20,71 +21,46 @@ class TemplatesListView extends StatefulWidget {
 
 class _TemplatesListViewState extends State<TemplatesListView> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  TemplateSortOption _sortOption = TemplateSortOption.newest;
   String? _hoveredTemplateKey;
-  final ValueNotifier<List<Template>> _templatesNotifier =
-      ValueNotifier<List<Template>>([]);
+
+  TemplateManagerCoordinator? _internalCoordinator;
+  TemplateManagerCoordinator get _coordinator =>
+      widget.coordinator ?? _internalCoordinator!;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.trim();
-      });
+      _coordinator.setSearchQuery(_searchController.text);
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshTemplates();
-    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.coordinator == null && _internalCoordinator == null) {
+      _internalCoordinator = TemplateManagerCoordinator(
+        commandProcessor: context.read<CommandQueueProcessor>(),
+      );
+      _internalCoordinator!.refresh();
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _templatesNotifier.dispose();
+    _internalCoordinator?.dispose();
     super.dispose();
   }
 
-  Future<void> _refreshTemplates() async {
-    final controller = context.read<CommandQueueProcessor>();
-    final templates = await controller.templateMutations.getAllTemplates();
-    _templatesNotifier.value = templates.whereType<Template>().toList();
-  }
-
-
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<CommandQueueProcessor>();
     final theme = Theme.of(context);
 
-    return ValueListenableBuilder<List<Template>>(
-      valueListenable: _templatesNotifier,
-      builder: (context, allTemplates, _) {
-        // Apply search query filter
-        var filteredTemplates = allTemplates;
-        if (_searchQuery.isNotEmpty) {
-          filteredTemplates = allTemplates
-              .where(
-                (t) =>
-                    t.name.toLowerCase().contains(_searchQuery.toLowerCase()),
-              )
-              .toList();
-        }
-
-        // Apply sorting option
-        filteredTemplates.sort((a, b) {
-          switch (_sortOption) {
-            case TemplateSortOption.alphabeticalAsc:
-              return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-            case TemplateSortOption.alphabeticalDesc:
-              return b.name.toLowerCase().compareTo(a.name.toLowerCase());
-            case TemplateSortOption.newest:
-              return b.createdAt.toInt().compareTo(a.createdAt.toInt());
-            case TemplateSortOption.oldest:
-              return a.createdAt.toInt().compareTo(b.createdAt.toInt());
-          }
-        });
+    return ListenableBuilder(
+      listenable: _coordinator,
+      builder: (context, _) {
+        final filteredTemplates = _coordinator.filteredTemplates;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -92,7 +68,7 @@ class _TemplatesListViewState extends State<TemplatesListView> {
             SearchableSortedListHeader<TemplateSortOption>(
               searchController: _searchController,
               hintText: 'Search templates...',
-              currentSort: _sortOption,
+              currentSort: _coordinator.sortOption,
               sortOptions: const [
                 SortOption(
                   value: TemplateSortOption.newest,
@@ -115,24 +91,18 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                   icon: Icons.sort_by_alpha_rounded,
                 ),
               ],
-              onSortChanged: (option) {
-                setState(() {
-                  _sortOption = option;
-                });
-              },
+              onSortChanged: (option) => _coordinator.setSortOption(option),
               tooltip: 'Sort templates',
-              itemCount: filteredTemplates.length,
-              itemLabel: 'TEMPLATES',
             ),
-            const SizedBox(height: UiSpacing.tight),
 
+            // Scrollable List Body
             if (filteredTemplates.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32.0),
                 child: Center(
                   child: Text(
-                    _searchQuery.isEmpty
-                        ? 'No templates saved'
+                    _coordinator.searchQuery.isEmpty
+                        ? 'No templates saved yet'
                         : 'No matching templates',
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
@@ -149,53 +119,52 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                   padding: UiInsets.verticalTight,
                   itemBuilder: (context, index) {
                     final template = filteredTemplates[index];
-                    final nodeCount = template.nodes.length;
-                    final relationCount = template.relations.length;
-
                     final isHovered =
                         _hoveredTemplateKey == template.key.key.uuid;
 
-                    // Create the tile widget
+                    final nodeCount = template.nodes.length;
+                    final relationCount = template.relations.length;
+
                     final tileChild = Container(
-                      height: 60,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 8.0,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 3.0,
                       ),
+                      padding: const EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
                         color: isHovered
-                            ? theme.colorScheme.onSurface.withValues(
-                                alpha: 0.04,
-                              )
-                            : Colors.transparent,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: theme.dividerColor.withValues(alpha: 0.05),
-                            width: UiStrokeWidth.standard,
-                          ),
+                            ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.03,
+                              ),
+                        borderRadius: BorderRadius.circular(UiRadius.card),
+                        border: Border.all(
+                          color: isHovered
+                              ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                              : Colors.white10,
                         ),
                       ),
                       child: Row(
                         children: [
-                          // Visual snapshot of the template group
+                          // Thumbnail Preview
                           TemplatePreviewWidget(
                             nodes: template.nodes,
                             relations: template.relations,
-                            size: 44.0,
+                            size: 44,
                           ),
                           const SizedBox(width: UiSpacing.standard),
 
-                          // Template metadata text details
+                          // Template Info (Title & Counts)
                           Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   template.name,
                                   style: const TextStyle(
                                     fontSize: UiFont.standard,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -231,12 +200,10 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                         .value
                                         .visibleRect
                                         .center;
-                                    await controller.templateMutations
-                                        .instantiateTemplate(
-                                          template.key.key.uuid,
-                                          visibleCenter,
-                                        );
-                                    await _refreshTemplates();
+                                    await _coordinator.instantiateTemplate(
+                                      template.key.key.uuid,
+                                      visibleCenter,
+                                    );
                                   },
                                   iconSize: 16,
                                   buttonSize: 24,
@@ -254,11 +221,9 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                                           template.name,
                                         );
                                     if (confirm == true) {
-                                      await controller.templateMutations
-                                          .deleteTemplate(
-                                            template.key.key.uuid,
-                                          );
-                                      await _refreshTemplates();
+                                      await _coordinator.deleteTemplate(
+                                        template.key.key.uuid,
+                                      );
                                     }
                                   },
                                   iconSize: 16,
@@ -273,7 +238,9 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                             Text(
                               template.createdAt <= 0
                                   ? 'Unknown'
-                                  : formatTimestampShort(template.createdAt.toInt()),
+                                  : formatTimestampShort(
+                                      template.createdAt.toInt(),
+                                    ),
                               style: TextStyle(
                                 fontSize: UiFont.micro,
                                 color: theme.colorScheme.onSurface.withValues(
@@ -285,7 +252,6 @@ class _TemplatesListViewState extends State<TemplatesListView> {
                       ),
                     );
 
-                    // Wrap tile inside a Draggable and MouseRegion for hover detection
                     return MouseRegion(
                       onEnter: (_) {
                         setState(() {

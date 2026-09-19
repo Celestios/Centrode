@@ -909,14 +909,18 @@ shared_widgets:
       getContrastTextColor: Returns high-contrast text color for background
       getContrastStrokeColor: Returns contrast stroke color for background
 
-  - name: ColorHarmonyGenerator
-    path: lib/shared/utils/color_harmony_generator.dart
-    description: "Generates color harmony palettes from base color."
+  - name: ColorTheoryEngine
+    path: lib/shared/utils/color_theory_engine.dart
+    description: "Perceptually uniform OKLCH color theory and harmony engine."
     methods:
-      generateMonochromatic: 5 colors, same hue, varying saturation/value
-      generateAnalogous: 5 colors, hue shifted ±30°
-      generateComplementary: 4 colors, base + 180° complement
-      generateTriadic: 3 colors, base + 120° + 240°
+      generateMonochromatic: Linear perceptual lightness steps in OKLCH
+      generateAnalogous: ±30° hue shifts with smooth chroma roll-off
+      generateComplementary: 180° opposite perceptual hue complement
+      generateTriadic: 120° and 240° perceptual triad
+      generateTetradic: 90°, 180°, and 270° perceptual square
+      generateSplitComplementary: 150° and 210° perceptual harmony
+      generateHarmonicRandomColor: Aesthetically vibrant non-muddy random color in OKLCH
+      generateExplorationPalette: Multi-slot palette generation with slot-locking support
 
 # =============================================================================
 # SECTION 7: PRESENTATION WIDGETS
