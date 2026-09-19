@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/features/graph/presentation/map_manager.dart';
+import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/features/workspace/ui/widgets/left_panel/quick_actions_section.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
 
@@ -74,19 +75,23 @@ void main() {
   });
 
   group('Workspace Hub: Quick Actions & Return to Map', () {
+    late WorkspaceHubController hubController;
+
     setUp(() {
       MapManager.instance.closeAll();
+      hubController = WorkspaceHubController();
     });
 
     tearDown(() {
       MapManager.instance.closeAll();
+      hubController.dispose();
     });
 
     testWidgets(
       'QuickActionsSection renders Return to Map button instead of ACTIONS text',
       (tester) async {
         await tester.pumpWidget(
-          const MaterialApp(home: Scaffold(body: QuickActionsSection())),
+          MaterialApp(home: Scaffold(body: QuickActionsSection(controller: hubController))),
         );
 
         expect(find.text('ACTIONS'), findsNothing);
@@ -98,7 +103,7 @@ void main() {
       'Return to Map button state changes dynamically based on hasOpenMaps',
       (tester) async {
         await tester.pumpWidget(
-          const MaterialApp(home: Scaffold(body: QuickActionsSection())),
+          MaterialApp(home: Scaffold(body: QuickActionsSection(controller: hubController))),
         );
 
         expect(MapManager.instance.hasOpenMaps, isFalse);

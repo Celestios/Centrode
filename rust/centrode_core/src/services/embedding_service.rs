@@ -7,6 +7,7 @@ use tokenizers::Tokenizer;
 use tracing::{info, warn};
 
 pub const VECTOR_DIMENSION: usize = 384;
+const MAX_EMBEDDING_CACHE_SIZE: usize = 2048;
 
 /// Native Pure-Rust Candle Bert Model Runner
 struct CandleBertEmbedder {
@@ -299,9 +300,12 @@ impl EmbeddingService {
             return Err(anyhow::anyhow!("Embedder model inference failed"));
         }
 
-        // Store into cache
+        // Store into cache with bounded capacity
         if let Ok(mut cache_lock) = EMBEDDING_CACHE.write() {
             let map = cache_lock.get_or_insert_with(HashMap::new);
+            if map.len() >= MAX_EMBEDDING_CACHE_SIZE {
+                map.clear();
+            }
             map.insert(normalized, result.clone());
         }
 

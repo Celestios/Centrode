@@ -27,6 +27,7 @@ import 'package:centrode/shared/widgets/unbounded_stack.dart';
 import 'canvas_overlay_layout.dart';
 import 'canvas_keyboard_handler.dart';
 import 'canvas_context_menu.dart';
+import 'canvas_template_drop_target.dart';
 import 'package:centrode/shared/copy_buffer.dart';
 
 class GraphCanvas extends StatefulWidget {
@@ -238,31 +239,14 @@ class _GraphCanvasState extends State<GraphCanvas>
                 useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
               ),
               backdropRepaint: backdropRepaintListenable,
-              background: DragTarget<Template>(
-                onWillAcceptWithDetails: (details) => true,
-                onAcceptWithDetails: (details) async {
-                  final renderBox = context.findRenderObject() as RenderBox?;
-                  if (renderBox == null) return;
-                  final localOffset = renderBox.globalToLocal(details.offset);
-                  final transform =
-                      viewportController.transformController.value;
-                  if (transform.determinant() == 0.0) return;
-                  final inverse = Matrix4.inverted(transform);
-                  final canvasOffset = MatrixUtils.transformPoint(
-                    inverse,
-                    localOffset,
-                  );
-                  await commandProcessor.templateMutations.instantiateTemplate(
-                    details.data.key.key.uuid,
-                    canvasOffset,
-                  );
-                },
-                builder: (context, candidateData, rejectedData) {
-                  return ValueListenableBuilder<MouseCursor>(
-                    valueListenable: interactionController.cursor,
-                    builder: (context, cursor, child) {
-                      return Stack(
-                        children: [
+              background: CanvasTemplateDropTarget(
+                viewportController: viewportController,
+                commandProcessor: commandProcessor,
+                child: ValueListenableBuilder<MouseCursor>(
+                  valueListenable: interactionController.cursor,
+                  builder: (context, cursor, child) {
+                    return Stack(
+                      children: [
                           MouseRegion(
                             cursor: cursor,
                             onExit: (_) {
@@ -515,9 +499,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                         },
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                ),
               child: CanvasOverlayLayout(
                 constraints: constraints,
                 renderState: renderState,

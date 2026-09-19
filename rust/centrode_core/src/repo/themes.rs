@@ -26,17 +26,17 @@ impl SurrealThemeRepository {
 }
 
 impl ThemeRepository for SurrealThemeRepository {
-    async fn get_theme(&self, key: String) -> Result<Option<MapTheme>> {
-        let record_id = if let Ok(u) = uuid::Uuid::parse_str(&key) {
+    async fn get_theme_by_key(&self, key: &str) -> Result<Option<MapTheme>> {
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(key) {
             TypedRecordId::new(TableKind::MapTheme, u).to_record_id()
         } else {
-            RecordId::new(MapTheme::LABEL, key.clone())
+            RecordId::new(MapTheme::LABEL, key)
         };
         let val: Option<Value> = self.db.select(record_id).await?;
         match val {
             Some(v) => {
                 let fields = ThemeFields::from_value(v)?;
-                let u = uuid::Uuid::parse_str(&key).unwrap_or_else(|_| uuid::Uuid::nil());
+                let u = uuid::Uuid::parse_str(key).unwrap_or_else(|_| uuid::Uuid::nil());
                 let typed_id = TypedRecordId::new(TableKind::MapTheme, u);
                 Ok(Some(MapTheme {
                     key: typed_id,
@@ -45,17 +45,6 @@ impl ThemeRepository for SurrealThemeRepository {
             }
             None => Ok(None),
         }
-    }
-
-    async fn get_theme_by_key(&self, key: &str) -> Result<Option<MapTheme>> {
-        let u = uuid::Uuid::parse_str(key).unwrap_or_else(|_| uuid::Uuid::nil());
-        let typed_id = TypedRecordId::new(TableKind::MapTheme, u);
-        let val: Option<Value> = self.db.select(typed_id.to_record_id()).await?;
-        let fields = val.map(|v| ThemeFields::from_value(v)).transpose()?;
-        Ok(fields.map(|f| MapTheme {
-            key: typed_id,
-            fields: f,
-        }))
     }
 
     async fn save_theme(&self, theme: MapTheme) -> Result<MapTheme> {
@@ -80,5 +69,15 @@ impl ThemeRepository for SurrealThemeRepository {
             }
         }
         Ok(result)
+    }
+
+    async fn delete_theme(&self, key: &str) -> Result<bool> {
+        let record_id = if let Ok(u) = uuid::Uuid::parse_str(key) {
+            TypedRecordId::new(TableKind::MapTheme, u).to_record_id()
+        } else {
+            RecordId::new(MapTheme::LABEL, key)
+        };
+        let deleted: Option<Value> = self.db.delete(record_id).await?;
+        Ok(deleted.is_some())
     }
 }

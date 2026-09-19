@@ -1,67 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
+import 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart';
 
-class ContextMenuItem {
-  final String label;
-  final VoidCallback? onTap;
-  final IconData? leadingIcon;
-  final String? shortcut;
-  final bool isDestructive;
-  final bool isDivider;
-  final bool isHeader;
-  final bool visible;
-
-  const ContextMenuItem({
-    this.label = '',
-    this.onTap,
-    this.leadingIcon,
-    this.shortcut,
-    this.isDestructive = false,
-    this.isDivider = false,
-    this.isHeader = false,
-    this.visible = true,
-  });
-
-  const ContextMenuItem.action({
-    required this.label,
-    required this.onTap,
-    this.leadingIcon,
-    this.shortcut,
-    this.visible = true,
-  })  : isDestructive = false,
-        isDivider = false,
-        isHeader = false;
-
-  const ContextMenuItem.destructive({
-    required this.label,
-    required this.onTap,
-    this.leadingIcon,
-    this.shortcut,
-    this.visible = true,
-  })  : isDestructive = true,
-        isDivider = false,
-        isHeader = false;
-
-  const ContextMenuItem.divider({this.visible = true})
-      : label = '',
-        onTap = null,
-        leadingIcon = null,
-        shortcut = null,
-        isDestructive = false,
-        isDivider = true,
-        isHeader = false;
-
-  const ContextMenuItem.header(this.label, {this.visible = true})
-      : onTap = null,
-        leadingIcon = null,
-        shortcut = null,
-        isDestructive = false,
-        isDivider = false,
-        isHeader = true;
-}
-
-typedef CentrodeMenuItem = ContextMenuItem;
+export 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
 
 class ContextMenuOverlay {
   static OverlayEntry? show({
@@ -243,16 +186,14 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
       },
       child: Stack(
         children: [
-          // Dismissal backdrop
           Positioned.fill(
             child: Listener(
               behavior: HitTestBehavior.translucent,
               onPointerDown: (_) => widget.onDismiss(),
             ),
           ),
-          // Positioned Context Menu
           CustomSingleChildLayout(
-            delegate: _ContextMenuLayoutDelegate(
+            delegate: ContextMenuLayoutDelegate(
               targetRect: widget.targetRect,
               clickPosition: widget.clickPosition,
               screenPadding: MediaQuery.of(context).padding,
@@ -277,149 +218,6 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
         ],
       ),
     );
-  }
-}
-
-class _ContextMenuLayoutDelegate extends SingleChildLayoutDelegate {
-  final Rect targetRect;
-  final Offset? clickPosition;
-  final EdgeInsets screenPadding;
-  final List<Rect> avoidRects;
-
-  const _ContextMenuLayoutDelegate({
-    required this.targetRect,
-    this.clickPosition,
-    required this.screenPadding,
-    this.avoidRects = const [],
-  });
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    return const BoxConstraints(
-      minWidth: 180.0,
-      maxWidth: 260.0,
-    );
-  }
-
-  @override
-  Offset getPositionForChild(Size size, Size childSize) {
-    const margin = 8.0;
-    const gap = 6.0;
-
-    final bool isAreaTarget = targetRect.width > 2.0 && targetRect.height > 2.0;
-
-    double x;
-    double y;
-
-    if (!isAreaTarget) {
-      final click = clickPosition ?? targetRect.topLeft;
-      x = click.dx;
-      y = click.dy;
-
-      if (x + childSize.width > size.width - margin) {
-        x = x - childSize.width;
-      }
-      if (y + childSize.height > size.height - margin) {
-        y = y - childSize.height;
-      }
-    } else {
-      final click = clickPosition ?? targetRect.center;
-      final bool preferRight = click.dx >= targetRect.center.dx;
-
-      final rightX = targetRect.right + gap;
-      final canFitRight = rightX + childSize.width <= size.width - margin;
-
-      final leftX = targetRect.left - childSize.width - gap;
-      final canFitLeft = leftX >= margin;
-
-      final bottomY = targetRect.bottom + gap;
-      final canFitBottom = bottomY + childSize.height <= size.height - margin;
-
-      final topY = targetRect.top - childSize.height - gap;
-      final canFitTop = topY >= margin;
-
-      if (preferRight && canFitRight) {
-        x = rightX;
-      } else if (!preferRight && canFitLeft) {
-        x = leftX;
-      } else if (canFitRight) {
-        x = rightX;
-      } else if (canFitLeft) {
-        x = leftX;
-      } else {
-        x = targetRect.left.clamp(margin, size.width - childSize.width - margin);
-      }
-
-      if (x == rightX || x == leftX) {
-        y = click.dy.clamp(margin, size.height - childSize.height - margin);
-      } else {
-        if (canFitBottom) {
-          y = bottomY;
-        } else if (canFitTop) {
-          y = topY;
-        } else {
-          y = (size.height - childSize.height) / 2;
-        }
-      }
-    }
-
-    Rect candidate = Rect.fromLTWH(x, y, childSize.width, childSize.height);
-
-    for (final obstacle in avoidRects) {
-      if (candidate.overlaps(obstacle)) {
-        final rightX = obstacle.right + gap;
-        final leftX = obstacle.left - childSize.width - gap;
-        final bottomY = obstacle.bottom + gap;
-        final topY = obstacle.top - childSize.height - gap;
-
-        final canFitRight = rightX + childSize.width <= size.width - margin &&
-            (!isAreaTarget ||
-                !Rect.fromLTWH(rightX, y, childSize.width, childSize.height)
-                    .overlaps(targetRect));
-        final canFitLeft = leftX >= margin &&
-            (!isAreaTarget ||
-                !Rect.fromLTWH(leftX, y, childSize.width, childSize.height)
-                    .overlaps(targetRect));
-        final canFitBottom = bottomY + childSize.height <= size.height - margin &&
-            (!isAreaTarget ||
-                !Rect.fromLTWH(x, bottomY, childSize.width, childSize.height)
-                    .overlaps(targetRect));
-        final canFitTop = topY >= margin &&
-            (!isAreaTarget ||
-                !Rect.fromLTWH(x, topY, childSize.width, childSize.height)
-                    .overlaps(targetRect));
-
-        if (canFitLeft) {
-          x = leftX;
-        } else if (canFitRight) {
-          x = rightX;
-        } else if (canFitBottom) {
-          y = bottomY;
-        } else if (canFitTop) {
-          y = topY;
-        }
-        candidate = Rect.fromLTWH(x, y, childSize.width, childSize.height);
-      }
-    }
-
-    if (x < margin) x = margin;
-    if (y < margin) y = margin;
-    if (x + childSize.width > size.width - margin) {
-      x = size.width - childSize.width - margin;
-    }
-    if (y + childSize.height > size.height - margin) {
-      y = size.height - childSize.height - margin;
-    }
-
-    return Offset(x, y);
-  }
-
-  @override
-  bool shouldRelayout(covariant _ContextMenuLayoutDelegate oldDelegate) {
-    return targetRect != oldDelegate.targetRect ||
-        clickPosition != oldDelegate.clickPosition ||
-        avoidRects != oldDelegate.avoidRects ||
-        screenPadding != oldDelegate.screenPadding;
   }
 }
 
@@ -473,14 +271,16 @@ class _ContextMenuCard extends StatelessWidget {
             ),
           ],
         ),
-        child: IntrinsicWidth(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (int i = 0; i < items.length; i++)
-                _buildEntry(context, items[i], isFocused: i == focusedIndex, isDark: isDark),
-            ],
+        child: SingleChildScrollView(
+          child: IntrinsicWidth(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (int i = 0; i < items.length; i++)
+                  _buildEntry(context, items[i], isFocused: i == focusedIndex, isDark: isDark),
+              ],
+            ),
           ),
         ),
       ),

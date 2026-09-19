@@ -62,8 +62,8 @@ class CentrodeSquareToggle extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             color: isActive
-                ? activeColor.withValues(alpha: 0.22)
-                : Colors.black.withValues(alpha: 0.22),
+                ? activeColor.withValues(alpha: 0.28)
+                : Colors.black.withValues(alpha: 0.25),
             borderRadius: BorderRadius.circular(UiRadius.control),
             border: Border.all(
               color: isActive
@@ -78,7 +78,7 @@ class CentrodeSquareToggle extends StatelessWidget {
                     label!,
                     style: (labelStyle ?? const TextStyle()).copyWith(
                       color: foregroundColor,
-                      fontSize: UiFont.standard,
+                      fontSize: UiFont.compact,
                     ),
                   )
                 : Icon(
@@ -117,58 +117,19 @@ class CentrodeSquareGroup<T> extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: options.map((opt) {
-        final isSelected = opt.value == selectedValue;
         return Padding(
           padding: const EdgeInsets.only(right: 3.0),
-          child: Tooltip(
-            message: opt.tooltip,
-            child: GestureDetector(
-              onTap: () => onSelected(opt.value),
-              child: AnimatedContainer(
-                duration: UiMotion.fast,
-                width: itemSize,
-                height: itemSize,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? activeColor.withValues(alpha: 0.28)
-                      : Colors.black.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(UiRadius.control),
-                  border: Border.all(
-                    color: isSelected
-                        ? activeColor.withValues(alpha: 0.6)
-                        : Colors.white.withValues(alpha: 0.08),
-                    width: UiStrokeWidth.subtle,
-                  ),
-                ),
-                child: Center(
-                  child: opt.label != null
-                      ? Text(
-                          opt.label!,
-                          style: (opt.labelStyle ?? const TextStyle()).copyWith(
-                            color: isSelected
-                                ? activeColor
-                                : Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color
-                                    ?.withValues(alpha: 0.6),
-                            fontSize: UiFont.compact,
-                          ),
-                        )
-                      : Icon(
-                          opt.icon,
-                          size: iconSize,
-                          color: isSelected
-                              ? activeColor
-                              : Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withValues(alpha: 0.6),
-                        ),
-                ),
-              ),
-            ),
+          child: CentrodeSquareToggle(
+            isActive: opt.value == selectedValue,
+            icon: opt.icon,
+            label: opt.label,
+            labelStyle: opt.labelStyle,
+            tooltip: opt.tooltip,
+            onTap: () => onSelected(opt.value),
+            activeColor: activeColor,
+            height: itemSize,
+            width: itemSize,
+            iconSize: iconSize,
           ),
         );
       }).toList(),

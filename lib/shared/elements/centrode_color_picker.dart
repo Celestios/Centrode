@@ -138,12 +138,12 @@ class _CentrodeColorPickerState extends State<CentrodeColorPicker> {
               const SizedBox(height: UiSpacing.tight),
 
               // 3. Hue Spectrum Slider
-              ColorPickerHueSlider(model: _model, borderSubtle: borderSubtle),
+              ColorPickerHueSlider(model: _model),
 
               const SizedBox(height: UiSpacing.tight),
 
               // 4. Alpha Transparency Slider
-              ColorPickerAlphaSlider(model: _model, borderSubtle: borderSubtle),
+              ColorPickerAlphaSlider(model: _model),
 
               const SizedBox(height: UiSpacing.standard),
 

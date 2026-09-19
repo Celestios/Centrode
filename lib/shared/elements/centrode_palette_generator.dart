@@ -50,11 +50,17 @@ class _CentrodePaletteGeneratorState extends State<CentrodePaletteGenerator> {
 
   late List<Color> _palette;
   late List<bool> _lockedSlots;
-  late List<List<int>> _grid; // grid[col][row] in 0..4
+  late List<List<int>> _grid;
   bool _gridInitialized = false;
   PaletteMood _activeMood = PaletteMood.auto;
   final FocusNode _focusNode = FocusNode();
   int? _hoveredIndex;
+
+  // Cache keys for Voronoi BFS results.
+  Size? _cachedSize;
+  int? _cachedPaletteHash;
+  List<Path>? _cachedShapePaths;
+  List<Offset>? _cachedVisualCenters;
 
   @override
   void initState() {
@@ -92,6 +98,7 @@ class _CentrodePaletteGeneratorState extends State<CentrodePaletteGenerator> {
       previousGrid: _gridInitialized ? _grid : null,
     );
     _gridInitialized = true;
+    _invalidateShapeCache();
     _log.fine('Puzzle grid generated');
   }
 
@@ -105,6 +112,7 @@ class _CentrodePaletteGeneratorState extends State<CentrodePaletteGenerator> {
         count: kColorCount,
       );
       _generatePuzzleGrid();
+      _invalidateShapeCache();
     });
   }
 
@@ -131,18 +139,40 @@ class _CentrodePaletteGeneratorState extends State<CentrodePaletteGenerator> {
   /// Label anchors for each color region: pole of inaccessibility (deepest
   /// interior cell via BFS distance field) refined by a depth-weighted centroid
   /// with outlier trimming, so tags never float on an arm or outside the piece.
-  /// Delegates to [computeRegionAnchors].
-  List<Offset> _computeVisualCenters(Size size) =>
-      computeRegionAnchors(_grid, kGridCols, kGridRows, kColorCount, size);
+  List<Offset> _computeVisualCenters(Size size) {
+    _ensureShapeCache(size);
+    return _cachedVisualCenters!;
+  }
 
   /// Builds a single, gap-inset, smooth rounded vector outline for each color
   /// piece (convex *and* concave corners traced as one clean contour).
-  /// Delegates to [computeRegionOutlines].
-  List<Path> _computeShapePaths(Size size) =>
-      computeRegionOutlines(_grid, kGridCols, kGridRows, kColorCount, size);
+  List<Path> _computeShapePaths(Size size) {
+    _ensureShapeCache(size);
+    return _cachedShapePaths!;
+  }
 
-  // Region geometry (boundary tracing, inset, rounding, anchors) now lives in
-  // package:centrode/shared/utils/geometry/polyomino.dart.
+  /// Lazily recomputes Voronoi BFS + marching-squares only when layout
+  /// dimensions or palette seeds change. Hover state skips this entirely.
+  void _ensureShapeCache(Size size) {
+    final paletteHash = Object.hashAll(_palette);
+    if (_cachedShapePaths != null &&
+        _cachedSize == size &&
+        _cachedPaletteHash == paletteHash) {
+      return;
+    }
+    _cachedSize = size;
+    _cachedPaletteHash = paletteHash;
+    _cachedShapePaths = computeRegionOutlines(_grid, kGridCols, kGridRows, kColorCount, size);
+    _cachedVisualCenters = computeRegionAnchors(_grid, kGridCols, kGridRows, kColorCount, size);
+  }
+
+  /// Invalidates the Voronoi shape cache (called when grid or palette mutates).
+  void _invalidateShapeCache() {
+    _cachedShapePaths = null;
+    _cachedVisualCenters = null;
+    _cachedSize = null;
+    _cachedPaletteHash = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +543,12 @@ class _PuzzleMosaicPainter extends CustomPainter {
   final List<bool> lockedSlots;
   final int? hoveredIndex;
 
-  const _PuzzleMosaicPainter({
+  // Pre-allocated Paint objects — mutated in place, never re-instantiated.
+  final Paint _shadowPaint = Paint()..style = PaintingStyle.fill;
+  final Paint _fillPaint = Paint()..style = PaintingStyle.fill;
+  final Paint _borderPaint = Paint()..style = PaintingStyle.stroke;
+
+  _PuzzleMosaicPainter({
     required this.shapePaths,
     required this.palette,
     required this.lockedSlots,
@@ -528,26 +563,29 @@ class _PuzzleMosaicPainter extends CustomPainter {
       final isLocked = lockedSlots[i];
       final isHovered = hoveredIndex == i;
 
-      // 1. Ambient Drop Shadow
-      final shadowPaint = Paint()
+      // 1. Ambient Drop Shadow — use canvas translate instead of path.shift()
+      _shadowPaint
         ..color = Colors.black.withValues(alpha: isHovered ? 0.60 : 0.35)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, isHovered ? 8.0 : 4.0);
-      canvas.drawPath(path.shift(const Offset(0, 3)), shadowPaint);
+      canvas.save();
+      canvas.translate(0, 3);
+      canvas.drawPath(path, _shadowPaint);
+      canvas.restore();
 
-      // 2. Solid Color Fill (single traced contour — no interior edges)
-      final fillPaint = Paint()
+      // 2. Solid Color Fill
+      _fillPaint
         ..color = color
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(path, fillPaint);
+        ..maskFilter = null;
+      canvas.drawPath(path, _fillPaint);
 
       // 3. Subtle Smooth Boundary Stroke
-      final borderPaint = Paint()
+      _borderPaint
         ..color = isLocked
             ? Colors.white
             : (isHovered ? Colors.white70 : Colors.white24)
         ..strokeWidth = isLocked ? 2.0 : (isHovered ? 1.5 : UiStrokeWidth.subtle)
-        ..style = PaintingStyle.stroke;
-      canvas.drawPath(path, borderPaint);
+        ..maskFilter = null;
+      canvas.drawPath(path, _borderPaint);
     }
   }
 

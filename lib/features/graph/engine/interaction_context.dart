@@ -16,6 +16,18 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 /// controller's lifecycle methods, enabling the GoF State Pattern where
 /// state objects can interact with the context without direct coupling
 /// to the controller implementation.
+///
+/// **FSM State Capability Requirements:**
+/// - `CanvasIdle`: QueryCapability, ViewportCapability, SelectionCapability, MutationCapability
+/// - `NodeDragState`: MutationCapability, QueryCapability, SelectionCapability
+/// - `RelationDrawState`: MutationCapability, QueryCapability, ViewportCapability
+/// - `MarqueeState`: SelectionCapability, QueryCapability, ViewportCapability
+/// - `FrameDrawState`: MutationCapability, ViewportCapability
+/// - `NodeResizeState`: MutationCapability, QueryCapability
+/// - `RelationTipDragState`: MutationCapability, QueryCapability, ViewportCapability
+/// - `ToolbarDragState`: SelectionCapability
+/// - `OptAreaDrawState`: MutationCapability, ViewportCapability
+/// - `OptAreaResizeState`: MutationCapability, ViewportCapability
 import '../presentation/workspace_tabs_controller.dart';
 
 /// Interface segregating viewport capability from the rest of the context.

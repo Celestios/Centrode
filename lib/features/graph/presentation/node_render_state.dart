@@ -308,6 +308,10 @@ class NodeRenderState extends ChangeNotifier
   void enterEditMode(RawUuid id) => editorState.enterEditMode(id);
   void commitActiveEdit() => editorState.commitActiveEdit();
   void cancelActiveEdit() => editorState.cancelActiveEdit();
+
+  void switchInspectorTab(InspectorTab tab) =>
+      activeInspectorTabNotifier.value = tab;
+
   void showFloatingToolbar(RawUuid nodeId) =>
       editorState.showFloatingToolbar(nodeId);
   void hideFloatingToolbar() => editorState.hideFloatingToolbar();

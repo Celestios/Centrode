@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'quick_actions_section.dart';
 import 'panel_footer_section.dart';
 
 class LeftPanel extends StatelessWidget {
-  const LeftPanel({super.key});
+  final WorkspaceHubController controller;
+
+  const LeftPanel({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +26,10 @@ class LeftPanel extends StatelessWidget {
           : const Color(0xFFE8E8E8).withValues(alpha: 0.85),
       child: Material(
         color: Colors.transparent,
-        child: const Column(
+        child: Column(
           children: [
-            Expanded(child: QuickActionsSection()),
-            PanelFooterSection(),
+            Expanded(child: QuickActionsSection(controller: controller)),
+            const PanelFooterSection(),
           ],
         ),
       ),

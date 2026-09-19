@@ -6,6 +6,10 @@ import '../../presentation/settings_category.dart';
 import '../../presentation/settings_controller.dart';
 import 'floating_search_bar.dart';
 import 'sections/top_sections.dart';
+import 'sections/physics_settings_section.dart';
+import 'sections/relations_settings_section.dart';
+import 'sections/ontology_settings_section.dart';
+import 'sections/storage_settings_section.dart';
 
 class SettingsCanvasPod extends StatefulWidget {
   static const double podCornerRadius = 32.0;
@@ -27,6 +31,8 @@ class _SettingsCanvasPodState extends State<SettingsCanvasPod> {
     for (final cat in SettingsCategory.values) cat: GlobalKey(),
   };
 
+  late final Map<SettingsCategory, Widget Function(BuildContext, SettingsController)> _sectionBuilders;
+
   bool _isProgrammaticScrolling = false;
 
   @override
@@ -34,6 +40,19 @@ class _SettingsCanvasPodState extends State<SettingsCanvasPod> {
     super.initState();
     widget.controller.onRequestScrollToCategory = _scrollToCategory;
     _scrollController.addListener(_onScroll);
+    _sectionBuilders = {
+      SettingsCategory.appearance: (context, controller) => Column(
+        children: [
+          ThemeSettingsCard(controller: controller),
+          ShaderSettingsCard(controller: controller),
+        ],
+      ),
+      SettingsCategory.canvas: (context, controller) => CanvasSettingsCard(controller: controller),
+      SettingsCategory.physics: (context, controller) => const PhysicsSettingsSection(),
+      SettingsCategory.relations: (context, controller) => const RelationsSettingsSection(),
+      SettingsCategory.ontology: (context, controller) => const OntologySettingsSection(),
+      SettingsCategory.storage: (context, controller) => const StorageSettingsSection(),
+    };
   }
 
   @override
@@ -169,75 +188,13 @@ class _SettingsCanvasPodState extends State<SettingsCanvasPod> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildSection(SettingsCategory.appearance, [
-                        ThemeSettingsCard(controller: widget.controller),
-                        ShaderSettingsCard(controller: widget.controller),
-                      ]),
-                      const SizedBox(height: 90.0),
-
-                      _buildSection(SettingsCategory.canvas, [
-                        CanvasSettingsCard(controller: widget.controller),
-                      ]),
-                      const SizedBox(height: 90.0),
-
-                      _buildSection(SettingsCategory.physics, [
-                        SettingsCardWrapper(
-                          title: 'Force-Directed Physics',
-                          subtitle: 'Active sub-graph layout engine constants',
-                          child: Text(
-                            'Physics simulation forces (Coulomb repulsion, Hooke spring stiffness, velocity damping) are active with system defaults.',
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
-                              fontSize: UiFont.standard,
-                            ),
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 90.0),
-
-                      _buildSection(SettingsCategory.relations, [
-                        SettingsCardWrapper(
-                          title: 'Pathfinding & Geometry Routing',
-                          subtitle: 'Obstacle avoidance clearance and corner radius filleting',
-                          child: Text(
-                            'Relation routing modes (Polyline, Orthogonal, Bezier) are active with system defaults.',
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
-                              fontSize: UiFont.standard,
-                            ),
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 90.0),
-
-                      _buildSection(SettingsCategory.ontology, [
-                        SettingsCardWrapper(
-                          title: 'Controlled Vocabulary & Embeddings',
-                          subtitle: 'Soft forced ontology and 384-dimensional vector similarity',
-                          child: Text(
-                            'Controlled predicate dictionary and AI reasoning context depth are active with system defaults.',
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
-                              fontSize: UiFont.standard,
-                            ),
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 90.0),
-
-                      _buildSection(SettingsCategory.storage, [
-                        SettingsCardWrapper(
-                          title: 'Storage & Diagnostics',
-                          subtitle: 'SurrealDB workspace storage paths and telemetry log levels',
-                          child: Text(
-                            'Autosave intervals, .cent package formats, and disk logging are active with system defaults.',
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
-                              fontSize: UiFont.standard,
-                            ),
-                          ),
-                        ),
-                      ]),
+                      for (final category in SettingsCategory.values) ...[
+                        _buildSection(category, [
+                          _sectionBuilders[category]!(context, widget.controller),
+                        ]),
+                        if (category != SettingsCategory.storage)
+                          const SizedBox(height: 90.0),
+                      ],
                     ],
                   ),
                 );

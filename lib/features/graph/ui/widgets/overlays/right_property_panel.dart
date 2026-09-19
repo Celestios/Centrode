@@ -6,6 +6,7 @@ import 'package:centrode/shared/elements/elements.dart';
 import '../inspector/nodes_section_shell.dart';
 import '../inspector/relations_section_shell.dart';
 import 'inspector/data_tab.dart';
+import 'panel_resize_handle.dart';
 
 class RightPropertyPanel extends StatefulWidget {
   const RightPropertyPanel({super.key});
@@ -25,7 +26,6 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
   static const double _minPanelWidth = 240.0;
   static const double _maxPanelWidth = 550.0;
 
-  bool _isHovered = false;
   bool _isDragging = false;
 
   void _toggleExpanded() {
@@ -121,100 +121,81 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     final relationColor = Colors.amber.shade600;
     final showBadges = isSelected && !_isExpanded;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: _toggleExpanded,
-        onHorizontalDragUpdate: _handleHorizontalDragUpdate,
-        onHorizontalDragEnd: _handleHorizontalDragEnd,
-        behavior: HitTestBehavior.opaque,
-        child: GlassPanel(
-          width: _handleWidth,
-          height: _handleHeight,
-          borderRadius: UiRadius.panel,
-          blur: 12.0,
-          child: AnimatedContainer(
-            duration: UiMotion.fast,
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
-            decoration: BoxDecoration(
-              color: _isHovered
-                  ? primaryColor.withValues(alpha: 0.18)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(UiRadius.panel),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (!showBadges)
-                  Icon(
-                    Icons.tune_rounded,
-                    size: UiIconSize.dense,
-                    color: primaryColor,
-                  )
-                else
-                  Center(
-                    child: SizedBox(
-                      width: 34,
-                      height: 18,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          if (relationCount > 0)
-                            Positioned(
-                              left: nodeCount > 0 ? 1 : 8,
-                              top: 0,
-                              child: _BadgeCircle(
-                                count: relationCount,
-                                color: relationColor,
-                                size: UiIconSize.standard,
-                              ),
-                            ),
-                          if (nodeCount > 0)
-                            Positioned(
-                              left: relationCount > 0 ? 15 : 8,
-                              top: 0,
-                              child: _BadgeCircle(
-                                count: nodeCount,
-                                color: primaryColor,
-                                size: UiIconSize.standard,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                Expanded(
-                  child: Center(
-                    child: RotatedBox(
-                      quarterTurns: 3,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          'INSPECTOR',
-                          style: TextStyle(
-                            fontSize: UiFont.compact,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.2,
-                            color: primaryColor.withValues(alpha: 0.9),
-                          ),
+    return PanelResizeHandle(
+      width: _handleWidth,
+      height: _handleHeight,
+      isExpanded: _isExpanded,
+      onToggleExpanded: _toggleExpanded,
+      onDragUpdate: _handleHorizontalDragUpdate,
+      onDragEnd: _handleHorizontalDragEnd,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (!showBadges)
+            Icon(
+              Icons.tune_rounded,
+              size: UiIconSize.dense,
+              color: primaryColor,
+            )
+          else
+            Center(
+              child: SizedBox(
+                width: 34,
+                height: 18,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    if (relationCount > 0)
+                      Positioned(
+                        left: nodeCount > 0 ? 1 : 8,
+                        top: 0,
+                        child: _BadgeCircle(
+                          count: relationCount,
+                          color: relationColor,
+                          size: UiIconSize.standard,
                         ),
                       ),
+                    if (nodeCount > 0)
+                      Positioned(
+                        left: relationCount > 0 ? 15 : 8,
+                        top: 0,
+                        child: _BadgeCircle(
+                          count: nodeCount,
+                          color: primaryColor,
+                          size: UiIconSize.standard,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: Center(
+              child: RotatedBox(
+                quarterTurns: 3,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'INSPECTOR',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: primaryColor.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
-                Icon(
-                  _isExpanded
-                      ? Icons.chevron_right_rounded
-                      : Icons.chevron_left_rounded,
-                  size: UiIconSize.dense,
-                  color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          Icon(
+            _isExpanded
+                ? Icons.chevron_right_rounded
+                : Icons.chevron_left_rounded,
+            size: UiIconSize.dense,
+            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+          ),
+        ],
       ),
     );
   }
@@ -254,11 +235,9 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Tab Switcher Bar (Appearance vs Data)
               _buildTopTabBar(context, renderState),
               const SizedBox(height: UiSpacing.tight),
 
-              // Main Dynamic Body with Full-Width Sliding Tab Transition
               Expanded(
                 child: ClipRect(
                   child: ValueListenableBuilder<InspectorTab>(
@@ -402,10 +381,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                       label: 'Appearance',
                       isActive: isAppearance,
                       activeColor: primaryColor,
-                      onTap: () {
-                        renderState.activeInspectorTabNotifier.value =
-                            InspectorTab.appearance;
-                      },
+                      onTap: () => renderState.switchInspectorTab(InspectorTab.appearance),
                     ),
                   ),
                   const SizedBox(width: UiSpacing.tight),
@@ -416,10 +392,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                       label: 'Data',
                       isActive: !isAppearance,
                       activeColor: primaryColor,
-                      onTap: () {
-                        renderState.activeInspectorTabNotifier.value =
-                            InspectorTab.data;
-                      },
+                      onTap: () => renderState.switchInspectorTab(InspectorTab.data),
                     ),
                   ),
                 ],

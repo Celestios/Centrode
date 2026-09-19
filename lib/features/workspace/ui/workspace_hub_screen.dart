@@ -4,9 +4,29 @@ import 'dart:io';
 import 'widgets/left_panel/left_panel.dart';
 import 'widgets/main_content/main_content_area.dart';
 import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 
-class WorkspaceHubScreen extends StatelessWidget {
+class WorkspaceHubScreen extends StatefulWidget {
   const WorkspaceHubScreen({super.key});
+
+  @override
+  State<WorkspaceHubScreen> createState() => _WorkspaceHubScreenState();
+}
+
+class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
+  late final WorkspaceHubController _hubController;
+
+  @override
+  void initState() {
+    super.initState();
+    _hubController = WorkspaceHubController();
+  }
+
+  @override
+  void dispose() {
+    _hubController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +37,7 @@ class WorkspaceHubScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      drawer: isAndroid ? const Drawer(child: SafeArea(child: LeftPanel())) : null,
+      drawer: isAndroid ? Drawer(child: SafeArea(child: LeftPanel(controller: _hubController))) : null,
       body: Stack(
         children: [
           Positioned.fill(
@@ -44,9 +64,9 @@ class WorkspaceHubScreen extends StatelessWidget {
     if (isAndroid) {
       return const MainContentArea();
     }
-    return const Stack(
+    return Stack(
       children: [
-        Positioned(
+        const Positioned(
           top: 0,
           bottom: 0,
           left: WorkspaceTokens.leftPanelWidth,
@@ -58,7 +78,7 @@ class WorkspaceHubScreen extends StatelessWidget {
           bottom: 0,
           left: 0,
           width: WorkspaceTokens.leftPanelWidth,
-          child: LeftPanel(),
+          child: LeftPanel(controller: _hubController),
         ),
       ],
     );

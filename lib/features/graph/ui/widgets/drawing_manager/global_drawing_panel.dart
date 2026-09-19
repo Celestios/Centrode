@@ -116,19 +116,10 @@ class GlobalDrawingPanel extends StatelessWidget {
             ValueListenableBuilder<String>(
               valueListenable: session.brushColorNotifier,
               builder: (context, activeColor, _) {
-                Color parsedColor;
-                try {
-                  final cleanHex = activeColor.replaceAll('#', '');
-                  if (cleanHex.length == 6) {
-                    parsedColor = Color(int.parse('FF$cleanHex', radix: 16));
-                  } else if (cleanHex.length == 8) {
-                    parsedColor = Color(int.parse(cleanHex, radix: 16));
-                  } else {
-                    parsedColor = const Color(0xFF00E5FF);
-                  }
-                } catch (_) {
-                  parsedColor = const Color(0xFF00E5FF);
-                }
+                final cleanHex = activeColor.replaceAll('#', '');
+                final parsedColor = cleanHex.length == 6
+                    ? Color(int.parse('FF$cleanHex', radix: 16))
+                    : Color(int.parse(cleanHex, radix: 16));
 
                 return UniversalColorPalette(
                   initialColor: parsedColor,

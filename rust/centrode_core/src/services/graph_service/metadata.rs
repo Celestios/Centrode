@@ -27,7 +27,11 @@ impl GraphService {
     }
 
     pub async fn get_theme(&self, key: String) -> anyhow::Result<Option<MapTheme>> {
-        self.repo.themes.get_theme(key).await
+        self.repo.themes.get_theme_by_key(&key).await
+    }
+
+    pub async fn delete_theme(&self, key: String) -> anyhow::Result<bool> {
+        self.repo.themes.delete_theme(&key).await
     }
 
     pub async fn set_active_theme_id(&self, _theme_id: String) -> anyhow::Result<()> {

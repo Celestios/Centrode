@@ -49,10 +49,10 @@ pub trait HistoryRepository: Send + Sync {
 }
 
 pub trait ThemeRepository: Send + Sync {
-    fn get_theme(&self, key: String) -> impl std::future::Future<Output = Result<Option<MapTheme>>> + Send;
     fn get_theme_by_key(&self, key: &str) -> impl std::future::Future<Output = Result<Option<MapTheme>>> + Send;
     fn save_theme(&self, theme: MapTheme) -> impl std::future::Future<Output = Result<MapTheme>> + Send;
     fn list_themes(&self) -> impl std::future::Future<Output = Result<Vec<MapTheme>>> + Send;
+    fn delete_theme(&self, key: &str) -> impl std::future::Future<Output = Result<bool>> + Send;
 }
 
 pub trait TemplateRepository: Send + Sync {

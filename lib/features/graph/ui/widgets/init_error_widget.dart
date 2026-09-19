@@ -1,53 +1,79 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:flutter/material.dart';
 
 class InitErrorWidget extends StatelessWidget {
   final Object error;
-  final VoidCallback onRetry;
   final VoidCallback? onShowDetails;
 
   const InitErrorWidget({
     super.key,
     required this.error,
-    required this.onRetry,
     this.onShowDetails,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: UiInsets.gutter,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: UiSpacing.gutter),
-              const Text(
-                'Failed to Initialize Database',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: UiSpacing.standard),
-              Text(
-                error.toString(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: UiSpacing.gutter),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-              if (onShowDetails != null) ...[
-                const SizedBox(height: UiSpacing.container),
-                TextButton(
-                  onPressed: onShowDetails,
-                  child: const Text('Show Details'),
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    return ColoredBox(
+      color: theme.scaffoldBackgroundColor,
+      child: Center(
+        child: GlassPanel(
+          borderRadius: UiRadius.panel,
+          blur: 16.0,
+          padding: const EdgeInsets.all(UiSpacing.gutter),
+          border: Border.all(
+            color: Colors.redAccent.withValues(alpha: 0.6),
+            width: UiStrokeWidth.standard,
+          ),
+          child: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 64,
+                  color: Colors.redAccent,
                 ),
+                const SizedBox(height: UiSpacing.container),
+                Text(
+                  'Initialization Failed',
+                  style: TextStyle(
+                    fontSize: UiFont.standard,
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: UiSpacing.standard),
+                Text(
+                  error.toString(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: UiFont.compact,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                if (onShowDetails != null) ...[
+                  const SizedBox(height: UiSpacing.container),
+                  Center(
+                    child: GestureDetector(
+                      onTap: onShowDetails,
+                      child: Text(
+                        'Show Details',
+                        style: TextStyle(
+                          fontSize: UiFont.compact,
+                          fontWeight: FontWeight.w600,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

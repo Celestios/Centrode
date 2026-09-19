@@ -347,6 +347,10 @@ impl AppHandle {
         self.service.update_theme(theme).await
     }
 
+    pub async fn delete_theme(&self, key: String) -> anyhow::Result<bool> {
+        self.service.delete_theme(key).await
+    }
+
     pub async fn create_tag(&self, tag: Tag) -> anyhow::Result<()> {
         self.service.create_tag(tag).await
     }

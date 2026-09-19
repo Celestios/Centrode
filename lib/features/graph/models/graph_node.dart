@@ -14,6 +14,27 @@ import 'package:centrode/shared/domain/raw_uuid.dart';
 part 'graph_node.ui.dart';
 
 // -----------------------------------------------------------------------------
+// TextualNode — mixin for node subtypes carrying editable document content
+// -----------------------------------------------------------------------------
+
+/// Runtime type check: returns `node` narrowed to [TextualNode] if the
+/// subtype carries editable document content, `null` otherwise.
+TextualNode? asTextualNode(UiNode node) => switch (node) {
+  InfoUiNode() || TaskUiNode() || CommentUiNode() => TextualNode(node),
+  _ => null,
+};
+
+/// Extension type for node subtypes with editable document content ([content],
+/// [text], [lineCount], [isExpanded]). Only Info, Task, and Comment nodes
+/// should be treated as textual.
+extension type TextualNode(UiNode _node) {
+  Content get textualContent => _node.content;
+  String get textualText => _node.text;
+  int get textualLineCount => _node.lineCount;
+  bool get textualIsExpanded => _node.isExpanded;
+}
+
+// -----------------------------------------------------------------------------
 // UiNode Abstract Base Class
 // -----------------------------------------------------------------------------
 

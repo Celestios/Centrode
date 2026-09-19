@@ -5,8 +5,7 @@ import '../components/node_shape_definitions.dart';
 import 'inspector_showcase_card_shell.dart';
 import 'showcase_painters.dart';
 
-/// Live Node Showcase Object rendering in real-time with subtle blueprint background.
-class NodeShowcaseCard extends StatelessWidget {
+class NodeShowcaseData {
   final String shape;
   final String fillStyle;
   final double opacity;
@@ -24,7 +23,6 @@ class NodeShowcaseCard extends StatelessWidget {
   final Color? underlineColor;
   final TextDirection textDirection;
   final String topicText;
-  final Color accentColor;
   final bool isBold;
   final bool isItalic;
   final bool isStrikethrough;
@@ -37,8 +35,7 @@ class NodeShowcaseCard extends StatelessWidget {
   final double shadowDistance;
   final Color? customShadowColor;
 
-  const NodeShowcaseCard({
-    super.key,
+  const NodeShowcaseData({
     required this.shape,
     required this.fillStyle,
     required this.opacity,
@@ -55,6 +52,7 @@ class NodeShowcaseCard extends StatelessWidget {
     this.underlineStyle = 'none',
     this.underlineColor,
     this.textDirection = TextDirection.ltr,
+    this.topicText = 'Topic',
     this.isBold = false,
     this.isItalic = false,
     this.isStrikethrough = false,
@@ -62,48 +60,58 @@ class NodeShowcaseCard extends StatelessWidget {
     this.letterSpacing = 0.0,
     this.lineHeight = 1.2,
     this.customBgColor,
-    this.topicText = 'Topic',
     this.shadowMode = 'none',
     this.shadowBlur = 14.0,
     this.shadowDistance = 4.0,
     this.customShadowColor,
+  });
+}
+
+/// Live Node Showcase Object rendering in real-time with subtle blueprint background.
+class NodeShowcaseCard extends StatelessWidget {
+  final NodeShowcaseData data;
+  final Color accentColor;
+
+  const NodeShowcaseCard({
+    super.key,
+    required this.data,
     required this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
     Color nodeBgColor;
-    final effectiveBaseColor = customBgColor ?? accentColor;
-    if (fillStyle == 'solid') {
-      nodeBgColor = effectiveBaseColor.withValues(alpha: (opacity / 100).clamp(0.05, 1.0));
-    } else if (fillStyle == 'glass') {
-      if (customBgColor != null) {
-        nodeBgColor = customBgColor!.withValues(alpha: (0.5 * (opacity / 100)).clamp(0.05, 0.95));
+    final effectiveBaseColor = data.customBgColor ?? accentColor;
+    if (data.fillStyle == 'solid') {
+      nodeBgColor = effectiveBaseColor.withValues(alpha: (data.opacity / 100).clamp(0.05, 1.0));
+    } else if (data.fillStyle == 'glass') {
+      if (data.customBgColor != null) {
+        nodeBgColor = data.customBgColor!.withValues(alpha: (0.5 * (data.opacity / 100)).clamp(0.05, 0.95));
       } else {
-        nodeBgColor = Colors.black.withValues(alpha: (0.45 * (opacity / 100)).clamp(0.05, 0.95));
+        nodeBgColor = Colors.black.withValues(alpha: (0.45 * (data.opacity / 100)).clamp(0.05, 0.95));
       }
     } else {
       nodeBgColor = Colors.transparent;
     }
 
-    final effectiveBorderBase = customBorderColor ?? accentColor;
-    final borderColor = effectiveBorderBase.withValues(alpha: (borderOpacity / 100).clamp(0.0, 1.0));
+    final effectiveBorderBase = data.customBorderColor ?? accentColor;
+    final borderColor = effectiveBorderBase.withValues(alpha: (data.borderOpacity / 100).clamp(0.0, 1.0));
 
     double targetWidth = 140;
     double targetHeight = 46;
-    if (shape == 'circle') {
+    if (data.shape == 'circle') {
       targetWidth = 60;
       targetHeight = 60;
-    } else if (shape == 'capsule' || shape == 'pill') {
+    } else if (data.shape == 'capsule' || data.shape == 'pill') {
       targetWidth = 140;
       targetHeight = 38;
-    } else if (shape == 'diamond' || shape == 'hexagon') {
+    } else if (data.shape == 'diamond' || data.shape == 'hexagon') {
       targetWidth = 120;
       targetHeight = 52;
     }
 
     String? effectiveFontFamily;
-    final lowerFont = fontFamily.toLowerCase();
+    final lowerFont = data.fontFamily.toLowerCase();
     if (lowerFont == 'mono' || lowerFont == 'jetbrains mono') {
       effectiveFontFamily = 'monospace';
     } else if (lowerFont == 'outfit') {
@@ -119,32 +127,32 @@ class NodeShowcaseCard extends StatelessWidget {
     }
 
     Color? highlightBgColor;
-    if (highlightColor == 'yellow') {
+    if (data.highlightColor == 'yellow') {
       highlightBgColor = const Color(0x77FFE600);
-    } else if (highlightColor == 'cyan') {
+    } else if (data.highlightColor == 'cyan') {
       highlightBgColor = const Color(0x7700E5FF);
-    } else if (highlightColor == 'green') {
+    } else if (data.highlightColor == 'green') {
       highlightBgColor = const Color(0x7700FF66);
-    } else if (highlightColor == 'pink') {
+    } else if (data.highlightColor == 'pink') {
       highlightBgColor = const Color(0x77FF007A);
-    } else if (highlightColor == 'orange') {
+    } else if (data.highlightColor == 'orange') {
       highlightBgColor = const Color(0x77FF8800);
     }
 
     final List<TextDecoration> decorations = [];
     TextDecorationStyle decorationStyle = TextDecorationStyle.solid;
-    if (underlineStyle == 'solid') {
+    if (data.underlineStyle == 'solid') {
       decorations.add(TextDecoration.underline);
       decorationStyle = TextDecorationStyle.solid;
-    } else if (underlineStyle == 'dashed') {
+    } else if (data.underlineStyle == 'dashed') {
       decorations.add(TextDecoration.underline);
       decorationStyle = TextDecorationStyle.dashed;
-    } else if (underlineStyle == 'wavy') {
+    } else if (data.underlineStyle == 'wavy') {
       decorations.add(TextDecoration.underline);
       decorationStyle = TextDecorationStyle.wavy;
     }
 
-    if (isStrikethrough) {
+    if (data.isStrikethrough) {
       decorations.add(TextDecoration.lineThrough);
     }
 
@@ -153,28 +161,28 @@ class NodeShowcaseCard extends StatelessWidget {
         : TextDecoration.combine(decorations);
 
     TextAlign align = TextAlign.center;
-    if (textAlign == 'left') {
+    if (data.textAlign == 'left') {
       align = TextAlign.left;
-    } else if (textAlign == 'right') {
+    } else if (data.textAlign == 'right') {
       align = TextAlign.right;
-    } else if (textAlign == 'justify') {
+    } else if (data.textAlign == 'justify') {
       align = TextAlign.justify;
     }
 
-    final displayedTopic = ContentBuilder.applyLetterCase(topicText, letterCase);
+    final displayedTopic = ContentBuilder.applyLetterCase(data.topicText, data.letterCase);
 
     final previewTextStyle = TextStyle(
       fontFamily: effectiveFontFamily,
-      fontSize: (fontSize * 0.85).clamp(8.0, 15.0),
-      fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
-      fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
-      color: textColor,
+      fontSize: (data.fontSize * 0.85).clamp(8.0, 15.0),
+      fontWeight: data.isBold ? FontWeight.w800 : FontWeight.w500,
+      fontStyle: data.isItalic ? FontStyle.italic : FontStyle.normal,
+      color: data.textColor,
       backgroundColor: highlightBgColor,
       decoration: effectiveDecoration,
       decorationStyle: decorationStyle,
-      decorationColor: underlineColor ?? textColor,
-      letterSpacing: letterSpacing,
-      height: lineHeight,
+      decorationColor: data.underlineColor ?? data.textColor,
+      letterSpacing: data.letterSpacing,
+      height: data.lineHeight,
     );
 
     return InspectorShowcaseCardShell(
@@ -189,24 +197,24 @@ class NodeShowcaseCard extends StatelessWidget {
             Positioned.fill(
               child: CustomPaint(
                 painter: ShapeNodePainter(
-                  shape: shape,
+                  shape: data.shape,
                   fillColor: nodeBgColor,
-                  borderStyle: borderStyle,
-                  borderWidth: borderWidth,
+                  borderStyle: data.borderStyle,
+                  borderWidth: data.borderWidth,
                   borderColor: borderColor,
-                  cornerRadius: cornerRadius,
+                  cornerRadius: data.cornerRadius,
                   accentColor: accentColor,
-                  shadowMode: shadowMode,
-                  shadowBlur: shadowBlur,
-                  shadowDistance: shadowDistance,
-                  shadowColor: customShadowColor ?? accentColor,
+                  shadowMode: data.shadowMode,
+                  shadowBlur: data.shadowBlur,
+                  shadowDistance: data.shadowDistance,
+                  shadowColor: data.customShadowColor ?? accentColor,
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
               child: Directionality(
-                textDirection: textDirection,
+                textDirection: data.textDirection,
                 child: Text(
                   displayedTopic,
                   textAlign: align,

@@ -7,6 +7,7 @@ import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/presentation/widgets/left_repository_panel.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/features/workspace/ui/widgets/left_panel/left_panel.dart';
+import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/features/graph/ui/widgets/overlays/right_property_panel.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
 import 'package:centrode/features/graph/store/graph_data_query.dart';
@@ -86,9 +87,9 @@ void main() {
   testWidgets('Workspace Hub LeftPanel renders with custom asymmetric squircle shadow and no outer ClipRRect',
       (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
-          body: LeftPanel(),
+          body: LeftPanel(controller: WorkspaceHubController()),
         ),
       ),
     );

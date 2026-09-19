@@ -3,25 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/features/graph/ui/graph_screen.dart';
-import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
 class QuickActionsSection extends StatelessWidget {
-  final WorkspaceHubController? controller;
+  final WorkspaceHubController controller;
 
-  const QuickActionsSection({super.key, this.controller});
+  const QuickActionsSection({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hubController = controller ?? WorkspaceHubController();
 
     return Padding(
       padding: UiInsets.container,
       child: Column(
         children: [
-          _ReturnToMapButton(controller: hubController),
+          _ReturnToMapButton(controller: controller),
           const SizedBox(height: UiSpacing.gutter),
           ListTile(
             leading: Icon(
@@ -38,7 +36,7 @@ class QuickActionsSection extends StatelessWidget {
               if (result != null && result.files.single.path != null) {
                 final filePath = result.files.single.path!;
                 final name = p.basenameWithoutExtension(filePath);
-                await hubController.openCentFile(filePath, name);
+                await controller.openCentFile(filePath, name);
                 if (context.mounted) {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const GraphScreen()),
@@ -60,7 +58,7 @@ class QuickActionsSection extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             dense: true,
           ),
-          Expanded(child: Center(child: _NewMapButton(controller: hubController))),
+          Expanded(child: Center(child: _NewMapButton(controller: controller))),
         ],
       ),
     );
@@ -77,7 +75,7 @@ class _ReturnToMapButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListenableBuilder(
-      listenable: MapManager.instance,
+      listenable: controller,
       builder: (context, _) {
         final hasOpenMaps = controller.hasOpenMaps;
         final primaryColor = theme.colorScheme.primary;

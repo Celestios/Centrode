@@ -43,7 +43,7 @@ async fn test_theme_crud_and_active_theme() {
 
     let fetched = repo
         .themes
-        .get_theme(theme_id.key.to_string())
+        .get_theme_by_key(&theme_id.key.to_string())
         .await
         .unwrap();
     assert!(fetched.is_some());
@@ -86,4 +86,69 @@ async fn test_theme_crud_and_active_theme() {
     assert_eq!(themes[0].fields.name, "Updated Dark Theme");
     assert_eq!(themes[0].fields.secondary_color, 0x445566);
     assert_eq!(themes[0].fields.accent_color, 0x778899);
+}
+
+#[tokio::test]
+async fn test_delete_theme() {
+    let repo = setup_test_repo().await;
+
+    let theme_fields = ThemeFields {
+        name: "Deletable Theme".to_string(),
+        primary_color: 0x000000,
+        secondary_color: 0x111111,
+        accent_color: 0x222222,
+        canvas_accent_color: 0x333333,
+        scaffold_background_color: 0x000000,
+        card_color: 0x111111,
+        divider_color: 0x222222,
+        text_color: 0xffffff,
+        font_family: "Roboto".to_string(),
+        body_font_size: 14.0,
+        body_font_weight: FontWeight(4),
+        body_text_color: 0xdddddd,
+        border_radius: 8.0,
+        app_bar_background_color: 0x111111,
+        app_bar_foreground_color: 0xeeeeee,
+        app_bar_elevation: 4.0,
+        app_bar_title_font_size: 18.0,
+        app_bar_title_font_weight: FontWeight(6),
+        use_material3: true,
+        brightness: ThemeBrightness::Light,
+    };
+
+    let theme_id = TypedRecordId::new_v4(TableKind::MapTheme);
+    let theme = MapTheme {
+        key: theme_id,
+        fields: theme_fields,
+    };
+
+    repo.themes.save_theme(theme).await.unwrap();
+
+    let fetched = repo
+        .themes
+        .get_theme_by_key(&theme_id.key.to_string())
+        .await
+        .unwrap();
+    assert!(fetched.is_some());
+
+    let deleted = repo
+        .themes
+        .delete_theme(&theme_id.key.to_string())
+        .await
+        .unwrap();
+    assert!(deleted);
+
+    let fetched_after_delete = repo
+        .themes
+        .get_theme_by_key(&theme_id.key.to_string())
+        .await
+        .unwrap();
+    assert!(fetched_after_delete.is_none());
+
+    let deleted_again = repo
+        .themes
+        .delete_theme(&theme_id.key.to_string())
+        .await
+        .unwrap();
+    assert!(!deleted_again);
 }

@@ -6,7 +6,7 @@ class AppThemeManager {
   AppThemeManager._();
 
   final ValueNotifier<AppTheme> themeNotifier = ValueNotifier(
-    AppTheme.fromMap({}),
+    const AppTheme(),
   );
 
   AppTheme get currentTheme => themeNotifier.value;

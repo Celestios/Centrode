@@ -11,6 +11,7 @@ class SettingsController extends ChangeNotifier {
 
   SettingsCategory _selectedCategory = SettingsCategory.appearance;
   String _searchQuery = '';
+  bool _disposed = false;
 
   void Function(SettingsCategory category)? onRequestScrollToCategory;
 
@@ -66,6 +67,7 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> _loadInitialThemes() async {
     _availableThemes = await ThemeLoader.loadBundledThemes();
+    if (_disposed) return;
     notifyListeners();
   }
 
@@ -109,5 +111,11 @@ class SettingsController extends ChangeNotifier {
   void setSnapDistance(double value) {
     _snapDistance = value;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

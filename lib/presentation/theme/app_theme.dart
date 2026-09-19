@@ -155,7 +155,7 @@ class AppTheme {
       'textColor': textColor.toARGB32(),
       'fontFamily': fontFamily,
       'bodyFontSize': bodyFontSize,
-      'bodyFontWeight': fontWeightToIndex(bodyFontWeight), // save as int
+      'bodyFontWeight': fontWeightToIndex(bodyFontWeight),
       'bodyTextColor': bodyTextColor.toARGB32(),
       'borderRadius': borderRadius,
       'appBarBackgroundColor': appBarBackgroundColor.toARGB32(),
@@ -169,22 +169,33 @@ class AppTheme {
   }
 
   factory AppTheme.fromMap(Map<String, dynamic> map) {
-    // Helper: parse colour from int or hex string
-    Color parseColor(dynamic value, {required Color fallback}) {
-      if (value == null) return fallback;
+    Color parseColor(dynamic value, {String? fieldName}) {
+      if (value == null) {
+        throw FormatException('Missing required theme color: $fieldName');
+      }
       if (value is int) return Color(value);
       if (value is String) {
         final hex = value.replaceFirst('#', '').replaceFirst('0x', '');
         return Color(int.parse('FF$hex', radix: 16));
       }
-      return fallback;
+      throw FormatException('Invalid color value for $fieldName: $value');
     }
 
-    FontWeight parseWeight(
-      dynamic value, {
-      FontWeight fallback = FontWeight.normal,
-    }) {
-      if (value == null) return fallback;
+    Color? parseColorOptional(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return Color(value);
+      if (value is String) {
+        final hex = value.replaceFirst('#', '').replaceFirst('0x', '');
+        return Color(int.parse('FF$hex', radix: 16));
+      }
+      return null;
+    }
+
+    FontWeight parseWeight(dynamic value, {FontWeight? fallback}) {
+      if (value == null) {
+        if (fallback != null) return fallback;
+        throw FormatException('Missing required font weight');
+      }
       if (value is int) {
         return fontWeights[value.clamp(0, fontWeights.length - 1)];
       }
@@ -211,10 +222,11 @@ class AppTheme {
           case 'w900':
             return FontWeight.w900;
           default:
-            return fallback;
+            if (fallback != null) return fallback;
+            throw FormatException('Invalid font weight: $value');
         }
       }
-      return fallback;
+      throw FormatException('Invalid font weight type: $value');
     }
 
     final brightnessStr = map['brightness'] as String?;
@@ -225,48 +237,48 @@ class AppTheme {
     return AppTheme(
       primaryColor: parseColor(
         map['primaryColor'],
-        fallback: const Color(0xFF1976D2),
+        fieldName: 'primaryColor',
       ),
       secondaryColor: parseColor(
         map['secondaryColor'],
-        fallback: const Color(0xFF47A2FF),
+        fieldName: 'secondaryColor',
       ),
       accentColor: parseColor(
         map['accentColor'],
-        fallback: const Color(0xFFFF4081),
+        fieldName: 'accentColor',
       ),
-      canvasAccentColor: parseColor(
-        map['canvasAccentColor'],
-        fallback: const Color(0xFF2196F3),
+      canvasAccentColor: parseColorOptional(map['canvasAccentColor']) ?? parseColor(
+        map['primaryColor'],
+        fieldName: 'primaryColor',
       ),
       scaffoldBackgroundColor: parseColor(
         map['scaffoldBackgroundColor'],
-        fallback: const Color(0xFFF5F5F5),
+        fieldName: 'scaffoldBackgroundColor',
       ),
-      cardColor: parseColor(map['cardColor'], fallback: Colors.white),
+      cardColor: parseColor(map['cardColor'], fieldName: 'cardColor'),
       dividerColor: parseColor(
         map['dividerColor'],
-        fallback: const Color(0xFFBDBDBD),
+        fieldName: 'dividerColor',
       ),
       textColor: parseColor(
         map['textColor'],
-        fallback: const Color(0xFF212121),
+        fieldName: 'textColor',
       ),
       fontFamily: map['fontFamily'] as String? ?? 'Roboto',
       bodyFontSize: (map['bodyFontSize'] as num?)?.toDouble() ?? 14.0,
-      bodyFontWeight: parseWeight(map['bodyFontWeight']),
+      bodyFontWeight: parseWeight(map['bodyFontWeight'], fallback: FontWeight.normal),
       bodyTextColor: parseColor(
         map['bodyTextColor'],
-        fallback: const Color(0xFF212121),
+        fieldName: 'bodyTextColor',
       ),
       borderRadius: (map['borderRadius'] as num?)?.toDouble() ?? 8.0,
       appBarBackgroundColor: parseColor(
         map['appBarBackgroundColor'],
-        fallback: const Color(0xFF1976D2),
+        fieldName: 'appBarBackgroundColor',
       ),
       appBarForegroundColor: parseColor(
         map['appBarForegroundColor'],
-        fallback: Colors.white,
+        fieldName: 'appBarForegroundColor',
       ),
       appBarElevation: (map['appBarElevation'] as num?)?.toDouble() ?? 0.0,
       appBarTitleFontSize:

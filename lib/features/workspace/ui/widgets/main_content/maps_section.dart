@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'recent_section.dart';
 import 'projects_section.dart';
 import 'templates_section.dart';
@@ -16,19 +15,7 @@ class _MapsSectionState extends State<MapsSection> {
   final GlobalKey<RecentSectionState> _recentKey = GlobalKey();
   final GlobalKey<ProjectsSectionState> _projectsKey = GlobalKey();
 
-  @override
-  void initState() {
-    super.initState();
-    MapManager.instance.addListener(_onMapsChanged);
-  }
-
-  @override
-  void dispose() {
-    MapManager.instance.removeListener(_onMapsChanged);
-    super.dispose();
-  }
-
-  void _onMapsChanged() {
+  void onMapsChanged() {
     if (!mounted) return;
     _recentKey.currentState?.reload();
     _projectsKey.currentState?.reload();
@@ -53,7 +40,7 @@ class _MapsSectionState extends State<MapsSection> {
               _selectedPaths.addAll(newSelection);
             });
           },
-          onMapsChanged: _onMapsChanged,
+          onMapsChanged: onMapsChanged,
         ),
         ProjectsSection(
           key: _projectsKey,
@@ -65,7 +52,7 @@ class _MapsSectionState extends State<MapsSection> {
               _selectedPaths.addAll(newSelection);
             });
           },
-          onMapsChanged: _onMapsChanged,
+          onMapsChanged: onMapsChanged,
         ),
         const TemplatesSection(),
       ],

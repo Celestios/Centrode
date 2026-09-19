@@ -366,11 +366,6 @@ class _ActiveSessionWidgetState extends State<ActiveSessionWidget> {
           return Center(
             child: InitErrorWidget(
               error: snapshot.error!,
-              onRetry: () {
-                setState(() {
-                  _initFuture = widget.session.initialize(Theme.of(context));
-                });
-              },
               onShowDetails: () {
                 _log.severe('Init error: ${snapshot.error}');
               },
