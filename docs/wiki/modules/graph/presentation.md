@@ -29,6 +29,8 @@ The presentation layer manages view state, style resolution, viewport transforms
 | `presentation/workspace_tabs_controller.dart` | Multi-tab session management |
 | `presentation/map_storage_gateway.dart` | `MapStorageGateway` abstract — map list/create/delete/rename/duplicate/touch (implemented by [DaemonGateway](../infrastructure/README.md)) |
 | `presentation/relation_label_suggestion_controller.dart` | `RelationLabelSuggestionController extends ValueNotifier<RelationSuggestionState>` — multi-language relation label prediction (map language detection, contextual verbs, autocomplete, verb frequency) |
+| `presentation/tag_manager_coordinator.dart` | `TagManagerCoordinator` — Tier 2 coordinator for tag caching, search filtering, and CRUD dispatching |
+| `presentation/template_manager_coordinator.dart` | `TemplateManagerCoordinator` — Tier 2 coordinator for template caching, filtering, instantiation, and deletion |
 
 ---
 
