@@ -27,16 +27,21 @@ class CentrodeSegmentedControl<T> extends StatefulWidget {
   });
 
   @override
-  State<CentrodeSegmentedControl<T>> createState() => _CentrodeSegmentedControlState<T>();
+  State<CentrodeSegmentedControl<T>> createState() =>
+      _CentrodeSegmentedControlState<T>();
 }
 
-class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T>> {
+class _CentrodeSegmentedControlState<T>
+    extends State<CentrodeSegmentedControl<T>> {
   bool _isPressed = false;
 
   void _handlePointerPosition(Offset localPosition, double totalWidth) {
     if (totalWidth <= 0 || widget.items.isEmpty) return;
     final itemWidth = totalWidth / widget.items.length;
-    final targetIndex = (localPosition.dx / itemWidth).floor().clamp(0, widget.items.length - 1);
+    final targetIndex = (localPosition.dx / itemWidth).floor().clamp(
+      0,
+      widget.items.length - 1,
+    );
     final targetMode = widget.items[targetIndex].mode;
     if (targetMode != widget.currentMode) {
       widget.onSelected(targetMode);
@@ -50,8 +55,13 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
     final onSurface = theme.colorScheme.onSurface;
     final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
-    final activeIndex = widget.items.indexWhere((item) => item.mode == widget.currentMode);
-    assert(activeIndex >= 0, 'currentMode ${widget.currentMode} not found in items');
+    final activeIndex = widget.items.indexWhere(
+      (item) => item.mode == widget.currentMode,
+    );
+    assert(
+      activeIndex >= 0,
+      'currentMode ${widget.currentMode} not found in items',
+    );
 
     return Listener(
       onPointerDown: (event) {
@@ -83,8 +93,16 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final dynamicItemWidth = constraints.maxWidth / widget.items.length;
-            return Stack(
+            final double dynamicItemWidth;
+            if (constraints.hasBoundedWidth) {
+              dynamicItemWidth = constraints.maxWidth / widget.items.length;
+            } else {
+              dynamicItemWidth = widget.isCompact
+                  ? CentrodeSegmentedControl.defaultCompactItemWidth
+                  : CentrodeSegmentedControl.defaultExpandedItemWidth;
+            }
+            final totalWidth = dynamicItemWidth * widget.items.length;
+            final stack = Stack(
               clipBehavior: Clip.none,
               children: [
                 AnimatedPositioned(
@@ -103,19 +121,27 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                         borderRadius: BorderRadius.circular(UiRadius.card),
                         gradient: LinearGradient(
                           colors: [
-                            primaryColor.withValues(alpha: _isPressed ? 0.58 : 0.45),
-                            primaryColor.withValues(alpha: _isPressed ? 0.35 : 0.22),
+                            primaryColor.withValues(
+                              alpha: _isPressed ? 0.58 : 0.45,
+                            ),
+                            primaryColor.withValues(
+                              alpha: _isPressed ? 0.35 : 0.22,
+                            ),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         border: Border.all(
-                          color: primaryColor.withValues(alpha: _isPressed ? 0.9 : 0.65),
+                          color: primaryColor.withValues(
+                            alpha: _isPressed ? 0.9 : 0.65,
+                          ),
                           width: UiStrokeWidth.thick,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: primaryColor.withValues(alpha: _isPressed ? 0.5 : 0.35),
+                            color: primaryColor.withValues(
+                              alpha: _isPressed ? 0.5 : 0.35,
+                            ),
                             blurRadius: _isPressed ? 18 : 12,
                             spreadRadius: _isPressed ? 1 : -0.5,
                             offset: const Offset(0, 2),
@@ -132,7 +158,9 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                         child: SizedBox(
                           height: UiControlSize.dense,
                           child: Tooltip(
-                            message: widget.items[i].tooltip ?? widget.items[i].label,
+                            message:
+                                widget.items[i].tooltip ??
+                                widget.items[i].label,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -151,7 +179,9 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontSize: UiFont.compact,
-                                        fontWeight: i == activeIndex ? FontWeight.bold : FontWeight.w500,
+                                        fontWeight: i == activeIndex
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
                                         color: i == activeIndex
                                             ? textColor
                                             : textColor.withValues(alpha: 0.75),
@@ -159,10 +189,14 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                                     ),
                                   ),
                                 ],
-                                if (!widget.isCompact && widget.items[i].accentBadge != null) ...[
+                                if (!widget.isCompact &&
+                                    widget.items[i].accentBadge != null) ...[
                                   const SizedBox(width: 3),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 3,
+                                      vertical: 1,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: primaryColor,
                                       borderRadius: BorderRadius.circular(5),
@@ -186,6 +220,10 @@ class _CentrodeSegmentedControlState<T> extends State<CentrodeSegmentedControl<T
                   ],
                 ),
               ],
+            );
+            return SizedBox(
+              width: constraints.hasBoundedWidth ? null : totalWidth,
+              child: stack,
             );
           },
         ),

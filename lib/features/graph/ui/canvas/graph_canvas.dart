@@ -1,35 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
-import 'package:centrode/shared/domain/raw_uuid.dart';
+import 'package:centrode/shared/copy_buffer.dart';
+import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../../engine/config.dart';
+import '../../engine/interaction_engine.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
 import '../../presentation/node_render_state.dart';
 import '../../presentation/viewport_state.dart';
-import '../../engine/interaction_engine.dart';
-import '../../engine/hit_test_resolver.dart';
-import '../../engine/drawing_interceptor.dart';
-import 'painters/active_drawing_painter.dart';
-import 'package:centrode/features/graph/engine/interaction_facade.dart';
 import '../../presentation/workspace_tabs_controller.dart';
-import 'layers/relation_layer.dart';
-import 'layers/node_layer.dart';
-import 'layers/overlay_layer.dart';
-import 'layers/port_layer.dart';
-import '../../models/models.dart';
-import 'layers/grid_layer.dart';
-import '../../../../shared/widgets/canvas_interactive_viewer.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/features/graph/ui/widgets/template_manager/save_template_dialog.dart';
-import 'package:centrode/shared/widgets/unbounded_stack.dart';
+import '../../presentation/canvas_lifecycle_coordinator.dart';
+import '../../presentation/canvas_context_menu_coordinator.dart';
+import '../widgets/template_manager/save_template_dialog.dart';
 import 'canvas_overlay_layout.dart';
 import 'canvas_keyboard_handler.dart';
 import 'canvas_context_menu.dart';
 import 'canvas_template_drop_target.dart';
-import 'package:centrode/shared/copy_buffer.dart';
+import 'canvas_stage_scope.dart';
+import 'canvas_gesture_router.dart';
+import 'canvas_camera_host.dart';
+import 'canvas_world_stack.dart';
 
+/// Root canvas assembly shell coordinating the camera, layers, gestures, overlays,
+/// and lifecycle subsystems.
 class GraphCanvas extends StatefulWidget {
   const GraphCanvas({super.key});
 
@@ -39,479 +33,184 @@ class GraphCanvas extends StatefulWidget {
 
 class _GraphCanvasState extends State<GraphCanvas>
     with TickerProviderStateMixin {
-  ViewportController? _viewportController;
-  InteractionController? _interactionController;
-  DrawingGestureInterceptor? _drawingInterceptor;
   final Logger _log = Logger('GraphCanvas');
-  TabSession? _boundSession;
-  GraphDataQueryController? _queryController;
-
-  bool _hasInitialFramed = false;
-  bool _viewportRestoreAttempted = false;
-  bool _viewportRestored = false;
+  bool _initialized = false;
+  late final CanvasLifecycleCoordinator _lifecycleCoordinator;
+  late final CanvasContextMenuCoordinator _contextMenuCoordinator;
   final ValueNotifier<Offset?> _mousePositionNotifier = ValueNotifier<Offset?>(
     null,
   );
-  final ValueNotifier<Offset> _elasticOverscrollNotifier = ValueNotifier(
-    Offset.zero,
-  );
-  int _lastMousePosMs = 0;
-  Offset? _rightClickDownScreenPos;
-  bool _isRightClickDrag = false;
-
-  void _updateMousePosition(Offset localPosition) {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - _lastMousePosMs >= 16) {
-      // ~60fps
-      _lastMousePosMs = now;
-      _mousePositionNotifier.value = localPosition;
-      _viewportController?.updateMouseScreenPos(localPosition);
-    }
-  }
+  final ValueNotifier<Offset> _elasticOverscrollNotifier =
+      ValueNotifier<Offset>(Offset.zero);
 
   @override
-  void initState() {
-    super.initState();
-    _log.info('Initializing GraphCanvas.');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _initControllers();
-    });
-  }
-
-  void _initControllers() {
-    final queryController = context.read<GraphDataQueryController>();
-    final commandProcessor = context.read<CommandQueueProcessor>();
-    final renderState = context.read<NodeRenderState>();
-
-    final vpController = ViewportController(queryController);
-    vpController.vsync = this;
-    vpController.onContainerOpenStateChanged = (id, newPosition, newSize, isClosed) {
-      renderState.hoveredNodeNotifier.value = null;
-      renderState.hoveredPortNotifier.value = null;
-      commandProcessor.nodeMutations.setContainerClosed(id, isClosed);
-      queryController.relationEngine.onNodeMoved(id);
-    };
-    renderState.dragState.addListener(() {
-      vpController.isGestureSuppressed = renderState.dragState.draggingNodes.isNotEmpty;
-    });
-    _viewportController = vpController;
-
-    final tabsController = context.read<WorkspaceTabsController>();
-    _boundSession = tabsController.activeSession;
-    _boundSession?.viewportController = vpController;
-    _boundSession?.toolModeNotifier.addListener(_onToolModeChanged);
-
-    final environment = CanvasInteractionEnvironment(
-      queryController: queryController,
-      commandProcessor: commandProcessor,
-      renderState: renderState,
-      viewportController: vpController,
-      getScale: () =>
-          vpController.transformController.value.getMaxScaleOnAxis(),
-      boundSession: _boundSession,
-      onSaveTemplate: (nodeIds, relationIds) async {
-        final name = await showSaveTemplateDialog(context);
-        if (name != null) {
-          await commandProcessor.templateMutations.saveTemplateFromSelection(
-            name,
-            nodeIds,
-            relationIds,
-          );
-        }
-      },
-    );
-
-    _queryController = queryController;
-    _interactionController = InteractionController(
-      transformController: vpController.transformController,
-      environment: environment,
-    );
-
-    _drawingInterceptor = DrawingGestureInterceptor(
-      session: _boundSession!,
-      viewportController: vpController,
-    );
-    _interactionController!.registerInterceptor(_drawingInterceptor!);
-
-    _onDataControllerChanged();
-
-    queryController.isLoadingNotifier.addListener(_onDataControllerChanged);
-
-    setState(() {});
-  }
-
-  void _onDataControllerChanged() {
-    if (!mounted) return;
-    final queryController = context.read<GraphDataQueryController>();
-    if (!queryController.isLoading &&
-        !_viewportRestoreAttempted &&
-        _viewportController != null) {
-      _viewportRestoreAttempted = true;
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _log.info('Initializing GraphCanvas assembly shell.');
+      final queryController = context.read<GraphDataQueryController>();
       final commandProcessor = context.read<CommandQueueProcessor>();
-      _viewportRestored = _restoreSavedViewport(commandProcessor);
-    }
-  }
+      final renderState = context.read<NodeRenderState>();
+      final tabsController = context.read<WorkspaceTabsController>();
+      final session = tabsController.activeSession;
 
-  bool _restoreSavedViewport(CommandQueueProcessor commandProcessor) {
-    final saved = commandProcessor.getSavedViewportState();
-    if (saved != null && saved.zoomLevel > 0) {
-      final targetMatrix = Matrix4.identity()
-        ..translateByDouble(saved.xOffset, saved.yOffset, 0, 1)
-        ..scaleByDouble(saved.zoomLevel, saved.zoomLevel, saved.zoomLevel, 1);
-
-      _viewportController?.animateViewportTo(targetMatrix, this);
-      _log.info(
-        'Restored viewport: offset(${saved.xOffset}, ${saved.yOffset}), zoom ${saved.zoomLevel}',
+      _lifecycleCoordinator = CanvasLifecycleCoordinator(
+        session: session,
+        queryController: queryController,
+        commandProcessor: commandProcessor,
+        renderState: renderState,
+        onSaveTemplateRequest: (nodeIds, relationIds) async {
+          final name = await showSaveTemplateDialog(context);
+          if (name != null) {
+            await commandProcessor.templateMutations.saveTemplateFromSelection(
+              name,
+              nodeIds,
+              relationIds,
+            );
+          }
+        },
       );
-      return true;
+      _lifecycleCoordinator.attachVsync(this);
+
+      _contextMenuCoordinator = CanvasContextMenuCoordinator(
+        queryController: queryController,
+        renderState: renderState,
+        viewportController: _lifecycleCoordinator.viewportController,
+        session: session,
+        interactionContext: _lifecycleCoordinator.interactionEnv,
+        onContextMenuResolved: (resolution) {
+          CanvasContextMenu.show(
+            context: context,
+            position: resolution.screenPosition,
+            targetRect: resolution.targetNodeRect,
+            avoidRect: resolution.avoidRect,
+            queryController: queryController,
+            commandProcessor: commandProcessor,
+            renderState: renderState,
+            copyBuffer: context.read<CopyBuffer>(),
+            viewportController: _lifecycleCoordinator.viewportController,
+          );
+        },
+      );
     }
-    return false;
   }
 
   @override
   void dispose() {
     CanvasContextMenu.dismiss();
-    _boundSession?.toolModeNotifier.removeListener(_onToolModeChanged);
-    _queryController?.isLoadingNotifier.removeListener(_onDataControllerChanged);
-    if (_boundSession?.viewportController == _viewportController) {
-      _boundSession?.viewportController = null;
+    if (_initialized) {
+      _lifecycleCoordinator.detachVsync();
+      _lifecycleCoordinator.dispose();
+      _contextMenuCoordinator.dispose();
     }
-    _viewportController?.dispose();
-    if (_interactionController != null && _drawingInterceptor != null) {
-      _interactionController!.unregisterInterceptor(_drawingInterceptor!);
-    }
-    _drawingInterceptor?.dispose();
-    _interactionController?.dispose();
     _mousePositionNotifier.dispose();
     _elasticOverscrollNotifier.dispose();
     super.dispose();
   }
 
-  void _onToolModeChanged() {
-    final mode = _boundSession?.toolModeNotifier.value;
-    final renderState = context.read<NodeRenderState>();
-    if (mode != 'draw' &&
-        renderState.activeLeftPanelNotifier.value == LeftPanelType.draw) {
-      renderState.activeLeftPanelNotifier.value = LeftPanelType.none;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final renderState = context.read<NodeRenderState>();
-    final commandProcessor = context.read<CommandQueueProcessor>();
-    final queryController = context.read<GraphDataQueryController>();
-    final interactionController = _interactionController;
-    final viewportController = _viewportController;
-    final tabsController = context.watch<WorkspaceTabsController>();
-    final session = tabsController.activeSession;
-
-    // If InteractionController or ViewportController not yet initialized, show loading
-    if (!mounted ||
-        interactionController == null ||
-        viewportController == null) {
+    if (!_initialized) {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final renderState = context.watch<NodeRenderState>();
+    final commandProcessor = context.read<CommandQueueProcessor>();
+    final queryController = context.watch<GraphDataQueryController>();
+    final tabsController = context.watch<WorkspaceTabsController>();
+    final session = tabsController.activeSession;
+    final vp = _lifecycleCoordinator.viewportController;
+    final interaction = _lifecycleCoordinator.interactionController;
+
     final backdropRepaintListenable = Listenable.merge([
-      viewportController.transformController,
+      vp.transformController,
       renderState.movementNotifier,
     ]);
 
     return MultiProvider(
       providers: [
-        Provider<ViewportController>.value(value: viewportController),
-        Provider<InteractionController>.value(value: interactionController),
+        Provider<ViewportController>.value(value: vp),
+        Provider<InteractionController>.value(value: interaction),
       ],
       child: CanvasKeyboardHandler(
-        viewportController: viewportController,
+        viewportController: vp,
         mousePositionNotifier: _mousePositionNotifier,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return GlassStage(
-              mode: GlassMode.performance,
-              settings: GlassSettings(
-                refractStrength: AppConfig.liquidGlass.refractStrength,
-                bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
-                bridgeThicknessFactor:
-                    AppConfig.liquidGlass.bridgeThicknessFactor,
-                useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
-              ),
-              backdropRepaint: backdropRepaintListenable,
-              background: CanvasTemplateDropTarget(
-                viewportController: viewportController,
-                commandProcessor: commandProcessor,
-                child: ValueListenableBuilder<MouseCursor>(
-                  valueListenable: interactionController.cursor,
-                  builder: (context, cursor, child) {
-                    return Stack(
-                      children: [
-                          MouseRegion(
-                            cursor: cursor,
-                            onExit: (_) {
-                              _mousePositionNotifier.value = null;
-                              interactionController.environment
-                                  .setHoveredNodeMetadata(null);
-                            },
-                            child: child,
+        child: CanvasStageScope(
+          lifecycleCoordinator: _lifecycleCoordinator,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return GlassStage(
+                mode: GlassMode.performance,
+                settings: GlassSettings(
+                  refractStrength: AppConfig.liquidGlass.refractStrength,
+                  bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
+                  bridgeThicknessFactor:
+                      AppConfig.liquidGlass.bridgeThicknessFactor,
+                  useLocalCoordinates:
+                      AppConfig.liquidGlass.useLocalCoordinates,
+                ),
+                backdropRepaint: backdropRepaintListenable,
+                background: CanvasTemplateDropTarget(
+                  onTemplateDropped: (templateKey, localOffset) async {
+                    final canvasOffset = vp.screenToCanvas(localOffset);
+                    await commandProcessor.templateMutations
+                        .instantiateTemplate(templateKey, canvasOffset);
+                  },
+                  child: Stack(
+                    children: [
+                      CanvasGestureRouter(
+                        interactionController: interaction,
+                        mousePositionNotifier: _mousePositionNotifier,
+                        onContextMenuRequested:
+                            _contextMenuCoordinator.handleContextMenuRequest,
+                        onMousePositionChanged: vp.updateMouseScreenPos,
+                        onHoverExit: () {
+                          vp.updateMouseScreenPos(null);
+                          interaction.environment.setHoveredNodeMetadata(null);
+                        },
+                        child: CanvasCameraHost(
+                          viewportController: vp,
+                          interactionController: interaction,
+                          renderState: renderState,
+                          elasticOverscrollNotifier: _elasticOverscrollNotifier,
+                          staticChild: CanvasWorldStack(
+                            viewportStateNotifier: vp.viewportStateNotifier,
+                            mousePositionNotifier: _mousePositionNotifier,
+                            elasticOverscrollNotifier:
+                                _elasticOverscrollNotifier,
+                            drawingInterceptor:
+                                _lifecycleCoordinator.drawingInterceptor,
+                            session: session,
                           ),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: session.isInitialized,
-                            builder: (context, initialized, _) {
-                              if (initialized) return const SizedBox.shrink();
-                              return const Positioned.fill(
-                                child: IgnorePointer(
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                    child: Listener(
-                      onPointerDown: (event) {
-                        if (event.kind == PointerDeviceKind.mouse &&
-                            event.buttons == kSecondaryMouseButton) {
-                          _rightClickDownScreenPos = event.position;
-                          _isRightClickDrag = false;
-                        }
-                        interactionController.handlePointerDown(event);
-                      },
-                      onPointerMove: (event) {
-                        if (_rightClickDownScreenPos != null &&
-                            !_isRightClickDrag) {
-                          final dragDistance =
-                              (event.position - _rightClickDownScreenPos!)
-                                  .distance;
-                          if (dragDistance > 5.0) {
-                            _isRightClickDrag = true;
-                          }
-                        }
-                        interactionController.handlePointerMove(event);
-                        _updateMousePosition(event.localPosition);
-                      },
-                      onPointerUp: (event) {
-                        if (_rightClickDownScreenPos != null &&
-                            !_isRightClickDrag &&
-                            renderState.activeEditId == null) {
-                          final transform = viewportController.transformController.value;
-                          final canvasPos = transform.determinant() == 0.0
-                              ? Offset.zero
-                              : MatrixUtils.transformPoint(
-                                  Matrix4.inverted(transform),
-                                  _rightClickDownScreenPos!,
-                                );
-                          final hitResult = HitTestResolver().resolve(
-                            canvasPos,
-                            interactionController.environment,
-                            false,
-                          );
-
-                          Rect? targetNodeRect;
-
-                          if (hitResult.hitNodeId != null) {
-                            final hitId = hitResult.hitNodeId!;
-                            if (!renderState.selectedEntities.contains(hitId)) {
-                              renderState.selectEntities([hitId]);
-                            }
-                            final node = queryController.nodeLookup[hitId];
-                            final vs = renderState.viewStates[hitId];
-                            final worldPos = node?.getAbsoluteWorldPosition(queryController.nodeLookup) ??
-                                (vs?.positionNotifier.value ?? Offset.zero);
-                            final size = Size(
-                              vs?.dragWidthNotifier.value ?? vs?.sizeNotifier.value.width ?? node?.size.width ?? 120.0,
-                              vs?.sizeNotifier.value.height ?? node?.size.height ?? 60.0,
-                            );
-                            final tl = MatrixUtils.transformPoint(transform, worldPos);
-                            final br = MatrixUtils.transformPoint(transform, worldPos + Offset(size.width, size.height));
-                            targetNodeRect = Rect.fromPoints(tl, br);
-                          } else {
-                            renderState.selectEntity(null);
-                          }
-
-                          CanvasContextMenu.show(
-                            context: context,
-                            position: _rightClickDownScreenPos!,
-                            targetRect: targetNodeRect,
-                            avoidRect: renderState.floatingToolbarRectNotifier.value,
-                            queryController: queryController,
-                            commandProcessor: commandProcessor,
-                            renderState: renderState,
-                            copyBuffer: context.read<CopyBuffer>(),
-                            viewportController: viewportController,
-                          );
-                        }
-                        _rightClickDownScreenPos = null;
-                        _isRightClickDrag = false;
-                        interactionController.handlePointerUp(event);
-                      },
-                      onPointerCancel: (event) {
-                        interactionController.handlePointerCancel(event);
-                        _mousePositionNotifier.value = null;
-                      },
-                      onPointerHover: (event) {
-                        interactionController.handlePointerHover(event);
-                        _updateMousePosition(event.localPosition);
-                      },
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final viewport = constraints.biggest;
-
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (context.mounted) {
-                              viewportController.updateViewportSize(viewport);
-                            }
-                          });
-
-                          if (!_hasInitialFramed && viewport != Size.zero) {
-                            _hasInitialFramed = true;
-                            // Only auto-frame if no saved state was restored
-                            if (!_viewportRestored) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                viewportController.focusOnBounds(
-                                  queryController.canvasBounds,
-                                );
-                              });
-                            } else {
-                              // Still recalc margins after layout
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                viewportController.recalculateElasticMargins();
-                              });
-                            }
-                          }
-
-                          return ValueListenableBuilder<EdgeInsets>(
-                            valueListenable: viewportController.elasticMargins,
-                            builder: (context, elasticMargins, _) {
-                              return ValueListenableBuilder<bool>(
-                                valueListenable:
-                                    interactionController.panScaleEnabled,
-                                builder: (context, panScaleEnabled, child) {
-                                  return ValueListenableBuilder<bool>(
-                                    valueListenable:
-                                        viewportController.isTransitioningNotifier,
-                                    builder: (context, isTransitioning, _) {
-                                      return ValueListenableBuilder<RawUuid?>(
-                                        valueListenable:
-                                            renderState.activeEditIdNotifier,
-                                        builder: (context, activeEditId, _) {
-                                          final isEditing = activeEditId != null;
-                                          final viewerPanEnabled =
-                                              panScaleEnabled &&
-                                              !isEditing &&
-                                              !isTransitioning;
-                                          return GestureDetector(
-                                            behavior: HitTestBehavior.deferToChild,
-                                            onTap: isEditing
-                                                ? null
-                                                : () {
-                                                    renderState
-                                                        .hideFloatingToolbar();
-                                                  },
-                                            onDoubleTap:
-                                                isEditing ? null : () {},
-                                            onLongPress:
-                                                isEditing ? null : () {},
-                                            child: CanvasInteractiveViewer(
-                                              transformationController:
-                                                  viewportController
-                                                      .transformController,
-                                              constrained: true,
-                                              clipBehavior: Clip.none,
-                                              boundaryMargin: elasticMargins,
-                                              contentBounds:
-                                                  viewportController.contentBounds,
-                                              minScale:
-                                                  viewportController.currentMinScale,
-                                              maxScale:
-                                                  viewportController.currentMaxScale,
-                                              scaleFactor:
-                                                  AppConfig.canvas.scaleFactor,
-                                              panEnabled: viewerPanEnabled,
-                                              scaleEnabled: viewerPanEnabled,
-                                              onElasticOverscroll: (overscroll) {
-                                                _elasticOverscrollNotifier.value =
-                                                    overscroll;
-                                              },
-                                              child: child!,
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
-                                child: UnboundedStack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    ValueListenableBuilder<ViewportStateGrid>(
-                                      valueListenable: viewportController
-                                          .viewportStateNotifier,
-                                      builder: (context, state, _) {
-                                        return GridLayer(
-                                          viewportState: state,
-                                          mousePositionNotifier:
-                                              _mousePositionNotifier,
-                                          elasticOverscrollNotifier:
-                                              _elasticOverscrollNotifier,
-                                        );
-                                      },
-                                    ),
-                                    RelationLayer(),
-                                    const NodeLayer(),
-                                    const OverlayLayer(),
-                                    const PortLayer(),
-                                    if (_drawingInterceptor != null)
-                                      ValueListenableBuilder<List<Offset>>(
-                                        valueListenable:
-                                            _drawingInterceptor!.activeStroke,
-                                        builder: (context, stroke, _) {
-                                          if (stroke.isEmpty) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return IgnorePointer(
-                                            child: CustomPaint(
-                                              painter: ActiveDrawingPainter(
-                                                points: stroke,
-                                                brushColor: session
-                                                    .brushColorNotifier
-                                                    .value,
-                                                brushThickness: session
-                                                    .brushThicknessNotifier
-                                                    .value,
-                                                brushType: session
-                                                    .brushTypeNotifier
-                                                    .value,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                ),
-                              );
-                            },
+                        ),
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: session.isInitialized,
+                        builder: (context, initialized, _) {
+                          if (initialized) return const SizedBox.shrink();
+                          return const Positioned.fill(
+                            child: IgnorePointer(
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
                           );
                         },
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              child: CanvasOverlayLayout(
-                constraints: constraints,
-                renderState: renderState,
-                queryController: queryController,
-                interactionController: interactionController,
-                viewportController: viewportController,
-                session: session,
-                drawingInterceptor: _drawingInterceptor,
-              ),
-            );
-          },
+                child: CanvasOverlayLayout(
+                  constraints: constraints,
+                  renderState: renderState,
+                  queryController: queryController,
+                  interactionController: interaction,
+                  viewportController: vp,
+                  session: session,
+                  drawingInterceptor: _lifecycleCoordinator.drawingInterceptor,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

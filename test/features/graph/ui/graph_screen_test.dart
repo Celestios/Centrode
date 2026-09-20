@@ -9,8 +9,12 @@ import 'package:centrode/features/graph/presentation/theme_manager.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'package:centrode/features/graph/store/command_queue_processor.dart';
 import 'package:centrode/features/graph/presentation/node_render_state.dart';
-import 'package:centrode/features/graph/models/left_panel_type.dart';
+import 'package:centrode/features/graph/models/models.dart';
 import 'package:centrode/features/graph/presentation/drag_state.dart';
+import 'package:centrode/features/graph/presentation/editor_state.dart';
+import 'package:centrode/features/graph/presentation/selection_state.dart';
+import 'package:centrode/features/graph/store/relation_engine_state.dart';
+import 'package:centrode/features/graph/store/spatial_index.dart';
 import 'package:centrode/presentation/theme/graph_theme.dart';
 
 class MockWorkspaceTabsController extends Mock
@@ -25,11 +29,14 @@ class MockGraphDataQueryController extends Mock
 
 class MockCommandQueueProcessor extends Mock implements CommandQueueProcessor {}
 
+class MockRelationEngineState extends Mock implements RelationEngineState {}
+
 class MockNodeRenderState extends Mock implements NodeRenderState {}
 
 void main() {
   setUpAll(() {
     registerFallbackValue(ThemeData.dark());
+    registerFallbackValue(const RootViewportScope());
   });
 
   testWidgets('GraphScreen renders without crashing', (
@@ -59,6 +66,12 @@ void main() {
       () => mockSession.toolModeNotifier,
     ).thenReturn(ValueNotifier<String>('select'));
     when(
+      () => mockSession.currentViewNotifier,
+    ).thenReturn(ValueNotifier<String>('canvas'));
+    when(
+      () => mockSession.relationLabelModeNotifier,
+    ).thenReturn(ValueNotifier<String>('auto'));
+    when(
       () => mockSession.brushColorNotifier,
     ).thenReturn(ValueNotifier<String>('#00E5FF'));
     when(
@@ -79,6 +92,7 @@ void main() {
     when(() => mockSession.undoCount).thenReturn(0);
     when(() => mockSession.redoCount).thenReturn(0);
     when(() => mockSession.initialize(any())).thenAnswer((_) async {});
+    when(() => mockSession.saveViewportState()).thenAnswer((_) async {});
     when(() => mockSession.addListener(any())).thenAnswer((_) {});
     when(() => mockSession.removeListener(any())).thenAnswer((_) {});
 
@@ -109,31 +123,75 @@ void main() {
     when(() => mockQuery.isLoading).thenReturn(false);
     when(() => mockQuery.isLoadingNotifier).thenReturn(ValueNotifier(false));
     when(() => mockQuery.errorMessage).thenReturn(null);
+    when(
+      () => mockQuery.canvasBounds,
+    ).thenReturn(BoundingBox(minX: 0, minY: 0, maxX: 1000, maxY: 1000));
+    when(() => mockQuery.relationsInScope(any())).thenReturn([]);
+    final spatialIndex = HierarchicalSpatialIndex();
+    when(() => mockQuery.spatialIndex).thenReturn(spatialIndex);
+    when(() => mockQuery.spatialGrid).thenReturn(spatialIndex.rootGrid);
+    final mockRelationEngine = MockRelationEngineState();
+    when(() => mockRelationEngine.cacheNotifier).thenReturn(ValueNotifier(0));
+    when(() => mockQuery.relationEngine).thenReturn(mockRelationEngine);
+
+    final selectionState = SelectionState(mockQuery, mockCommand);
+    final editorState = EditorState(mockQuery, {});
 
     // Stub renderState properties
-    when(() => mockRenderState.activeLeftPanelNotifier).thenReturn(ValueNotifier(LeftPanelType.none));
-    when(() => mockRenderState.activeInspectorTabNotifier).thenReturn(ValueNotifier(InspectorTab.appearance));
-    when(() => mockRenderState.hoveredNodeMetadataNotifier).thenReturn(ValueNotifier(null));
-    when(() => mockRenderState.hoveredNodeNotifier).thenReturn(ValueNotifier(null));
-    when(() => mockRenderState.hoveredPortNotifier).thenReturn(ValueNotifier(null));
+    when(() => mockRenderState.selectionState).thenReturn(selectionState);
+    when(() => mockRenderState.editorState).thenReturn(editorState);
+    when(() => mockRenderState.relationEngine).thenReturn(mockRelationEngine);
+    when(() => mockRenderState.optAreaNotifier).thenReturn(ValueNotifier(null));
+    when(() => mockRenderState.relationsInScope(any())).thenReturn([]);
+    when(
+      () => mockRenderState.activeLeftPanelNotifier,
+    ).thenReturn(ValueNotifier(LeftPanelType.none));
+    when(
+      () => mockRenderState.activeInspectorTabNotifier,
+    ).thenReturn(ValueNotifier(InspectorTab.appearance));
+    when(
+      () => mockRenderState.hoveredNodeMetadataNotifier,
+    ).thenReturn(ValueNotifier(null));
+    when(
+      () => mockRenderState.hoveredNodeNotifier,
+    ).thenReturn(ValueNotifier(null));
+    when(
+      () => mockRenderState.hoveredPortNotifier,
+    ).thenReturn(ValueNotifier(null));
     when(() => mockRenderState.movementNotifier).thenReturn(MovementNotifier());
-    when(() => mockRenderState.relationDataNotifier).thenReturn(ChangeNotifier());
+    when(
+      () => mockRenderState.relationDataNotifier,
+    ).thenReturn(ChangeNotifier());
     when(() => mockRenderState.viewStates).thenReturn({});
     when(() => mockRenderState.zOrder).thenReturn([]);
     when(() => mockRenderState.selectedEntities).thenReturn({});
     when(() => mockRenderState.activeEditId).thenReturn(null);
-    when(() => mockRenderState.activeEditIdNotifier).thenReturn(ValueNotifier(null));
+    when(
+      () => mockRenderState.activeEditIdNotifier,
+    ).thenReturn(ValueNotifier(null));
     when(() => mockRenderState.dragState).thenReturn(DragState());
     when(() => mockRenderState.nodeShowingFloatingToolbar).thenReturn(null);
-    when(() => mockRenderState.toolbarOffsetNotifier).thenReturn(ValueNotifier(Offset.zero));
-    when(() => mockRenderState.multiToolbarOffsetNotifier).thenReturn(ValueNotifier(Offset.zero));
-    when(() => mockRenderState.activeTextSelectionNotifier).thenReturn(ValueNotifier(null));
-    when(() => mockRenderState.currentTextAlignNotifier).thenReturn(ValueNotifier(TextAlign.center));
+    when(
+      () => mockRenderState.toolbarOffsetNotifier,
+    ).thenReturn(ValueNotifier(Offset.zero));
+    when(
+      () => mockRenderState.multiToolbarOffsetNotifier,
+    ).thenReturn(ValueNotifier(Offset.zero));
+    when(
+      () => mockRenderState.activeTextSelectionNotifier,
+    ).thenReturn(ValueNotifier(null));
+    when(
+      () => mockRenderState.currentTextAlignNotifier,
+    ).thenReturn(ValueNotifier(TextAlign.center));
     when(() => mockRenderState.draggingNodes).thenReturn({});
-    when(() => mockRenderState.onEntityUpdate).thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockRenderState.onEntityUpdate,
+    ).thenAnswer((_) => const Stream.empty());
     when(() => mockRenderState.relations).thenReturn([]);
     when(() => mockRenderState.nodeLookup).thenReturn(UnmodifiableMapView({}));
-    when(() => mockRenderState.relationLookup).thenReturn(UnmodifiableMapView({}));
+    when(
+      () => mockRenderState.relationLookup,
+    ).thenReturn(UnmodifiableMapView({}));
     when(() => mockRenderState.isLoading).thenReturn(false);
     when(() => mockRenderState.errorMessage).thenReturn(null);
     when(() => mockRenderState.addListener(any())).thenAnswer((_) {});
@@ -143,6 +201,7 @@ void main() {
     MapManager.instance.tabsControllerForTesting = mockTabsController;
 
     await tester.pumpWidget(MaterialApp(home: GraphScreen()));
+    await tester.pumpAndSettle();
 
     expect(find.byType(Scaffold), findsWidgets);
   });
