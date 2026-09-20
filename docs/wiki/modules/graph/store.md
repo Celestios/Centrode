@@ -51,6 +51,9 @@ Each sub-interface lives in its own file:
 | `MlApi` | `ml_api.dart` | Knowledge graph & embedder surface: `initKnowledgeGraphEngine`, `suggestNextNodes`, `auditConnectionSanity`, `searchSimilarConcepts` |
 | `ViewportApi` | `viewport_api.dart` | Viewport state persistence |
 
+> [!NOTE]
+> **Boundary Facade Design**: `GraphApi` is intentionally structured as a composite interface composed of 10 segregated sub-interfaces, and `RustGraphApi` in `store/graph_api.dart` serves as the direct FFI bridge client delegating to `AppHandle`. With trivial cyclomatic complexity (~1 per method) and zero internal domain logic, it is designated as a Boundary Facade exempt from God Object line-count and public API count thresholds.
+
 ---
 
 ## Command Handlers (`handlers/`)

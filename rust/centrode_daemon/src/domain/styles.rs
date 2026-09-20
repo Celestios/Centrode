@@ -43,8 +43,12 @@ impl EndpointShape {
         }
     }
 
-    fn arrow_vertices(tip: crate::routing::Point, direction_rad: f64, size: f64) -> Vec<crate::routing::Point> {
-        let half_width = size * 0.30;
+    fn arrow_base_geometry(
+        tip: crate::routing::Point,
+        direction_rad: f64,
+        size: f64,
+        half_width: f64,
+    ) -> (crate::routing::Point, crate::routing::Point, crate::routing::Point) {
         let cos = direction_rad.cos();
         let sin = direction_rad.sin();
         let dir = crate::routing::Point::new(cos, sin);
@@ -54,20 +58,18 @@ impl EndpointShape {
         let base_left = base_center + perp * half_width;
         let base_right = base_center - perp * half_width;
 
+        (base_center, base_left, base_right)
+    }
+
+    fn arrow_vertices(tip: crate::routing::Point, direction_rad: f64, size: f64) -> Vec<crate::routing::Point> {
+        let half_width = size * 0.30;
+        let (_base_center, base_left, base_right) = Self::arrow_base_geometry(tip, direction_rad, size, half_width);
         vec![tip, base_left, base_right]
     }
 
     fn open_arrow_vertices(tip: crate::routing::Point, direction_rad: f64, size: f64) -> Vec<crate::routing::Point> {
         let half_width = size * 0.30;
-        let cos = direction_rad.cos();
-        let sin = direction_rad.sin();
-        let dir = crate::routing::Point::new(cos, sin);
-        let perp = crate::routing::Point::new(-sin, cos);
-
-        let base_center = tip - dir * size;
-        let base_left = base_center + perp * half_width;
-        let base_right = base_center - perp * half_width;
-
+        let (base_center, base_left, base_right) = Self::arrow_base_geometry(tip, direction_rad, size, half_width);
         vec![tip, base_left, base_right, base_center]
     }
 

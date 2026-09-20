@@ -8,16 +8,16 @@ class CentrodeMenuSection {
   final String title;
   final List<ContextMenuItem> items;
 
-  const CentrodeMenuSection({
-    required this.title,
-    required this.items,
-  });
+  const CentrodeMenuSection({required this.title, required this.items});
 }
 
 class HoverExpandableMenuBar extends StatefulWidget {
   final List<CentrodeMenuSection>? sections;
-  final List<Widget> Function(BuildContext context, ButtonStyle menuButtonStyle)?
-      menuBuilder;
+  final List<Widget> Function(
+    BuildContext context,
+    ButtonStyle menuButtonStyle,
+  )?
+  menuBuilder;
   final VoidCallback? onClose;
 
   const HoverExpandableMenuBar({
@@ -131,44 +131,49 @@ class _HoverExpandableMenuBarState extends State<HoverExpandableMenuBar> {
           ),
           secondChild: SizedBox(
             height: UiControlSize.standard,
-            child: widget.sections != null
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final section in widget.sections!)
-                        _SectionHeaderButton(
-                          section: section,
-                          isActive: _activeSectionTitle == section.title,
-                          onPressed: (btnContext) =>
-                              _openSectionMenu(btnContext, section),
-                          onHover: (btnContext) {
-                            if (_activeSectionTitle != null &&
-                                _activeSectionTitle != section.title) {
-                              _openSectionMenu(btnContext, section);
-                            }
-                          },
-                        ),
-                    ],
-                  )
-                : Theme(
-                    data: theme.copyWith(
-                      hoverColor:
-                          theme.colorScheme.primary.withValues(alpha: 0.1),
-                    ),
-                    child: MenuBar(
-                      style: MenuStyle(
-                        backgroundColor: WidgetStateProperty.all(
-                          Colors.transparent,
-                        ),
-                        elevation: WidgetStateProperty.all(0),
-                        padding: WidgetStateProperty.all(EdgeInsets.zero),
-                      ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: widget.sections != null
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (widget.menuBuilder != null)
-                          ...widget.menuBuilder!(context, menuButtonStyle),
+                        for (final section in widget.sections!)
+                          _SectionHeaderButton(
+                            section: section,
+                            isActive: _activeSectionTitle == section.title,
+                            onPressed: (btnContext) =>
+                                _openSectionMenu(btnContext, section),
+                            onHover: (btnContext) {
+                              if (_activeSectionTitle != null &&
+                                  _activeSectionTitle != section.title) {
+                                _openSectionMenu(btnContext, section);
+                              }
+                            },
+                          ),
                       ],
+                    )
+                  : Theme(
+                      data: theme.copyWith(
+                        hoverColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                      ),
+                      child: MenuBar(
+                        style: MenuStyle(
+                          backgroundColor: WidgetStateProperty.all(
+                            Colors.transparent,
+                          ),
+                          elevation: WidgetStateProperty.all(0),
+                          padding: WidgetStateProperty.all(EdgeInsets.zero),
+                        ),
+                        children: [
+                          if (widget.menuBuilder != null)
+                            ...widget.menuBuilder!(context, menuButtonStyle),
+                        ],
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       ),
@@ -205,8 +210,8 @@ class _SectionHeaderButtonState extends State<_SectionHeaderButton> {
     final hoverBg = widget.isActive
         ? theme.colorScheme.primary.withValues(alpha: 0.18)
         : (isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.06));
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.06));
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,

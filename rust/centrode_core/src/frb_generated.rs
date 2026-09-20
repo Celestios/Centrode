@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1434130160;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1994535246;
 
 // Section: executor
 
@@ -1323,6 +1323,64 @@ fn wire__crate__bridge__api__AppHandle_delete_template_impl(
                             api_key,
                         )
                         .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__bridge__api__AppHandle_delete_theme_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "AppHandle_delete_theme",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_key = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::bridge::api::AppHandle::delete_theme(&*api_that_guard, api_key)
+                                .await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -8246,300 +8304,303 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__bridge__api__AppHandle_detect_map_language_impl(
+        22 => {
+            wire__crate__bridge__api__AppHandle_delete_theme_impl(port, ptr, rust_vec_len, data_len)
+        }
+        23 => wire__crate__bridge__api__AppHandle_detect_map_language_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => {
+        24 => {
             wire__crate__bridge__api__AppHandle_embed_text_impl(port, ptr, rust_vec_len, data_len)
         }
-        24 => wire__crate__bridge__api__AppHandle_get_active_theme_id_impl(
+        25 => wire__crate__bridge__api__AppHandle_get_active_theme_id_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => {
+        26 => {
             wire__crate__bridge__api__AppHandle_get_all_tags_impl(port, ptr, rust_vec_len, data_len)
         }
-        26 => wire__crate__bridge__api__AppHandle_get_all_templates_impl(
+        27 => wire__crate__bridge__api__AppHandle_get_all_templates_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => wire__crate__bridge__api__AppHandle_get_all_themes_impl(
+        28 => wire__crate__bridge__api__AppHandle_get_all_themes_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__bridge__api__AppHandle_get_asset_absolute_path_impl(
+        29 => wire__crate__bridge__api__AppHandle_get_asset_absolute_path_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__bridge__api__AppHandle_get_graph_snapshot_impl(
+        30 => wire__crate__bridge__api__AppHandle_get_graph_snapshot_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => wire__crate__bridge__api__AppHandle_get_node_impl(port, ptr, rust_vec_len, data_len),
-        31 => {
+        31 => wire__crate__bridge__api__AppHandle_get_node_impl(port, ptr, rust_vec_len, data_len),
+        32 => {
             wire__crate__bridge__api__AppHandle_get_opt_area_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__bridge__api__AppHandle_get_relation_spec_impl(
+        33 => wire__crate__bridge__api__AppHandle_get_relation_spec_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__bridge__api__AppHandle_get_tag_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__bridge__api__AppHandle_get_theme_impl(port, ptr, rust_vec_len, data_len),
-        35 => {
+        34 => wire__crate__bridge__api__AppHandle_get_tag_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__bridge__api__AppHandle_get_theme_impl(port, ptr, rust_vec_len, data_len),
+        36 => {
             wire__crate__bridge__api__AppHandle_ingest_asset_impl(port, ptr, rust_vec_len, data_len)
         }
-        36 => wire__crate__bridge__api__AppHandle_init_embedder_model_impl(
+        37 => wire__crate__bridge__api__AppHandle_init_embedder_model_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__bridge__api__AppHandle_init_knowledge_graph_engine_impl(
+        38 => wire__crate__bridge__api__AppHandle_init_knowledge_graph_engine_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__bridge__api__AppHandle_instantiate_template_impl(
+        39 => wire__crate__bridge__api__AppHandle_instantiate_template_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => wire__crate__bridge__api__AppHandle_list_custom_words_impl(
+        40 => wire__crate__bridge__api__AppHandle_list_custom_words_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        40 => wire__crate__bridge__api__AppHandle_list_relation_specs_impl(
+        41 => wire__crate__bridge__api__AppHandle_list_relation_specs_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        41 => wire__crate__bridge__api__AppHandle_load_map_from_file_impl(
+        42 => wire__crate__bridge__api__AppHandle_load_map_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => wire__crate__bridge__api__AppHandle_new_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__bridge__api__AppHandle_predict_relation_labels_impl(
+        43 => wire__crate__bridge__api__AppHandle_new_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__bridge__api__AppHandle_predict_relation_labels_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => {
+        45 => {
             wire__crate__bridge__api__AppHandle_query_search_impl(port, ptr, rust_vec_len, data_len)
         }
-        45 => wire__crate__bridge__api__AppHandle_rebuild_node_cache_impl(
+        46 => wire__crate__bridge__api__AppHandle_rebuild_node_cache_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => wire__crate__bridge__api__AppHandle_redo_impl(port, ptr, rust_vec_len, data_len),
-        47 => {
+        47 => wire__crate__bridge__api__AppHandle_redo_impl(port, ptr, rust_vec_len, data_len),
+        48 => {
             wire__crate__bridge__api__AppHandle_redo_count_impl(port, ptr, rust_vec_len, data_len)
         }
-        48 => wire__crate__bridge__api__AppHandle_remove_custom_word_impl(
+        49 => wire__crate__bridge__api__AppHandle_remove_custom_word_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
+        50 => wire__crate__bridge__api__AppHandle_reroute_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
+        51 => wire__crate__bridge__api__AppHandle_save_map_to_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__bridge__api__AppHandle_save_template_from_selection_impl(
+        52 => wire__crate__bridge__api__AppHandle_save_template_from_selection_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__bridge__api__AppHandle_search_similar_concepts_impl(
+        53 => wire__crate__bridge__api__AppHandle_search_similar_concepts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__bridge__api__AppHandle_search_similar_labels_impl(
+        54 => wire__crate__bridge__api__AppHandle_search_similar_labels_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__bridge__api__AppHandle_set_active_theme_impl(
+        55 => wire__crate__bridge__api__AppHandle_set_active_theme_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        55 => wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
+        56 => wire__crate__bridge__api__AppHandle_set_active_theme_id_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__bridge__api__AppHandle_set_alignment_constraint_impl(
+        57 => wire__crate__bridge__api__AppHandle_set_alignment_constraint_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => {
+        58 => {
             wire__crate__bridge__api__AppHandle_set_opt_area_impl(port, ptr, rust_vec_len, data_len)
         }
-        58 => wire__crate__bridge__api__AppHandle_store_embedding_impl(
+        59 => wire__crate__bridge__api__AppHandle_store_embedding_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        59 => wire__crate__bridge__api__AppHandle_suggest_next_nodes_impl(
+        60 => wire__crate__bridge__api__AppHandle_suggest_next_nodes_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        60 => wire__crate__bridge__api__AppHandle_trigger_layout_optimization_impl(
+        61 => wire__crate__bridge__api__AppHandle_trigger_layout_optimization_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__bridge__api__AppHandle_undo_impl(port, ptr, rust_vec_len, data_len),
-        62 => {
+        62 => wire__crate__bridge__api__AppHandle_undo_impl(port, ptr, rust_vec_len, data_len),
+        63 => {
             wire__crate__bridge__api__AppHandle_undo_count_impl(port, ptr, rust_vec_len, data_len)
         }
-        63 => {
+        64 => {
             wire__crate__bridge__api__AppHandle_update_node_impl(port, ptr, rust_vec_len, data_len)
         }
-        64 => wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
+        65 => wire__crate__bridge__api__AppHandle_update_node_cache_positions_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => wire__crate__bridge__api__AppHandle_update_relation_impl(
+        66 => wire__crate__bridge__api__AppHandle_update_relation_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        66 => {
+        67 => {
             wire__crate__bridge__api__AppHandle_update_tag_impl(port, ptr, rust_vec_len, data_len)
         }
-        67 => {
+        68 => {
             wire__crate__bridge__api__AppHandle_update_theme_impl(port, ptr, rust_vec_len, data_len)
         }
-        68 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
+        69 => wire__crate__bridge__api__AppHandle_update_viewport_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        69 => wire__crate__bridge__api__AppHandle_with_repository_impl(
+        70 => wire__crate__bridge__api__AppHandle_with_repository_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        72 => wire__crate__bridge__api__DaemonHandle_create_map_impl(
+        73 => wire__crate__bridge__api__DaemonHandle_create_map_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__bridge__api__DaemonHandle_delete_map_impl(
+        74 => wire__crate__bridge__api__DaemonHandle_delete_map_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        74 => wire__crate__bridge__api__DaemonHandle_delete_setting_impl(
+        75 => wire__crate__bridge__api__DaemonHandle_delete_setting_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        75 => wire__crate__bridge__api__DaemonHandle_duplicate_map_impl(
+        76 => wire__crate__bridge__api__DaemonHandle_duplicate_map_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => {
+        77 => {
             wire__crate__bridge__api__DaemonHandle_get_map_impl(port, ptr, rust_vec_len, data_len)
         }
-        77 => wire__crate__bridge__api__DaemonHandle_get_recent_maps_impl(
+        78 => wire__crate__bridge__api__DaemonHandle_get_recent_maps_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        78 => wire__crate__bridge__api__DaemonHandle_get_setting_impl(
+        79 => wire__crate__bridge__api__DaemonHandle_get_setting_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        79 => {
+        80 => {
             wire__crate__bridge__api__DaemonHandle_list_maps_impl(port, ptr, rust_vec_len, data_len)
         }
-        80 => wire__crate__bridge__api__DaemonHandle_new_impl(port, ptr, rust_vec_len, data_len),
-        81 => wire__crate__bridge__api__DaemonHandle_rename_map_impl(
+        81 => wire__crate__bridge__api__DaemonHandle_new_impl(port, ptr, rust_vec_len, data_len),
+        82 => wire__crate__bridge__api__DaemonHandle_rename_map_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        82 => wire__crate__bridge__api__DaemonHandle_set_setting_impl(
+        83 => wire__crate__bridge__api__DaemonHandle_set_setting_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        83 => {
+        84 => {
             wire__crate__bridge__api__DaemonHandle_shutdown_impl(port, ptr, rust_vec_len, data_len)
         }
-        84 => {
+        85 => {
             wire__crate__bridge__api__DaemonHandle_touch_map_impl(port, ptr, rust_vec_len, data_len)
         }
-        85 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
-        86 => wire__crate__bridge__api__delete_map_storage_impl(port, ptr, rust_vec_len, data_len),
-        87 => wire__crate__bridge__api__init_core_engine_impl(port, ptr, rust_vec_len, data_len),
-        88 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
-        89 => {
+        86 => wire__crate__bridge__api__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
+        87 => wire__crate__bridge__api__delete_map_storage_impl(port, ptr, rust_vec_len, data_len),
+        88 => wire__crate__bridge__api__init_core_engine_impl(port, ptr, rust_vec_len, data_len),
+        89 => wire__crate__bridge__api__setup_logger_impl(port, ptr, rust_vec_len, data_len),
+        90 => {
             wire__crate__bridge__api__shutdown_core_engine_impl(port, ptr, rust_vec_len, data_len)
         }
-        90 => wire__crate__bridge__api__yield_daemon_if_running_impl(
+        91 => wire__crate__bridge__api__yield_daemon_if_running_impl(
             port,
             ptr,
             rust_vec_len,
@@ -8567,12 +8628,12 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        70 => wire__crate__bridge__api__DaemonHandle_auto_accessor_get_service_impl(
+        71 => wire__crate__bridge__api__DaemonHandle_auto_accessor_get_service_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        71 => wire__crate__bridge__api__DaemonHandle_auto_accessor_set_service_impl(
+        72 => wire__crate__bridge__api__DaemonHandle_auto_accessor_set_service_impl(
             ptr,
             rust_vec_len,
             data_len,

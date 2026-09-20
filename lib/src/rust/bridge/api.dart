@@ -125,6 +125,8 @@ abstract class AppHandle implements RustOpaqueInterface {
 
   Future<void> deleteTemplate({required String key});
 
+  Future<bool> deleteTheme({required String key});
+
   Future<String> detectMapLanguage({required List<String> nodeTexts});
 
   Future<Float32List> embedText({required String text});

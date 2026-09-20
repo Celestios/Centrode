@@ -1,6 +1,7 @@
 pub mod base_models;
 pub mod contents;
 pub mod id;
+pub mod nlp;
 pub mod nodes;
 pub mod patches;
 pub mod relations;

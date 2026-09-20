@@ -56,6 +56,7 @@ Each dimension sits inside a real trade-off between two legitimate principles (e
 - `rust-style-guide.md` for Rust core components.
 - `abstraction-levels.md` (includes cross-layer mutation boundaries) and the `symmetrical-design` skill for Flutter/Dart components.
 - `design-tensions-reference.md` for the full worked example and Symmetry-mediation logic behind each dimension above — use it to resolve ambiguous findings, not as a first-pass reference for every file.
+- **Boundary Facade Exemption**: `rust/centrode_core/src/bridge/api.rs` (Rust FFI surface) and `lib/features/graph/store/graph_api.dart` (Dart composite facade) are certified Boundary Facades with trivial cyclomatic complexity (~1 per method). They are exempt from God Object line-count (>500) and public API count (>= 15) thresholds. Do not flag them as SRP or complexity violations.
 
 ## Dead Code Verification
 

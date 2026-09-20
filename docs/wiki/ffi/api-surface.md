@@ -2,6 +2,9 @@
 
 All methods on `AppHandle`, `DaemonHandle`, and free functions (`rust/centrode_core/src/bridge/api.rs`) that are callable from Dart via FRB.
 
+> [!NOTE]
+> **Boundary Facade Design**: `rust/centrode_core/src/bridge/api.rs` serves as the unified entry point (`rust_input`) for the [Flutter Rust Bridge](README.md). It is intentionally structured as a lean, self-documenting facade where methods delegate directly to underlying services with trivial cyclomatic complexity (~1 per method) and zero internal domain logic. Per project architectural rules, it is designated as a Boundary Facade exempt from God Object line-count and public API count thresholds.
+
 ---
 
 ## Daemon & Map Management (`DaemonHandle`)

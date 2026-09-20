@@ -14,8 +14,20 @@ class WorkspaceHubController extends ChangeNotifier {
   WorkspaceHubController({
     MapManager? mapManager,
     MapStorageGateway? storageGateway,
-  })  : _mapManager = mapManager ?? MapManager.instance,
-        _storageGateway = storageGateway ?? MapManager.instance.storageGateway;
+  }) : _mapManager = mapManager ?? MapManager.instance,
+       _storageGateway = storageGateway ?? MapManager.instance.storageGateway {
+    _mapManager.addListener(_onMapManagerChanged);
+  }
+
+  void _onMapManagerChanged() {
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _mapManager.removeListener(_onMapManagerChanged);
+    super.dispose();
+  }
 
   bool get hasOpenMaps => _mapManager.hasOpenMaps;
 
@@ -36,7 +48,6 @@ class WorkspaceHubController extends ChangeNotifier {
       final path = 'maps/$finalName.db';
       _mapManager.openMap(path, finalName);
     }
-    notifyListeners();
   }
 
   void openMap(MapInfo map) {
