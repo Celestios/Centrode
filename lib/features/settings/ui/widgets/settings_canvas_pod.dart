@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/widgets/scroll_fade_mask.dart';
 import '../../presentation/settings_category.dart';
@@ -139,8 +140,7 @@ class _SettingsCanvasPodState extends State<SettingsCanvasPod> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = CentrodeDerivedPalette.of(context);
 
     const podCornerRadius = SettingsCanvasPod.podCornerRadius;
     const podShape = ContinuousRectangleBorder(
@@ -153,15 +153,13 @@ class _SettingsCanvasPodState extends State<SettingsCanvasPod> {
     return GlassPanel(
       borderRadius: podCornerRadius,
       border: Border.all(color: Colors.transparent, width: 0.0),
-      color: isDark
-          ? const Color(0xFF16161D).withValues(alpha: 0.88)
-          : Colors.white.withValues(alpha: 0.90),
+      color: palette.surface.cardBackground,
       child: Stack(
         children: [
           Positioned.fill(
             child: ScrollFadeMask(
               scrollController: _scrollController,
-              surfaceColor: isDark ? const Color(0xFF16161D) : Colors.white,
+              surfaceColor: palette.surface.cardBackground,
               enableBlur: true,
               blurSigma: 24.0,
               clipShape: podShape,

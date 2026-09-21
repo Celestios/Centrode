@@ -370,10 +370,10 @@ class NodeTypographySection extends StatelessWidget {
                 flex: 2,
                 child: CentrodeSegmentedControl<String>(
                   items: const [
-                    (icon: Icons.text_fields, label: 'Aa', mode: 'normal', tooltip: 'Normal: Aa', accentBadge: null),
-                    (icon: Icons.text_fields, label: 'AA', mode: 'uppercase', tooltip: 'UPPERCASE: AA', accentBadge: null),
-                    (icon: Icons.text_fields, label: 'aa', mode: 'lowercase', tooltip: 'lowercase: aa', accentBadge: null),
-                    (icon: Icons.text_fields, label: 'Ab', mode: 'capitalize', tooltip: 'Capitalize: Ab', accentBadge: null),
+                    (icon: null, label: 'Aa', mode: 'normal', tooltip: 'Normal: Aa', accentBadge: null),
+                    (icon: null, label: 'AA', mode: 'uppercase', tooltip: 'UPPERCASE: AA', accentBadge: null),
+                    (icon: null, label: 'aa', mode: 'lowercase', tooltip: 'lowercase: aa', accentBadge: null),
+                    (icon: null, label: 'Ab', mode: 'capitalize', tooltip: 'Capitalize: Ab', accentBadge: null),
                   ],
                   currentMode: letterCase,
                   isCompact: false,

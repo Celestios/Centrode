@@ -129,13 +129,17 @@ class DefaultNodeStyleStrategy implements NodeStyleStrategy {
   }
 
   int _computeBaseColor(UiNode node, GraphTheme theme, CentrodeDerivedPalette palette) {
+    final tints = palette.nodeTints;
     return switch (node) {
-      TaskUiNode() => 0xFF34D399,
-      DrawingUiNode() => 0x00000000,
+      InfoUiNode() => tints.info.toARGB32(),
+      TaskUiNode() => tints.task.toARGB32(),
+      CommentUiNode() => tints.comment.toARGB32(),
+      DrawingUiNode() => tints.drawing.toARGB32(),
+      ShapeUiNode() => tints.shape.toARGB32(),
+      MediaUiNode() => tints.media.toARGB32(),
+      InterUiNode() => tints.inter.toARGB32(),
       ContainerUiNode() => NodeStyleStrategy._containerBgColor(palette),
       FrameUiNode() => NodeStyleStrategy._frameStrokeColor(palette),
-      InfoUiNode() => theme.primaryColor.toARGB32(),
-      _ => theme.primaryColor.toARGB32(),
     };
   }
 }

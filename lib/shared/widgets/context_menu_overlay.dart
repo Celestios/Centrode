@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
 import 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart';
 
 export 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
+export 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart'
+    show MenuPositioningMode;
 
 class ContextMenuOverlay {
   static OverlayEntry? show({
@@ -14,7 +17,9 @@ class ContextMenuOverlay {
     Rect? targetRect,
     List<Rect> avoidRects = const [],
     Rect? avoidRect,
+    MenuPositioningMode positioningMode = MenuPositioningMode.auto,
     VoidCallback? onDismissed,
+    double? menuWidth,
   }) {
     final effectiveTargetRect =
         targetRect ?? Rect.fromLTWH(position.dx, position.dy, 0, 0);
@@ -29,7 +34,9 @@ class ContextMenuOverlay {
       clickPosition: position,
       items: items,
       avoidRects: effectiveAvoidRects,
+      positioningMode: positioningMode,
       onDismissed: onDismissed,
+      menuWidth: menuWidth,
     );
   }
 
@@ -40,7 +47,9 @@ class ContextMenuOverlay {
     required List<ContextMenuItem> items,
     List<Rect> avoidRects = const [],
     Rect? avoidRect,
+    MenuPositioningMode positioningMode = MenuPositioningMode.auto,
     VoidCallback? onDismissed,
+    double? menuWidth,
   }) {
     final visibleItems = items.where((item) => item.visible).toList();
     if (visibleItems.isEmpty) return null;
@@ -51,6 +60,7 @@ class ContextMenuOverlay {
     ];
 
     final overlay = Overlay.of(context);
+    final theme = Theme.of(context);
     late OverlayEntry entry;
     bool isDismissed = false;
 
@@ -63,12 +73,17 @@ class ContextMenuOverlay {
     }
 
     entry = OverlayEntry(
-      builder: (context) => _ContextMenuRouteWidget(
-        targetRect: targetRect,
-        clickPosition: clickPosition,
-        items: visibleItems,
-        avoidRects: effectiveAvoidRects,
-        onDismiss: dismiss,
+      builder: (context) => Theme(
+        data: theme,
+        child: _ContextMenuRouteWidget(
+          targetRect: targetRect,
+          clickPosition: clickPosition,
+          items: visibleItems,
+          avoidRects: effectiveAvoidRects,
+          positioningMode: positioningMode,
+          onDismiss: dismiss,
+          menuWidth: menuWidth,
+        ),
       ),
     );
 
@@ -84,14 +99,18 @@ class _ContextMenuRouteWidget extends StatefulWidget {
   final Offset? clickPosition;
   final List<ContextMenuItem> items;
   final List<Rect> avoidRects;
+  final MenuPositioningMode positioningMode;
   final VoidCallback onDismiss;
+  final double? menuWidth;
 
   const _ContextMenuRouteWidget({
     required this.targetRect,
     this.clickPosition,
     required this.items,
     this.avoidRects = const [],
+    this.positioningMode = MenuPositioningMode.auto,
     required this.onDismiss,
+    this.menuWidth,
   });
 
   @override
@@ -198,6 +217,8 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
               clickPosition: widget.clickPosition,
               screenPadding: MediaQuery.of(context).padding,
               avoidRects: widget.avoidRects,
+              positioningMode: widget.positioningMode,
+              menuWidth: widget.menuWidth,
             ),
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -207,6 +228,7 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
                 child: _ContextMenuCard(
                   items: widget.items,
                   focusedIndex: _focusedIndex,
+                  menuWidth: widget.menuWidth,
                   onSelect: (item) {
                     widget.onDismiss();
                     item.onTap?.call();
@@ -221,30 +243,37 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
   }
 }
 
-class _ContextMenuCard extends StatelessWidget {
+class _ContextMenuCard extends StatefulWidget {
   final List<ContextMenuItem> items;
   final int focusedIndex;
   final ValueChanged<ContextMenuItem> onSelect;
+  final double? menuWidth;
 
   const _ContextMenuCard({
     required this.items,
     required this.focusedIndex,
     required this.onSelect,
+    this.menuWidth,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+  State<_ContextMenuCard> createState() => _ContextMenuCardState();
+}
 
-    final backgroundColor = isDark ? const Color(0xFF1B1D24) : Colors.white;
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.black.withValues(alpha: 0.10);
+class _ContextMenuCardState extends State<_ContextMenuCard> {
+  int _hoveredIndex = -1;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = CentrodeDerivedPalette.of(context);
+
+    final backgroundColor = palette.surface.cardBackground;
+    final borderColor = palette.surface.borderSubtle;
 
     return Material(
       color: Colors.transparent,
       child: Container(
+        width: widget.menuWidth,
         padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 5.0),
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -255,47 +284,42 @@ class _ContextMenuCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+              color: Colors.black.withValues(alpha: 0.35),
               blurRadius: 2.0,
               offset: const Offset(0, 1),
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.10),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 12.0,
               offset: const Offset(0, 6),
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.06),
+              color: Colors.black.withValues(alpha: 0.18),
               blurRadius: 24.0,
               offset: const Offset(0, 12),
             ),
           ],
         ),
         child: SingleChildScrollView(
-          child: IntrinsicWidth(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (int i = 0; i < items.length; i++)
-                  _buildEntry(context, items[i], isFocused: i == focusedIndex, isDark: isDark),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (int i = 0; i < widget.items.length; i++)
+                _buildEntry(context, widget.items[i], i),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildEntry(BuildContext context, ContextMenuItem item,
-      {required bool isFocused, required bool isDark}) {
+  Widget _buildEntry(BuildContext context, ContextMenuItem item, int index) {
     if (item.isDivider) {
       return Container(
         height: UiStrokeWidth.subtle,
         margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.08),
+        color: Theme.of(context).dividerColor,
       );
     }
 
@@ -315,37 +339,48 @@ class _ContextMenuCard extends StatelessWidget {
       );
     }
 
+    final isFocused = index == widget.focusedIndex;
+    final isHovered = index == _hoveredIndex;
+
+    if (item.builder != null) {
+      return MouseRegion(
+        onEnter: (_) => setState(() => _hoveredIndex = index),
+        onExit: (_) => setState(() => _hoveredIndex = -1),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: item.onTap,
+          child: item.builder!(context, isFocused || isHovered),
+        ),
+      );
+    }
+
     return _ContextMenuItemRow(
       item: item,
       isFocused: isFocused,
-      onTap: () => onSelect(item),
+      isHovered: isHovered,
+      onTap: () => widget.onSelect(item),
     );
   }
 }
 
-class _ContextMenuItemRow extends StatefulWidget {
+class _ContextMenuItemRow extends StatelessWidget {
   final ContextMenuItem item;
   final bool isFocused;
+  final bool isHovered;
   final VoidCallback onTap;
 
   const _ContextMenuItemRow({
     required this.item,
     required this.isFocused,
+    required this.isHovered,
     required this.onTap,
   });
 
   @override
-  State<_ContextMenuItemRow> createState() => _ContextMenuItemRowState();
-}
-
-class _ContextMenuItemRowState extends State<_ContextMenuItemRow> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDestructive = widget.item.isDestructive;
-    final isActive = _isHovered || widget.isFocused;
+    final isDestructive = item.isDestructive;
+    final isActive = isHovered || isFocused;
 
     final baseTextColor = isDestructive
         ? const Color(0xFFFF5C5C)
@@ -357,11 +392,9 @@ class _ContextMenuItemRowState extends State<_ContextMenuItemRow> {
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
+        onTap: onTap,
         child: Container(
           height: UiControlSize.standard,
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -371,9 +404,9 @@ class _ContextMenuItemRowState extends State<_ContextMenuItemRow> {
           ),
           child: Row(
             children: [
-              if (widget.item.leadingIcon != null) ...[
+              if (item.leadingIcon != null) ...[
                 Icon(
-                  widget.item.leadingIcon,
+                  item.leadingIcon,
                   size: UiIconSize.dense,
                   color: isDestructive
                       ? const Color(0xFFFF5C5C)
@@ -383,7 +416,7 @@ class _ContextMenuItemRowState extends State<_ContextMenuItemRow> {
               ],
               Expanded(
                 child: Text(
-                  widget.item.label,
+                  item.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -393,10 +426,10 @@ class _ContextMenuItemRowState extends State<_ContextMenuItemRow> {
                   ),
                 ),
               ),
-              if (widget.item.shortcut != null) ...[
+              if (item.shortcut != null) ...[
                 const SizedBox(width: UiSpacing.standard),
                 Text(
-                  widget.item.shortcut!,
+                  item.shortcut!,
                   style: TextStyle(
                     fontSize: UiFont.micro,
                     fontFamily: 'monospace',

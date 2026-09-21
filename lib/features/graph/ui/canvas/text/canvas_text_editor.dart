@@ -277,6 +277,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       position: tapPosition,
       targetRect: editorRect,
       avoidRect: _renderState.floatingToolbarRectNotifier.value,
+      onDismissed: () { _contextMenuEntry = null; },
       items: [
         ContextMenuItem.action(
           label: 'Cut',

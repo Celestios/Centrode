@@ -43,7 +43,19 @@ class StatusMetricsWidget extends StatelessWidget {
                     const SizedBox(width: UiSpacing.standard),
                   ],
                   Text(
-                    'Nodes: ${queryController.nodeLookup.length}  |  Relations: ${queryController.relationLookup.length}',
+                    'Nodes: ${queryController.nodeLookup.length}',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      color: textColor.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const GlassDivider(
+                    useGradient: true,
+                    height: 14,
+                    width: 1.2,
+                  ),
+                  Text(
+                    'Relations: ${queryController.relationLookup.length}',
                     style: TextStyle(
                       fontSize: UiFont.compact,
                       color: textColor.withValues(alpha: 0.7),

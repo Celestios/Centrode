@@ -3,7 +3,7 @@ import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 
 typedef SegmentItem<T> = ({
-  IconData icon,
+  IconData? icon,
   String label,
   T mode,
   String? tooltip,
@@ -166,31 +166,31 @@ class _CentrodeSegmentedControlState<T>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
-                                  widget.items[i].icon,
-                                  size: UiIconSize.dense,
-                                  color: i == activeIndex
-                                      ? activeTextColor
-                                      : textColor.withValues(alpha: 0.75),
-                                ),
-                                if (!widget.isCompact) ...[
-                                  const SizedBox(width: UiSpacing.tight),
+                                if (widget.items[i].icon != null) ...[
+                                  Icon(
+                                    widget.items[i].icon!,
+                                    size: UiIconSize.dense,
+                                    color: i == activeIndex
+                                        ? activeTextColor
+                                        : textColor.withValues(alpha: 0.75),
+                                  ),
+                                  if (!widget.isCompact)
+                                    const SizedBox(width: UiSpacing.tight),
+                                ],
+                                if (!widget.isCompact)
                                   Flexible(
                                     child: Text(
                                       widget.items[i].label,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontSize: UiFont.compact,
-                                        fontWeight: i == activeIndex
-                                            ? FontWeight.bold
-                                            : FontWeight.w500,
+                                        fontWeight: FontWeight.w700,
                                         color: i == activeIndex
                                             ? activeTextColor
                                             : textColor.withValues(alpha: 0.75),
                                       ),
                                     ),
                                   ),
-                                ],
                                 if (!widget.isCompact &&
                                     widget.items[i].accentBadge != null) ...[
                                   const SizedBox(width: 3),

@@ -69,7 +69,7 @@ class AppTheme implements ThemeAnchorPaletteSource {
     // palette
     this.primaryColor = const Color(0xFF818CF8),
     this.secondaryColor = const Color(0xFF101216),
-    this.tertiaryColor = const Color(0xFFB49700),
+    this.tertiaryColor = const Color(0xFFD4B400),
     this.accentColor = const Color(0xFFF43F5E),
     this.canvasAccentColor = const Color(0xFF06B6D4),
     this.scaffoldBackgroundColor = const Color(0xFF101216),

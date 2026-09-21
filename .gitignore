@@ -54,6 +54,7 @@ app.*.symbols
 .swiftpm/
 *.class
 *.log
+*.log.old
 *.pyc
 migrate_working_dir/
 

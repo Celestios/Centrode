@@ -432,14 +432,9 @@ class _AnimatedLeftPanelState extends State<_AnimatedLeftPanel> {
       left: 76.0,
       width: isOpen ? targetWidth : 0.0,
       height: isOpen ? targetHeight : 0.0,
-      child: AnimatedOpacity(
-        duration: UiMotion.standard,
-        curve: isOpen
-            ? const Interval(0.0, 0.4, curve: Curves.easeOut)
-            : const Interval(0.7, 1.0, curve: Curves.easeIn),
-        opacity: isOpen ? 1.0 : 0.0,
-        child: IgnorePointer(
-          ignoring: !isOpen,
+      child: IgnorePointer(
+        ignoring: !isOpen,
+        child: ClipRect(
           child: OverflowBox(
             alignment: Alignment.topLeft,
             minWidth: targetWidth,

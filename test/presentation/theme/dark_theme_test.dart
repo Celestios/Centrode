@@ -23,7 +23,7 @@ void main() {
       expect(darkTheme.brightness, equals(Brightness.dark));
       expect(darkTheme.primaryColor, equals(const Color(0xFF818CF8)));
       expect(darkTheme.secondaryColor, equals(const Color(0xFF101216)));
-      expect(darkTheme.tertiaryColor, equals(const Color(0xFFB49700)));
+      expect(darkTheme.tertiaryColor, equals(const Color(0xFFD4B400)));
       expect(darkTheme.accentColor, equals(const Color(0xFFF43F5E)));
       expect(darkTheme.canvasAccentColor, equals(const Color(0xFF06B6D4)));
       final expectedSurfaces = ThemeSurfaceDerivation.deriveThemeSurfaces(

@@ -16,15 +16,13 @@ class SettingsCategorySidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = CentrodeDerivedPalette.of(context);
 
     return GlassPanel(
       width: 195.0,
       borderRadius: SettingsCanvasPod.podCornerRadius,
       border: Border.all(color: Colors.transparent, width: 0.0),
-      color: isDark
-          ? const Color(0xFF1B1B22).withValues(alpha: 0.88)
-          : Colors.white.withValues(alpha: 0.90),
+      color: palette.surface.cardBackground,
       child: Padding(
         padding: const EdgeInsets.only(
           left: 12.0,

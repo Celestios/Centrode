@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+typedef ContextMenuItemBuilder = Widget Function(BuildContext context, bool isFocused);
+
 class ContextMenuItem {
   final String label;
   final VoidCallback? onTap;
@@ -9,6 +11,7 @@ class ContextMenuItem {
   final bool isDivider;
   final bool isHeader;
   final bool visible;
+  final ContextMenuItemBuilder? builder;
 
   const ContextMenuItem({
     this.label = '',
@@ -19,6 +22,7 @@ class ContextMenuItem {
     this.isDivider = false,
     this.isHeader = false,
     this.visible = true,
+    this.builder,
   });
 
   const ContextMenuItem.action({
@@ -27,6 +31,7 @@ class ContextMenuItem {
     this.leadingIcon,
     this.shortcut,
     this.visible = true,
+    this.builder,
   })  : isDestructive = false,
         isDivider = false,
         isHeader = false;
@@ -37,6 +42,7 @@ class ContextMenuItem {
     this.leadingIcon,
     this.shortcut,
     this.visible = true,
+    this.builder,
   })  : isDestructive = true,
         isDivider = false,
         isHeader = false;
@@ -48,7 +54,8 @@ class ContextMenuItem {
         shortcut = null,
         isDestructive = false,
         isDivider = true,
-        isHeader = false;
+        isHeader = false,
+        builder = null;
 
   const ContextMenuItem.header(this.label, {this.visible = true})
       : onTap = null,
@@ -56,7 +63,8 @@ class ContextMenuItem {
         shortcut = null,
         isDestructive = false,
         isDivider = false,
-        isHeader = true;
+        isHeader = true,
+        builder = null;
 }
 
 typedef CentrodeMenuItem = ContextMenuItem;

@@ -1,9 +1,9 @@
 {
-  "primaryColor": "0xFF4CAF50",
+  "primaryColor": "0xFF66BB6A",
   "secondaryColor": "0xFF121B14",
-  "tertiaryColor": "0xFF8D6E63",
-  "accentColor": "0xFFFF8F00",
-  "canvasAccentColor": "0xFF00897B",
+  "tertiaryColor": "0xFFBCAAA4",
+  "accentColor": "0xFFFFA726",
+  "canvasAccentColor": "0xFF26A69A",
   "fontFamily": "Roboto",
   "bodyFontSize": 15.0,
   "bodyFontWeight": "w500",

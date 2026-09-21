@@ -78,6 +78,7 @@ class _HoverExpandableMenuBarState extends State<HoverExpandableMenuBar> {
       context: btnContext,
       targetRect: rect,
       items: section.items,
+      positioningMode: MenuPositioningMode.below,
       onDismissed: () {
         if (mounted) {
           setState(() => _activeSectionTitle = null);

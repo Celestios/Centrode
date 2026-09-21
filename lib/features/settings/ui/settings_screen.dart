@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import '../presentation/settings_controller.dart';
 import 'widgets/settings_category_sidebar.dart';
 import 'widgets/settings_canvas_pod.dart';
@@ -31,14 +32,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
-
-    // Contrasting background shell on which both pods sit
-    final contrastingShellColor = isDark
-        ? const Color(0xFF0A0A0E)
-        : const Color(0xFFC8C8D4);
+    final palette = CentrodeDerivedPalette.of(context);
+    final contrastingShellColor = Color.alphaBlend(
+      Colors.black.withValues(alpha: 0.2),
+      palette.theme?.secondaryColor ?? palette.surface.panelBackground,
+    ).withValues(alpha: 0.92);
 
     Widget shell = Container(
       decoration: ShapeDecoration(
