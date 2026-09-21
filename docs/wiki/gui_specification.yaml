@@ -266,23 +266,35 @@ theme:
     light:
       brightness: "light"
       primary: "#1976D2"
-      scaffold_background: "#F5F5F5"
-      card: "#FFFFFF"
-      text: "#212121"
+      secondary: "#F8FAFC"
+      tertiary: "#CBD5E1"
+      accent: "#D81B60"
+      canvas_accent: "#0097A7"
+      scaffold_background: "#F8FAFC"
+      card: "#F1F5F9"
+      text: "#000000"
 
     dark:
       brightness: "dark"
-      primary: "#9E7AFF"
-      scaffold_background: "#000000"
-      card: "#16161A"
+      primary: "#818CF8"
+      secondary: "#101216"
+      tertiary: "#B49700"
+      accent: "#F43F5E"
+      canvas_accent: "#06B6D4"
+      scaffold_background: "#101216"
+      card: "#16181E"
       text: "#FFFFFF"
 
     forest:
-      brightness: "light"
-      primary: "#2E7D32"
-      scaffold_background: "#F1F8E9"
-      card: "#FFFFFF"
-      text: "#1B5E20"
+      brightness: "dark"
+      primary: "#4CAF50"
+      secondary: "#121B14"
+      tertiary: "#8D6E63"
+      accent: "#FF8F00"
+      canvas_accent: "#00897B"
+      scaffold_background: "#121B14"
+      card: "#18241B"
+      text: "#FFFFFF"
 
 # =============================================================================
 # SECTION 2: CANVAS & GRAPH UI COMPONENTS

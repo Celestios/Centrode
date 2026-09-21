@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 
 /// Clean sub-block container within a section shell.
@@ -26,7 +27,7 @@ class _SubBlockShellState extends State<SubBlockShell> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final displayTitle = widget.title.isNotEmpty
         ? '${widget.title[0].toUpperCase()}${widget.title.substring(1)}'
         : widget.title;
@@ -78,7 +79,9 @@ class _SubBlockShellState extends State<SubBlockShell> {
                                 child: Icon(
                                   Icons.refresh_rounded,
                                   size: 15,
-                                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.55) ?? Colors.white54,
+                                  color: palette
+                                      .textOn(palette.surface.subtleBackground)
+                                      .withValues(alpha: 0.55),
                                 ),
                               ),
                             ),
@@ -93,7 +96,7 @@ class _SubBlockShellState extends State<SubBlockShell> {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.14),
+                color: palette.surface.subtleBackground,
                 borderRadius: BorderRadius.circular(UiRadius.card),
                 border: Border.all(
                   color: widget.accentColor.withValues(alpha: 0.14),

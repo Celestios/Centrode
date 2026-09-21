@@ -21,11 +21,7 @@ class NodeTypographySection extends StatelessWidget {
   final bool isItalic;
   final bool isStrikethrough;
   final String letterCase;
-  final double letterSpacing;
-  final double lineHeight;
   final bool hasUnderline;
-  final String underlineStyle;
-  final Color underlineColor;
   final String textAlign;
   final TextDirection textDirection;
   final Color accentColor;
@@ -55,11 +51,7 @@ class NodeTypographySection extends StatelessWidget {
     required this.isItalic,
     required this.isStrikethrough,
     required this.letterCase,
-    required this.letterSpacing,
-    required this.lineHeight,
     required this.hasUnderline,
-    required this.underlineStyle,
-    required this.underlineColor,
     required this.textAlign,
     required this.textDirection,
     required this.accentColor,
@@ -280,7 +272,7 @@ class NodeTypographySection extends StatelessWidget {
                 width: UiStrokeWidth.subtle,
                 height: 18,
                 margin: UiInsets.horizontalStandard,
-                color: Colors.white.withValues(alpha: 0.14),
+                color: CentrodeDerivedPalette.of(context).surface.controlBorder,
               ),
               Expanded(
                 child: Row(

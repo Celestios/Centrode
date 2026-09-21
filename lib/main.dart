@@ -26,6 +26,7 @@ class CentrodeApp extends StatelessWidget {
           color: Colors.transparent,
           debugShowCheckedModeBanner: false,
           theme: currentTheme.toThemeData(),
+          builder: (context, child) => child ?? const SizedBox.shrink(),
           home: const BootSplashScreen(
             child: WorkspaceHubScreen(),
           ),

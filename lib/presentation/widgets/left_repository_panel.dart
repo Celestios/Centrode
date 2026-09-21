@@ -41,7 +41,7 @@ class LeftRepositoryPanel extends StatelessWidget {
             child: Divider(
               height: 1,
               thickness: 0.6,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+              color: theme.dividerColor,
             ),
           ),
           Flexible(child: child),

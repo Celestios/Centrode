@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/widgets/scroll_fade_mask.dart';
 import '../../presentation/settings_category.dart';
 import '../../presentation/settings_controller.dart';
 import 'floating_search_bar.dart';
@@ -159,129 +159,57 @@ class _SettingsCanvasPodState extends State<SettingsCanvasPod> {
       child: Stack(
         children: [
           Positioned.fill(
-            child: ListenableBuilder(
-              listenable: widget.controller,
-              builder: (context, _) {
-                final query = widget.controller.searchQuery;
+            child: ScrollFadeMask(
+              scrollController: _scrollController,
+              surfaceColor: isDark ? const Color(0xFF16161D) : Colors.white,
+              enableBlur: true,
+              blurSigma: 24.0,
+              clipShape: podShape,
+              enableBottomFade: false,
+              child: ListenableBuilder(
+                listenable: widget.controller,
+                builder: (context, _) {
+                  final query = widget.controller.searchQuery;
 
-                if (query.isNotEmpty) {
+                  if (query.isNotEmpty) {
+                    return SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(
+                        top: 68.0,
+                        left: UiSpacing.container,
+                        right: UiSpacing.container,
+                        bottom: 500.0, // Extra space allowing any section to reach top
+                      ),
+                      child: _buildSearchResults(query),
+                    );
+                  }
+
                   return SingleChildScrollView(
                     controller: _scrollController,
                     padding: const EdgeInsets.only(
                       top: 68.0,
                       left: UiSpacing.container,
                       right: UiSpacing.container,
-                      bottom: 500.0, // Extra space allowing any section to reach top
+                      bottom: 500.0, // Extra space allowing last section to reach top
                     ),
-                    child: _buildSearchResults(query),
-                  );
-                }
-
-                return SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.only(
-                    top: 68.0,
-                    left: UiSpacing.container,
-                    right: UiSpacing.container,
-                    bottom: 500.0, // Extra space allowing last section to reach top
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final category in SettingsCategory.values) ...[
-                        _buildSection(category, [
-                          _sectionBuilders[category]!(context, widget.controller),
-                        ]),
-                        if (category != SettingsCategory.storage)
-                          const SizedBox(height: 90.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final category in SettingsCategory.values) ...[
+                          _buildSection(category, [
+                            _sectionBuilders[category]!(context, widget.controller),
+                          ]),
+                          if (category != SettingsCategory.storage)
+                            const SizedBox(height: 90.0),
+                        ],
                       ],
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Seamless Telegram-style feathered blur header with smooth continuous multi-stop fade
-          Positioned(
-            top: 0.0,
-            left: 0.0,
-            right: 0.0,
-            height: 108.0,
-            child: ShaderMask(
-              shaderCallback: (bounds) {
-                return const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [
-                    0.0,
-                    0.20,
-                    0.40,
-                    0.58,
-                    0.72,
-                    0.84,
-                    0.93,
-                    1.0,
-                  ],
-                  colors: [
-                    Colors.black,
-                    Colors.black,
-                    Color(0xFA000000), // ~98%
-                    Color(0xCC000000), // ~80%
-                    Color(0x8C000000), // ~55%
-                    Color(0x47000000), // ~28%
-                    Color(0x14000000), // ~8%
-                    Colors.transparent,
-                  ],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.dstIn,
-              child: ClipPath(
-                clipper: const ShapeBorderClipper(shape: podShape),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [
-                          0.0,
-                          0.20,
-                          0.40,
-                          0.58,
-                          0.72,
-                          0.84,
-                          0.93,
-                          1.0,
-                        ],
-                        colors: [
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.98),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.96),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.90),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.72),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.48),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.24),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.08),
-                          (isDark ? const Color(0xFF16161D) : Colors.white)
-                              .withValues(alpha: 0.0),
-                        ],
-                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
 
-          // Pinned top controls: horizontally aligned with left pod header (top: 14.0, height: 38.0)
           Positioned(
             top: 14.0,
             left: UiSpacing.container,

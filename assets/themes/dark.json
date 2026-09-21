@@ -1,21 +1,16 @@
 {
-  "primaryColor": "0xFF9E7AFF",
-  "secondaryColor": "0xFF2DD4BF",
-  "accentColor": "0xFFFB7185",
-  "scaffoldBackgroundColor": "0xFF000000",
-  "cardColor": "0xFF16161A",
-  "dividerColor": "0xFF2A2A30",
-  "textColor": "0xFFFFFFFF",
+  "primaryColor": "0xFF818CF8",
+  "secondaryColor": "0xFF101216",
+  "tertiaryColor": "0xFFB49700",
+  "accentColor": "0xFFF43F5E",
+  "canvasAccentColor": "0xFF06B6D4",
   "fontFamily": "Roboto",
   "bodyFontSize": 14.0,
   "bodyFontWeight": "normal",
-  "bodyTextColor": "0xFFFFFFFF",
   "borderRadius": 8.0,
-  "appBarBackgroundColor": "0xFF121216",
-  "appBarForegroundColor": "0xFF9E7AFF",
   "appBarElevation": 2.0,
   "appBarTitleFontSize": 20.0,
   "appBarTitleFontWeight": "w600",
-  "useMaterial3": true,
-  "brightness": "dark"
+  "useMaterial3": true
 }
+

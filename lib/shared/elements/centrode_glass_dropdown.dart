@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
+import '../theme/theme_derived_palette.dart';
 
 class CentrodeDropdownItem<T> {
   final T value;
@@ -38,16 +39,16 @@ class CentrodeGlassDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
 
     final dropdownBox = Container(
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: UiSpacing.standard),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28),
+        color: palette.surface.controlBackground,
         borderRadius: BorderRadius.circular(UiRadius.control),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: palette.surface.controlBorder,
           width: UiStrokeWidth.subtle,
         ),
       ),
@@ -58,19 +59,22 @@ class CentrodeGlassDropdown<T> extends StatelessWidget {
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             size: UiIconSize.dense,
-            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+            color: palette.surface.controlForeground.withValues(alpha: 0.6),
           ),
-          dropdownColor: const Color(0xFF151820),
+          dropdownColor: palette.surface.cardBackground,
           borderRadius: BorderRadius.circular(UiRadius.card),
           style: TextStyle(
             fontSize: UiFont.micro,
             fontWeight: FontWeight.w600,
-            color: theme.textTheme.bodyMedium?.color ?? Colors.white,
+            color: palette.surface.controlForeground,
           ),
           onChanged: (val) {
             if (val != null) onSelected(val);
           },
           items: items.map((item) {
+            final itemColor = item.value == selectedValue
+                ? activeColor
+                : palette.textOn(palette.surface.cardBackground).withValues(alpha: 0.85);
             return DropdownMenuItem<T>(
               value: item.value,
               child: Text(
@@ -78,9 +82,7 @@ class CentrodeGlassDropdown<T> extends StatelessWidget {
                 style: item.previewStyle ??
                     TextStyle(
                       fontSize: UiFont.compact,
-                      color: item.value == selectedValue
-                          ? activeColor
-                          : Colors.white.withValues(alpha: 0.85),
+                      color: itemColor,
                     ),
               ),
             );
@@ -107,8 +109,8 @@ class CentrodeGlassDropdown<T> extends StatelessWidget {
               style: TextStyle(
                 fontSize: UiFont.micro,
                 fontWeight: FontWeight.w500,
-                color: theme.textTheme.bodyMedium?.color
-                    ?.withValues(alpha: 0.7),
+                color: palette.surface.controlForeground
+                    .withValues(alpha: 0.7),
               ),
             ),
           ),

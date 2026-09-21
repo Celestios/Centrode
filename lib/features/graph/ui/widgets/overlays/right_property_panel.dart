@@ -118,7 +118,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     int nodeCount,
     int relationCount,
   ) {
-    final relationColor = Colors.amber.shade600;
+    final relationColor = Theme.of(context).colorScheme.tertiary;
     final showBadges = isSelected && !_isExpanded;
 
     return PanelResizeHandle(
@@ -209,27 +209,24 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
   ) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final amberColor = Colors.amber.shade600;
+    final tertiaryColor = theme.colorScheme.tertiary;
 
     final isNothingSelected = nodeCount == 0 && relationCount == 0;
-    final isOnlyNodes = nodeCount > 0 && relationCount == 0;
     final isOnlyRelations = relationCount > 0 && nodeCount == 0;
 
-    final Color panelEdgeColor = isNothingSelected
-        ? Colors.white.withValues(alpha: 0.25)
-        : isOnlyNodes
-            ? primaryColor.withValues(alpha: 0.65)
-            : isOnlyRelations
-                ? amberColor.withValues(alpha: 0.65)
-                : primaryColor.withValues(alpha: 0.65);
+    final Border? panelBorder = isNothingSelected
+        ? null
+        : Border.all(
+            color: isOnlyRelations
+                ? tertiaryColor.withValues(alpha: 0.65)
+                : primaryColor.withValues(alpha: 0.65),
+            width: UiStrokeWidth.standard,
+          );
 
     return GlassPanel(
       borderRadius: UiRadius.panel,
       blur: 12.0,
-      border: Border.all(
-        color: panelEdgeColor,
-        width: UiStrokeWidth.standard,
-      ),
+      border: panelBorder,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
         child: Column(
@@ -349,15 +346,16 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
     return ValueListenableBuilder<InspectorTab>(
       valueListenable: renderState.activeInspectorTabNotifier,
       builder: (context, activeTab, _) {
+        final palette = CentrodeDerivedPalette.of(context);
         final isAppearance = activeTab == InspectorTab.appearance;
 
         return Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: palette.surface.subtleBackground,
             borderRadius: BorderRadius.circular(UiRadius.card),
             border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.1),
+              color: palette.surface.controlBorder,
               width: UiStrokeWidth.subtle,
             ),
           ),

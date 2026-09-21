@@ -14,6 +14,9 @@ class QuickActionsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
+    final iconColor = palette.textOn(palette.surface.panelBackground).withValues(alpha: 0.75);
+    final textColor = palette.textOn(palette.surface.panelBackground);
 
     return Padding(
       padding: UiInsets.container,
@@ -24,10 +27,10 @@ class QuickActionsSection extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.folder_open_outlined,
-              color: theme.iconTheme.color,
+              color: iconColor,
               size: UiIconSize.standard,
             ),
-            title: Text(UiStrings.common.open, style: theme.textTheme.bodyMedium),
+            title: Text(UiStrings.common.open, style: theme.textTheme.bodyMedium?.copyWith(color: textColor)),
             onTap: () async {
               final result = await FilePicker.platform.pickFiles(
                 type: FileType.custom,
@@ -50,10 +53,10 @@ class QuickActionsSection extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.upload_outlined,
-              color: theme.iconTheme.color,
+              color: iconColor,
               size: UiIconSize.standard,
             ),
-            title: Text('Import', style: theme.textTheme.bodyMedium),
+            title: Text('Import', style: theme.textTheme.bodyMedium?.copyWith(color: textColor)),
             onTap: () {},
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -73,13 +76,14 @@ class _ReturnToMapButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
 
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
         final hasOpenMaps = controller.hasOpenMaps;
         final primaryColor = theme.colorScheme.primary;
-        final disabledColor = theme.disabledColor;
+        final disabledColor = palette.surface.controlForeground.withValues(alpha: 0.35);
 
         final buttonColor = hasOpenMaps ? primaryColor : disabledColor;
 
@@ -100,12 +104,18 @@ class _ReturnToMapButton extends StatelessWidget {
               borderRadius: 10,
               color: hasOpenMaps
                   ? (isHovered
-                        ? primaryColor.withValues(alpha: 0.18)
-                        : primaryColor.withValues(alpha: 0.1))
-                  : theme.cardColor.withValues(alpha: 0.3),
+                        ? Color.alphaBlend(primaryColor.withValues(alpha: 0.22), palette.surface.controlBackground)
+                        : Color.alphaBlend(primaryColor.withValues(alpha: 0.12), palette.surface.controlBackground))
+                  : palette.surface.controlBackground.withValues(alpha: 0.45),
+              border: Border.all(
+                color: hasOpenMaps
+                    ? primaryColor.withValues(alpha: isHovered ? 0.6 : 0.4)
+                    : palette.surface.controlBorder,
+                width: UiStrokeWidth.subtle,
+              ),
               shadow: hasOpenMaps && isHovered
                   ? BoxShadow(
-                      color: primaryColor.withValues(alpha: 0.1),
+                      color: primaryColor.withValues(alpha: 0.15),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     )

@@ -1,6 +1,6 @@
 use crate::common::setup_test_repo;
 use centrode_core::domain::id::TypedRecordId;
-use centrode_core::domain::theme::{FontWeight, MapTheme, ThemeBrightness, ThemeFields};
+use centrode_core::domain::theme::{FontWeight, MapTheme, ThemeFields};
 use centrode_core::domain::traits::TableKind;
 use centrode_core::repo::traits::{SnapshotRepository, ThemeRepository};
 
@@ -12,24 +12,17 @@ async fn test_theme_crud_and_active_theme() {
         name: "My Dark Theme".to_string(),
         primary_color: 0x112233,
         secondary_color: 0x445566,
+        tertiary_color: 0x556677,
         accent_color: 0x778899,
         canvas_accent_color: 0x2196F3,
-        scaffold_background_color: 0x000000,
-        card_color: 0x222222,
-        divider_color: 0x333333,
-        text_color: 0xffffff,
         font_family: "Roboto".to_string(),
         body_font_size: 14.0,
         body_font_weight: FontWeight(3),
-        body_text_color: 0xdddddd,
         border_radius: 8.0,
-        app_bar_background_color: 0x111111,
-        app_bar_foreground_color: 0xeeeeee,
         app_bar_elevation: 4.0,
         app_bar_title_font_size: 18.0,
         app_bar_title_font_weight: FontWeight(6),
         use_material3: true,
-        brightness: ThemeBrightness::Dark,
     };
 
     let theme_id = TypedRecordId::new_v4(TableKind::MapTheme);
@@ -96,24 +89,17 @@ async fn test_delete_theme() {
         name: "Deletable Theme".to_string(),
         primary_color: 0x000000,
         secondary_color: 0x111111,
+        tertiary_color: 0x1a1a1a,
         accent_color: 0x222222,
         canvas_accent_color: 0x333333,
-        scaffold_background_color: 0x000000,
-        card_color: 0x111111,
-        divider_color: 0x222222,
-        text_color: 0xffffff,
         font_family: "Roboto".to_string(),
         body_font_size: 14.0,
         body_font_weight: FontWeight(4),
-        body_text_color: 0xdddddd,
         border_radius: 8.0,
-        app_bar_background_color: 0x111111,
-        app_bar_foreground_color: 0xeeeeee,
         app_bar_elevation: 4.0,
         app_bar_title_font_size: 18.0,
         app_bar_title_font_weight: FontWeight(6),
         use_material3: true,
-        brightness: ThemeBrightness::Light,
     };
 
     let theme_id = TypedRecordId::new_v4(TableKind::MapTheme);

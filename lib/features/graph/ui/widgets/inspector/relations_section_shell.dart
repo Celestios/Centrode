@@ -10,6 +10,7 @@ import 'components/compact_slider_box.dart';
 import 'components/glass_color_pill_button.dart';
 import 'components/relation_shape_definitions.dart';
 import 'showcase/relation_showcase_card.dart';
+import 'sections/relation_stroke_section.dart';
 
 class RelationsSectionShell extends StatefulWidget {
   final bool isGlobal;
@@ -108,10 +109,28 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
     }
   }
 
+  void _updateRelationsStyle(
+    NodeRenderState renderState,
+    List<UiRelation> relations,
+    RelationStyle Function(RelationStyle current) updater,
+  ) {
+    for (final rel in relations) {
+      final currentStyle = rel.style ?? rel.resolvedStyle;
+      if (currentStyle != null) {
+        renderState.updateRelationStyle(
+          rel.id,
+          updater(currentStyle),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryAccent = theme.colorScheme.primary;
+    final previewAccent = CentrodeDerivedPalette.of(context).theme?.canvasAccentColor ??
+        const Color(0xFF06B6D4);
     final effectiveRenderState = _getRenderState(context);
 
     final selectedRelations = _getSelectedRelations(effectiveRenderState);
@@ -140,7 +159,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
     return ShowcaseSectionShell(
       title: 'Relation',
       icon: Icons.link_rounded,
-      accentColor: primaryAccent,
+      accentColor: previewAccent,
       badgeText: badgeText,
       showcase: RelationShowcaseCard(
         labelShape: _selectedShape,
@@ -155,8 +174,7 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
         strokeWidth: _strokeWidth,
         startCap: _startCap,
         endCap: _endCap,
-        crossingStrategy: _crossingStrategy,
-        accentColor: _lineColor ?? primaryAccent,
+        accentColor: _lineColor ?? previewAccent,
       ),
       child: Column(
         children: [
@@ -185,15 +203,11 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                   isCompact: false,
                   onSelected: (val) {
                     setState(() => _selectedShape = val);
-                    for (final rel in selectedRelations) {
-                      final currentStyle = rel.style ?? rel.resolvedStyle;
-                      if (currentStyle != null) {
-                        effectiveRenderState.updateRelationStyle(
-                          rel.id,
-                          currentStyle.copyWith(bodyStrategy: val),
-                        );
-                      }
-                    }
+                    _updateRelationsStyle(
+                      effectiveRenderState,
+                      selectedRelations,
+                      (s) => s.copyWith(bodyStrategy: val),
+                    );
                   },
                 ),
                 const SizedBox(height: UiSpacing.tight),
@@ -211,15 +225,11 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         isCompact: false,
                         onSelected: (val) {
                           setState(() => _selectedFill = val);
-                          for (final rel in selectedRelations) {
-                            final currentStyle = rel.style ?? rel.resolvedStyle;
-                            if (currentStyle != null) {
-                              effectiveRenderState.updateRelationStyle(
-                                rel.id,
-                                currentStyle.copyWith(bodyStrategy: val),
-                              );
-                            }
-                          }
+                          _updateRelationsStyle(
+                            effectiveRenderState,
+                            selectedRelations,
+                            (s) => s.copyWith(bodyStrategy: val),
+                          );
                         },
                       ),
                     ),
@@ -232,17 +242,13 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         activeColor: primaryAccent,
                         onSelected: (val) {
                           setState(() => _labelBgColor = val);
-                          for (final rel in selectedRelations) {
-                            final currentStyle = rel.style ?? rel.resolvedStyle;
-                            if (currentStyle != null) {
-                              effectiveRenderState.updateRelationStyle(
-                                rel.id,
-                                currentStyle.copyWith(
-                                  bgColor: (val ?? primaryAccent).toARGB32(),
-                                ),
-                              );
-                            }
-                          }
+                          _updateRelationsStyle(
+                            effectiveRenderState,
+                            selectedRelations,
+                            (s) => s.copyWith(
+                              bgColor: (val ?? primaryAccent).toARGB32(),
+                            ),
+                          );
                         },
                         options: [
                           const ColorPillOption(value: null, label: 'Accent', isNone: true),
@@ -312,15 +318,11 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         isCompact: false,
                         onSelected: (val) {
                           setState(() => _selectedFont = val);
-                          for (final rel in selectedRelations) {
-                            final currentStyle = rel.style ?? rel.resolvedStyle;
-                            if (currentStyle != null) {
-                              effectiveRenderState.updateRelationStyle(
-                                rel.id,
-                                currentStyle.copyWith(fontFamily: val),
-                              );
-                            }
-                          }
+                          _updateRelationsStyle(
+                            effectiveRenderState,
+                            selectedRelations,
+                            (s) => s.copyWith(fontFamily: val),
+                          );
                         },
                       ),
                     ),
@@ -336,15 +338,11 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                         activeColor: primaryAccent,
                         onChanged: (val) {
                           setState(() => _fontSize = val);
-                          for (final rel in selectedRelations) {
-                            final currentStyle = rel.style ?? rel.resolvedStyle;
-                            if (currentStyle != null) {
-                              effectiveRenderState.updateRelationStyle(
-                                rel.id,
-                                currentStyle.copyWith(fontSize: val),
-                              );
-                            }
-                          }
+                          _updateRelationsStyle(
+                            effectiveRenderState,
+                            selectedRelations,
+                            (s) => s.copyWith(fontSize: val),
+                          );
                         },
                       ),
                     ),
@@ -378,15 +376,11 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                           onSelected: (idx) {
                             final newStrategy = kAvailableRoutingStrategies[idx].id;
                             setState(() => _routingStrategy = newStrategy);
-                            for (final rel in selectedRelations) {
-                              final currentStyle = rel.style ?? rel.resolvedStyle;
-                              if (currentStyle != null) {
-                                effectiveRenderState.updateRelationStyle(
-                                  rel.id,
-                                  currentStyle.copyWith(strategyType: newStrategy),
-                                );
-                              }
-                            }
+                            _updateRelationsStyle(
+                              effectiveRenderState,
+                              selectedRelations,
+                              (s) => s.copyWith(strategyType: newStrategy),
+                            );
                           },
                           theme: UnravelSliderThemeData(
                             accentColor: primaryAccent,
@@ -394,7 +388,8 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                             cellHeight: 46.0,
                             trackBorderRadius: const BorderRadius.all(Radius.circular(8)),
                             handleBorderRadius: const BorderRadius.all(Radius.circular(6)),
-                            trackBackgroundColor: Colors.black.withValues(alpha: 0.22),
+                            trackBackgroundColor:
+                                CentrodeDerivedPalette.of(context).surface.controlBackground,
                           ),
                           itemBuilder: (context, item, focus, isSelected) {
                             final iconColor = isSelected
@@ -429,9 +424,19 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
             ),
           ),
 
-          SubBlockShell(
-            title: 'Stroke & Caps',
+          RelationStrokeSection(
+            renderState: effectiveRenderState,
+            strokePattern: _strokePattern,
+            strokeWidth: _strokeWidth,
+            lineColor: _lineColor,
+            startCap: _startCap,
+            endCap: _endCap,
             accentColor: primaryAccent,
+            onStrokePatternChanged: (val) => setState(() => _strokePattern = val),
+            onLineColorChanged: (val) => setState(() => _lineColor = val),
+            onStartCapChanged: (val) => setState(() => _startCap = val),
+            onEndCapChanged: (val) => setState(() => _endCap = val),
+            onStrokeWidthChanged: (val) => setState(() => _strokeWidth = val),
             onReset: () {
               setState(() {
                 _strokePattern = 'solid';
@@ -441,117 +446,6 @@ class _RelationsSectionShellState extends State<RelationsSectionShell> {
                 _endCap = 'arrow';
               });
             },
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: CentrodeSegmentedControl<String>(
-                        items: const [
-                          (icon: Icons.horizontal_rule, label: 'Solid', mode: 'solid', tooltip: null, accentBadge: null),
-                          (icon: Icons.linear_scale, label: 'Dash', mode: 'dashed', tooltip: null, accentBadge: null),
-                          (icon: Icons.grain, label: 'Dot', mode: 'dotted', tooltip: null, accentBadge: null),
-                        ],
-                        currentMode: _strokePattern,
-                        isCompact: false,
-                        onSelected: (val) {
-                          setState(() => _strokePattern = val);
-                          for (final rel in selectedRelations) {
-                            final currentStyle = rel.style ?? rel.resolvedStyle;
-                            if (currentStyle != null) {
-                              effectiveRenderState.updateRelationStyle(
-                                rel.id,
-                                currentStyle.copyWith(strokePattern: val),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: UiSpacing.standard),
-                    Expanded(
-                      flex: 1,
-                      child: GlassColorPillButton<Color?>(
-                        label: 'color',
-                        selectedValue: _lineColor,
-                        activeColor: primaryAccent,
-                        onSelected: (val) {
-                          setState(() => _lineColor = val);
-                          for (final rel in selectedRelations) {
-                            final currentStyle = rel.style ?? rel.resolvedStyle;
-                            if (currentStyle != null) {
-                              effectiveRenderState.updateRelationStyle(
-                                rel.id,
-                                currentStyle.copyWith(
-                                  strokeColor: (val ?? primaryAccent).toARGB32(),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        options: [
-                          const ColorPillOption(value: null, label: 'Accent', isNone: true),
-                          const ColorPillOption(value: Colors.white, color: Colors.white, label: 'White'),
-                          const ColorPillOption(value: Color(0xFF00E5FF), color: Color(0xFF00E5FF), label: 'Cyan'),
-                          const ColorPillOption(value: Color(0xFFFFB703), color: Color(0xFFFFB703), label: 'Amber'),
-                          const ColorPillOption(value: Color(0xFF10B981), color: Color(0xFF10B981), label: 'Emerald'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: UiSpacing.tight),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CentrodeSegmentedControl<String>(
-                        items: const [
-                          (icon: Icons.arrow_back, label: 'None', mode: 'none', tooltip: null, accentBadge: null),
-                          (icon: Icons.circle, label: 'Dot', mode: 'circle', tooltip: null, accentBadge: null),
-                        ],
-                        currentMode: _startCap,
-                        isCompact: false,
-                        onSelected: (val) => setState(() => _startCap = val),
-                      ),
-                    ),
-                    const SizedBox(width: UiSpacing.tight),
-                    Expanded(
-                      child: CentrodeSegmentedControl<String>(
-                        items: const [
-                          (icon: Icons.arrow_forward, label: 'Arrow', mode: 'arrow', tooltip: null, accentBadge: null),
-                          (icon: Icons.diamond, label: 'Diamond', mode: 'diamond', tooltip: null, accentBadge: null),
-                        ],
-                        currentMode: _endCap,
-                        isCompact: false,
-                        onSelected: (val) => setState(() => _endCap = val),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: UiSpacing.tight),
-                CompactSliderBox(
-                  label: 'Width',
-                  value: _strokeWidth,
-                  min: 0.5,
-                  max: 8.0,
-                  unit: 'px',
-                  activeColor: primaryAccent,
-                  onChanged: (val) {
-                    setState(() => _strokeWidth = val);
-                    for (final rel in selectedRelations) {
-                      final currentStyle = rel.style ?? rel.resolvedStyle;
-                      if (currentStyle != null) {
-                        effectiveRenderState.updateRelationStyle(
-                          rel.id,
-                          currentStyle.copyWith(strokeWidth: val.round()),
-                        );
-                      }
-                    }
-                  },
-                ),
-              ],
-            ),
           ),
 
           SubBlockShell(

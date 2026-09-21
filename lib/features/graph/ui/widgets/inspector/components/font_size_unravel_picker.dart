@@ -62,7 +62,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                   child: Container(
                     height: 220,
                     decoration: BoxDecoration(
-                      color: CentrodeDerivedPalette.of(context).surface.dialogBackground,
+                      color: CentrodeDerivedPalette.of(context).surface.cardBackground,
                       borderRadius: BorderRadius.circular(UiRadius.card),
                       border: Border.all(
                         color: widget.activeColor.withValues(alpha: 0.35),
@@ -70,7 +70,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.65),
+                          color: Colors.black.withValues(alpha: 0.35),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -79,6 +79,8 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final closestIdx = _findClosestIndex(widget.fontSize);
+                        final palette = CentrodeDerivedPalette.of(context);
+                        final cardText = palette.textOn(palette.surface.cardBackground);
                         return UnravelSlider<double>(
                           orientation: Axis.vertical,
                           trackHeight: constraints.maxHeight,
@@ -104,7 +106,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                                   color: isSelected
                                       ? widget.activeColor
-                                      : Colors.white.withValues(alpha: 0.4 + 0.5 * focus),
+                                      : cardText.withValues(alpha: 0.4 + 0.5 * focus),
                                 ),
                               ),
                             );
@@ -159,6 +161,13 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final baseControlBg = palette.surface.controlBackground;
+    final controlFg = palette.surface.controlForeground;
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: Container(
@@ -166,13 +175,13 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
         height: UiControlSize.standard,
         decoration: BoxDecoration(
           color: _isOpen
-              ? widget.activeColor.withValues(alpha: 0.15)
-              : Colors.black.withValues(alpha: 0.28),
+              ? widget.activeColor.withValues(alpha: isDark ? 0.28 : 0.18)
+              : baseControlBg,
           borderRadius: BorderRadius.circular(UiRadius.control),
           border: Border.all(
             color: _isOpen
                 ? widget.activeColor.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.08),
+                : palette.surface.controlBorder,
             width: UiStrokeWidth.subtle,
           ),
         ),
@@ -190,7 +199,7 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                     style: TextStyle(
                       fontSize: UiFont.standard,
                       fontWeight: FontWeight.w600,
-                      color: _isOpen ? widget.activeColor : Colors.white,
+                      color: _isOpen ? widget.activeColor : controlFg,
                     ),
                   ),
                 ),
@@ -203,18 +212,18 @@ class _FontSizeUnravelPickerState extends State<FontSizeUnravelPicker> {
                 children: [
                   GestureDetector(
                     onTap: () => widget.onChanged((widget.fontSize + 1).clamp(8, 48)),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_up_rounded,
                       size: 13,
-                      color: Colors.white60,
+                      color: controlFg.withValues(alpha: 0.60),
                     ),
                   ),
                   GestureDetector(
                     onTap: () => widget.onChanged((widget.fontSize - 1).clamp(8, 48)),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 13,
-                      color: Colors.white60,
+                      color: controlFg.withValues(alpha: 0.60),
                     ),
                   ),
                 ],

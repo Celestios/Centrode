@@ -119,7 +119,7 @@ class NodeBodyStyleSection extends StatelessWidget {
                       handleBorderRadius:
                           const BorderRadius.all(Radius.circular(6)),
                       trackBackgroundColor:
-                          Colors.black.withValues(alpha: 0.22),
+                          CentrodeDerivedPalette.of(context).surface.controlBackground,
                     ),
                     itemBuilder: (context, item, focus, isSelected) {
                       final iconColor = isSelected

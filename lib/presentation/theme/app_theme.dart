@@ -1,7 +1,9 @@
 // lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
+import 'package:centrode/shared/theme/theme_surface_derivation.dart';
 
-class AppTheme {
+class AppTheme implements ThemeAnchorPaletteSource {
   static const List<FontWeight> fontWeights = [
     FontWeight.w100,
     FontWeight.w200,
@@ -19,9 +21,15 @@ class AppTheme {
   }
 
   // ── Core palette ──────────────────────────────
+  @override
   final Color primaryColor;
+  @override
   final Color secondaryColor;
+  @override
+  final Color tertiaryColor;
+  @override
   final Color accentColor;
+  @override
   final Color canvasAccentColor;
   final Color scaffoldBackgroundColor;
   final Color cardColor;
@@ -46,6 +54,7 @@ class AppTheme {
 
   // ── Material 3 & Brightness ───────────────────
   final bool useMaterial3;
+  @override
   final Brightness brightness;
 
   Color get hoverAccentColor =>
@@ -58,30 +67,31 @@ class AppTheme {
 
   const AppTheme({
     // palette
-    this.primaryColor = const Color(0xFF1976D2),
-    this.secondaryColor = const Color(0xFF47A2FF),
-    this.accentColor = const Color(0xFFFF4081),
-    this.canvasAccentColor = const Color(0xFF2196F3),
-    this.scaffoldBackgroundColor = const Color(0xFFF5F5F5),
-    this.cardColor = Colors.white,
-    this.dividerColor = const Color(0xFFBDBDBD),
-    this.textColor = const Color(0xFF212121),
+    this.primaryColor = const Color(0xFF818CF8),
+    this.secondaryColor = const Color(0xFF101216),
+    this.tertiaryColor = const Color(0xFFB49700),
+    this.accentColor = const Color(0xFFF43F5E),
+    this.canvasAccentColor = const Color(0xFF06B6D4),
+    this.scaffoldBackgroundColor = const Color(0xFF101216),
+    this.cardColor = const Color(0xFF16181E),
+    this.dividerColor = const Color(0x1AFFFFFF),
+    this.textColor = const Color(0xFFF8FAFC),
     // typography
     this.fontFamily = 'Roboto',
     this.bodyFontSize = 14.0,
     this.bodyFontWeight = FontWeight.normal,
-    this.bodyTextColor = const Color(0xFF212121),
+    this.bodyTextColor = const Color(0xFFF8FAFC),
     // shape
     this.borderRadius = 8.0,
     // appbar
-    this.appBarBackgroundColor = const Color(0xFF1976D2),
-    this.appBarForegroundColor = Colors.white,
-    this.appBarElevation = 0.0,
+    this.appBarBackgroundColor = const Color(0xFF101216),
+    this.appBarForegroundColor = const Color(0xFFFFFFFF),
+    this.appBarElevation = 2.0,
     this.appBarTitleFontSize = 20.0,
     this.appBarTitleFontWeight = FontWeight.w600,
     // material
     this.useMaterial3 = true,
-    this.brightness = Brightness.light,
+    this.brightness = Brightness.dark,
   });
 
   ThemeData toThemeData() {
@@ -93,6 +103,16 @@ class AppTheme {
       cardColor: cardColor,
       dividerColor: dividerColor,
       fontFamily: fontFamily,
+      extensions: [
+        CentrodeThemeExtension(
+          palette: CentrodeDerivedPalette.fromSource(this),
+        ),
+      ],
+
+      // ── Icons ──
+      iconTheme: IconThemeData(
+        color: textColor.withValues(alpha: 0.75),
+      ),
 
       // ── Cards ──
       cardTheme: CardThemeData(
@@ -134,7 +154,7 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         secondary: secondaryColor,
-        tertiary: accentColor,
+        tertiary: tertiaryColor,
         brightness: brightness,
         surface: cardColor,
       ),
@@ -147,24 +167,17 @@ class AppTheme {
     return {
       'primaryColor': primaryColor.toARGB32(),
       'secondaryColor': secondaryColor.toARGB32(),
+      'tertiaryColor': tertiaryColor.toARGB32(),
       'accentColor': accentColor.toARGB32(),
       'canvasAccentColor': canvasAccentColor.toARGB32(),
-      'scaffoldBackgroundColor': scaffoldBackgroundColor.toARGB32(),
-      'cardColor': cardColor.toARGB32(),
-      'dividerColor': dividerColor.toARGB32(),
-      'textColor': textColor.toARGB32(),
       'fontFamily': fontFamily,
       'bodyFontSize': bodyFontSize,
       'bodyFontWeight': fontWeightToIndex(bodyFontWeight),
-      'bodyTextColor': bodyTextColor.toARGB32(),
       'borderRadius': borderRadius,
-      'appBarBackgroundColor': appBarBackgroundColor.toARGB32(),
-      'appBarForegroundColor': appBarForegroundColor.toARGB32(),
       'appBarElevation': appBarElevation,
       'appBarTitleFontSize': appBarTitleFontSize,
       'appBarTitleFontWeight': fontWeightToIndex(appBarTitleFontWeight),
       'useMaterial3': useMaterial3,
-      'brightness': brightness.name,
     };
   }
 
@@ -179,16 +192,6 @@ class AppTheme {
         return Color(int.parse('FF$hex', radix: 16));
       }
       throw FormatException('Invalid color value for $fieldName: $value');
-    }
-
-    Color? parseColorOptional(dynamic value) {
-      if (value == null) return null;
-      if (value is int) return Color(value);
-      if (value is String) {
-        final hex = value.replaceFirst('#', '').replaceFirst('0x', '');
-        return Color(int.parse('FF$hex', radix: 16));
-      }
-      return null;
     }
 
     FontWeight parseWeight(dynamic value, {FontWeight? fallback}) {
@@ -229,58 +232,53 @@ class AppTheme {
       throw FormatException('Invalid font weight type: $value');
     }
 
-    final brightnessStr = map['brightness'] as String?;
-    final brightness = brightnessStr == 'dark'
-        ? Brightness.dark
-        : Brightness.light;
+    final primaryColor = parseColor(
+      map['primaryColor'],
+      fieldName: 'primaryColor',
+    );
+    final secondaryColor = parseColor(
+      map['secondaryColor'],
+      fieldName: 'secondaryColor',
+    );
+    final tertiaryColor = parseColor(
+      map['tertiaryColor'],
+      fieldName: 'tertiaryColor',
+    );
+    final accentColor = parseColor(
+      map['accentColor'],
+      fieldName: 'accentColor',
+    );
+    final canvasAccentColor = parseColor(
+      map['canvasAccentColor'],
+      fieldName: 'canvasAccentColor',
+    );
+
+    // Intelligently derive brightness, surfaces, borders, and text from the 5 anchors
+    final surfaces = ThemeSurfaceDerivation.deriveThemeSurfaces(
+      primary: primaryColor,
+      secondary: secondaryColor,
+      tertiary: tertiaryColor,
+      anchors: [primaryColor, secondaryColor, tertiaryColor, accentColor, canvasAccentColor],
+    );
 
     return AppTheme(
-      primaryColor: parseColor(
-        map['primaryColor'],
-        fieldName: 'primaryColor',
-      ),
-      secondaryColor: parseColor(
-        map['secondaryColor'],
-        fieldName: 'secondaryColor',
-      ),
-      accentColor: parseColor(
-        map['accentColor'],
-        fieldName: 'accentColor',
-      ),
-      canvasAccentColor: parseColorOptional(map['canvasAccentColor']) ?? parseColor(
-        map['primaryColor'],
-        fieldName: 'primaryColor',
-      ),
-      scaffoldBackgroundColor: parseColor(
-        map['scaffoldBackgroundColor'],
-        fieldName: 'scaffoldBackgroundColor',
-      ),
-      cardColor: parseColor(map['cardColor'], fieldName: 'cardColor'),
-      dividerColor: parseColor(
-        map['dividerColor'],
-        fieldName: 'dividerColor',
-      ),
-      textColor: parseColor(
-        map['textColor'],
-        fieldName: 'textColor',
-      ),
+      primaryColor: primaryColor,
+      secondaryColor: secondaryColor,
+      tertiaryColor: tertiaryColor,
+      accentColor: accentColor,
+      canvasAccentColor: canvasAccentColor,
+      scaffoldBackgroundColor: surfaces.scaffoldBackground,
+      cardColor: surfaces.card,
+      dividerColor: surfaces.divider,
+      textColor: surfaces.text,
+      bodyTextColor: surfaces.text,
       fontFamily: map['fontFamily'] as String? ?? 'Roboto',
       bodyFontSize: (map['bodyFontSize'] as num?)?.toDouble() ?? 14.0,
       bodyFontWeight: parseWeight(map['bodyFontWeight'], fallback: FontWeight.normal),
-      bodyTextColor: parseColor(
-        map['bodyTextColor'],
-        fieldName: 'bodyTextColor',
-      ),
       borderRadius: (map['borderRadius'] as num?)?.toDouble() ?? 8.0,
-      appBarBackgroundColor: parseColor(
-        map['appBarBackgroundColor'],
-        fieldName: 'appBarBackgroundColor',
-      ),
-      appBarForegroundColor: parseColor(
-        map['appBarForegroundColor'],
-        fieldName: 'appBarForegroundColor',
-      ),
-      appBarElevation: (map['appBarElevation'] as num?)?.toDouble() ?? 0.0,
+      appBarBackgroundColor: surfaces.appBarBackground,
+      appBarForegroundColor: surfaces.appBarForeground,
+      appBarElevation: (map['appBarElevation'] as num?)?.toDouble() ?? 2.0,
       appBarTitleFontSize:
           (map['appBarTitleFontSize'] as num?)?.toDouble() ?? 20.0,
       appBarTitleFontWeight: parseWeight(
@@ -288,7 +286,7 @@ class AppTheme {
         fallback: FontWeight.w600,
       ),
       useMaterial3: map['useMaterial3'] as bool? ?? true,
-      brightness: brightness,
+      brightness: surfaces.brightness,
     );
   }
 }

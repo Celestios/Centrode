@@ -43,11 +43,23 @@ lib/features/workspace/
 ## Key Components
 
 - **WorkspaceHubScreen** — Root screen, assembles left panel + main content
-- **LeftPanel** — Navigation sidebar with quick actions
-- **MainContentArea** — Displays maps, projects, templates, recent items
+- **LeftPanel** — Navigation sidebar with quick actions, settings, and account tiles, styled via `palette.surface.panelBackground` and `palette.textOn(...)`
+- **MainContentArea** — Displays maps, projects, templates, and recent items over `palette.surface.workspaceBackground`
+- **AnalyticsBox** — Bottom usage analytics placeholder styled via `palette.surface.subtleBackground` and `palette.surface.controlBorder`
 - **MapSection/MapsSection** — Map cards with preview, open, delete actions
 - **ProjectsSection** — Project management
 - **TemplatesSection** — Template browsing and instantiation
+
+---
+
+## Surface Styling & Optical Hierarchy
+
+The workspace hub strictly uses dynamic surfaces derived from the active theme's `secondaryColor` via the [Color Philosophy](../../design/color-philosophy.md#6-neutral-surfaces-and-optical-elevation-model):
+
+- **Workspace Canvas**: Grounded in pure black (`#000000`, $L = 0.0$) in dark mode, and an eye-friendly, glare-free soft off-white ($L = 0.96$) in light mode (`palette.surface.workspaceBackground`).
+- **Left Sidebar**: Distinctly separated rail styled via `palette.surface.panelBackground` ($L = \text{secOklch.l} + 0.04$ in light mode), with list tile text and icons dynamically contrasting via `palette.textOn(panelBackground)`.
+- **Floating Cards**: Elevated cards with pure/near-pure white surfaces in light mode (`palette.surface.cardBackground`, $L = 1.0$) and elevated dark surfaces in dark mode, floating with depth above the canvas.
+- **Subtle Placeholders**: Containers like `AnalyticsBox` use `palette.surface.subtleBackground` and `palette.surface.controlBorder`, cleanly integrating into the hierarchy without unstyled voids.
 
 ---
 

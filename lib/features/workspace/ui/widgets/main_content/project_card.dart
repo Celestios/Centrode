@@ -62,6 +62,8 @@ class _ProjectCardState extends State<ProjectCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
+    final primaryColor = theme.colorScheme.primary;
 
     return RepaintBoundary(
       child: MouseRegion(
@@ -70,12 +72,22 @@ class _ProjectCardState extends State<ProjectCard> {
         child: GlassPanel(
           borderRadius: UiRadius.panel,
           enableBackdrop: false,
-          color: _isHovered || widget.isSelected
-              ? theme.colorScheme.primary.withValues(alpha: 0.12)
-              : theme.cardColor.withValues(alpha: 0.65),
+          color: widget.isSelected
+              ? Color.alphaBlend(primaryColor.withValues(alpha: 0.22), palette.surface.cardBackground)
+              : _isHovered
+                  ? Color.alphaBlend(primaryColor.withValues(alpha: 0.10), palette.surface.cardBackground)
+                  : palette.surface.cardBackground,
+          border: Border.all(
+            color: widget.isSelected
+                ? primaryColor
+                : (_isHovered
+                    ? primaryColor.withValues(alpha: 0.5)
+                    : palette.surface.controlBorder),
+            width: UiStrokeWidth.subtle,
+          ),
           shadow: _isHovered || widget.isSelected
               ? BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  color: primaryColor.withValues(alpha: 0.15),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 )
@@ -103,7 +115,7 @@ class _ProjectCardState extends State<ProjectCard> {
                       child: Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                          color: palette.surface.subtleBackground,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(UiRadius.panel),
                           ),
@@ -127,14 +139,12 @@ class _ProjectCardState extends State<ProjectCard> {
                         height: 22,
                         decoration: BoxDecoration(
                           color: widget.isSelected
-                              ? theme.colorScheme.primary
-                              : theme.cardColor.withValues(alpha: 0.85),
+                              ? primaryColor
+                              : palette.surface.controlBackground,
                           borderRadius: BorderRadius.circular(UiRadius.control),
                           border: Border.all(
-                            color: widget.isSelected
-                                ? theme.colorScheme.primary
-                                : theme.dividerColor.withValues(alpha: 0.8),
-                            width: UiStrokeWidth.thick,
+                            color: palette.surface.controlBorder,
+                            width: UiStrokeWidth.subtle,
                           ),
                         ),
                         child: CentrodeIconButton(
@@ -263,9 +273,8 @@ class _ProjectCardState extends State<ProjectCard> {
                           height: 24,
                           decoration: BoxDecoration(
                             color: _isHovered
-                                ? theme.colorScheme.primary
-                                    .withValues(alpha: 0.1)
-                                : theme.dividerColor.withValues(alpha: 0.1),
+                                ? palette.hoverOverlay
+                                : palette.surface.subtleBackground,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

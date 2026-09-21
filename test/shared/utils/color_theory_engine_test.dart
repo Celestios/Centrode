@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:centrode/shared/theme/theme_surface_derivation.dart';
 import 'package:centrode/shared/utils/color_theory_engine.dart';
 
 void main() {
@@ -8,13 +9,13 @@ void main() {
 
     test('shiftHue correctly wraps around 360 degrees', () {
       final shifted360 = ColorTheoryEngine.shiftHue(baseColor, 360);
-      expect(shifted360.value, equals(baseColor.value));
+      expect(shifted360.toARGB32(), equals(baseColor.toARGB32()));
 
       final shiftedPositive = ColorTheoryEngine.shiftHue(baseColor, 180);
-      expect(shiftedPositive.value, isNot(equals(baseColor.value)));
+      expect(shiftedPositive.toARGB32(), isNot(equals(baseColor.toARGB32())));
 
       final shiftedNegative = ColorTheoryEngine.shiftHue(baseColor, -180);
-      expect(shiftedNegative.value, equals(shiftedPositive.value));
+      expect(shiftedNegative.toARGB32(), equals(shiftedPositive.toARGB32()));
     });
 
     test('generateAnalogous returns 5 harmonious adjacent colors', () {
@@ -102,8 +103,8 @@ void main() {
       final contrast = ColorTheoryEngine.contrastRatio(white, black);
       expect(contrast, closeTo(21.0, 0.1));
 
-      expect(ColorTheoryEngine.bestContrastingTextColor(white), equals(Colors.black));
-      expect(ColorTheoryEngine.bestContrastingTextColor(black), equals(Colors.white));
+      expect(ColorTheoryEngine.bestContrastingTextColor(white), equals(const Color(0xFF0F172A)));
+      expect(ColorTheoryEngine.bestContrastingTextColor(black), equals(const Color(0xFFF8FAFC)));
     });
 
     test('Hex to Color and Color to Hex round-trip conversion', () {
@@ -112,10 +113,121 @@ void main() {
       expect(hex, equals('#34D399'));
 
       final parsed = ColorTheoryEngine.tryParseHex(hex);
-      expect(parsed?.value, equals(testColor.value));
+      expect(parsed?.toARGB32(), equals(testColor.toARGB32()));
 
       final shortHex = ColorTheoryEngine.tryParseHex('#FFF');
-      expect(shortHex?.value, equals(0xFFFFFFFF));
+      expect(shortHex?.toARGB32(), equals(0xFFFFFFFF));
+    });
+
+    test('deriveBrightness distinguishes dark from light themes based on secondary background anchor', () {
+      // Dark theme anchors: secondaryColor is the dark background (0xFF101216)
+      const darkAnchors = [
+        Color(0xFF818CF8), // primary: active
+        Color(0xFF101216), // secondary: background (dark)
+        Color(0xFFB49700), // tertiary: borders
+        Color(0xFFF43F5E), // accent: alert
+        Color(0xFF06B6D4), // canvasAccent: tools
+      ];
+      expect(ThemeSurfaceDerivation.deriveBrightness(darkAnchors), equals(Brightness.dark));
+
+      // Light theme anchors: secondaryColor is the light background (0xFFF8FAFC)
+      const lightAnchors = [
+        Color(0xFF1976D2), // primary: active
+        Color(0xFFF8FAFC), // secondary: background (light)
+        Color(0xFFCBD5E1), // tertiary: borders
+        Color(0xFFD81B60), // accent: alert
+        Color(0xFF0097A7), // canvasAccent: tools
+      ];
+      expect(ThemeSurfaceDerivation.deriveBrightness(lightAnchors), equals(Brightness.light));
+    });
+
+    test('deriveThemeSurfaces generates surfaces and borders from secondary and tertiary anchors', () {
+      const primary = Color(0xFF818CF8);
+      const secondary = Color(0xFF101216);
+      const tertiary = Color(0xFFB49700);
+      const anchors = [
+        primary,
+        secondary,
+        tertiary,
+        Color(0xFFF43F5E),
+        Color(0xFF06B6D4),
+      ];
+
+      final surfaces = ThemeSurfaceDerivation.deriveThemeSurfaces(
+        primary: primary,
+        secondary: secondary,
+        tertiary: tertiary,
+        anchors: anchors,
+      );
+
+      expect(surfaces.brightness, equals(Brightness.dark));
+      // Scaffold is secondary directly
+      expect(surfaces.scaffoldBackground, equals(secondary));
+      // Card is slightly more elevated/luminous than scaffold
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.card),
+          greaterThanOrEqualTo(ColorTheoryEngine.relativeLuminance(surfaces.scaffoldBackground)));
+      // In dark theme, control buttons are recessed/darker than the scaffold
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.control),
+          lessThanOrEqualTo(ColorTheoryEngine.relativeLuminance(surfaces.scaffoldBackground)));
+      // Text on control surface has AAA contrast
+      final controlText = ColorTheoryEngine.bestContrastingTextColor(surfaces.control);
+      expect(ColorTheoryEngine.contrastRatio(controlText, surfaces.control), greaterThanOrEqualTo(7.0));
+      // Workspace background is pure black (L=0) in dark mode
+      expect(surfaces.workspaceBackground, equals(const Color(0xFF000000)));
+      // Panel is secondary anchor
+      expect(surfaces.panel, equals(secondary));
+      // Divider has a distinct subtle tone decoupled from the tertiary border
+      expect(surfaces.divider, isNot(equals(tertiary)));
+      // Text contrast is >= 7.0 (AAA)
+      expect(ColorTheoryEngine.contrastRatio(surfaces.text, surfaces.card), greaterThanOrEqualTo(7.0));
+      expect(ColorTheoryEngine.contrastRatio(surfaces.text, surfaces.scaffoldBackground), greaterThanOrEqualTo(7.0));
+    });
+
+    test('deriveThemeSurfaces generates brighter control buttons in light mode and preserves green tint', () {
+      const primary = Color(0xFF2563EB);
+      const secondary = Color(0xFFEAECEF); // Light theme
+      const tertiary = Color(0xFFD97706);
+      const anchors = [
+        primary,
+        secondary,
+        tertiary,
+        Color(0xFFDC2626),
+        Color(0xFF0284C7),
+      ];
+
+      final surfaces = ThemeSurfaceDerivation.deriveThemeSurfaces(
+        primary: primary,
+        secondary: secondary,
+        tertiary: tertiary,
+        anchors: anchors,
+      );
+
+      expect(surfaces.brightness, equals(Brightness.light));
+      // In light theme, control buttons are elevated/brighter than the secondary canvas
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.control),
+          greaterThanOrEqualTo(ColorTheoryEngine.relativeLuminance(surfaces.scaffoldBackground)));
+      // Text on control surface in light theme has AAA contrast
+      final controlText = ColorTheoryEngine.bestContrastingTextColor(surfaces.control);
+      expect(ColorTheoryEngine.contrastRatio(controlText, surfaces.control), greaterThanOrEqualTo(7.0));
+      // Workspace background is an eye-friendly soft off-white canvas (L ≈ 0.965)
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground), greaterThan(0.85));
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground), lessThan(1.0));
+      // Card is pure / near-pure white (L ≈ 0.995) floating on top of the soft canvas
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.card), greaterThan(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground)));
+      // Panel is elevated and brighter than secondary anchor in light mode
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.panel), greaterThanOrEqualTo(ColorTheoryEngine.relativeLuminance(secondary)));
+
+      // Green tinted secondary preserves hue in both dark and light modes
+      const darkGreenSec = Color(0xFF102416);
+      final darkGreenSurfaces = ThemeSurfaceDerivation.deriveThemeSurfaces(
+        primary: const Color(0xFF818CF8),
+        secondary: darkGreenSec,
+        tertiary: const Color(0xFFB49700),
+        anchors: [const Color(0xFF818CF8), darkGreenSec, const Color(0xFFB49700), const Color(0xFFF43F5E), const Color(0xFF06B6D4)],
+      );
+      expect(darkGreenSurfaces.brightness, equals(Brightness.dark));
+      expect(ColorTheoryEngine.relativeLuminance(darkGreenSurfaces.control),
+          lessThanOrEqualTo(ColorTheoryEngine.relativeLuminance(darkGreenSec)));
     });
   });
 }

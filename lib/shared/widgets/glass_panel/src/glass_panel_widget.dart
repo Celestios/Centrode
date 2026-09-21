@@ -150,15 +150,12 @@ class _GlassPanelBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final resolvedColor = color ?? theme.cardColor.withValues(alpha: 0.85);
-    final borderSide = (border != null && border!.isUniform)
-        ? border!.top
-        : BorderSide.none;
     final effectiveRadius =
         customBorderRadius ?? BorderRadius.circular(borderRadius);
     final shape = borderRadius >= 100.0 && customBorderRadius == null
-        ? StadiumBorder(side: borderSide)
+        ? const StadiumBorder()
         : ContinuousRectangleBorder(
-            side: borderSide,
+            side: BorderSide.none,
             borderRadius: effectiveRadius,
           );
     final interactiveChild = _buildInteractiveContent(shape);
@@ -179,10 +176,7 @@ class _GlassPanelBody extends StatelessWidget {
     }
 
     final isDark = theme.brightness == Brightness.dark;
-    final baseColor = color ??
-        (isDark
-            ? const Color(0xFF141418).withValues(alpha: 0.65)
-            : theme.cardColor.withValues(alpha: 0.85));
+    final baseColor = color ?? theme.cardColor.withValues(alpha: isDark ? 0.65 : 0.85);
 
     const double saturation = 1.5;
 
@@ -243,11 +237,17 @@ class _GlassPanelBody extends StatelessWidget {
       content: interactiveChild,
     );
 
+    final resolvedBorderColor = border?.top.color ??
+        (isDark
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.black.withValues(alpha: 0.08));
+
     final surfaceWithBorder = CustomPaint(
       foregroundPainter: _GlassSpecularBorderPainter(
         shape: shape,
         isDark: isDark,
-        strokeWidth: UiStrokeWidth.standard,
+        strokeWidth: border?.top.width ?? UiStrokeWidth.standard,
+        borderColor: resolvedBorderColor,
       ),
       child: surface,
     );
@@ -455,11 +455,13 @@ class _GlassSpecularBorderPainter extends CustomPainter {
   final ShapeBorder shape;
   final bool isDark;
   final double strokeWidth;
+  final Color borderColor;
 
   const _GlassSpecularBorderPainter({
     required this.shape,
     required this.isDark,
     this.strokeWidth = 1.0,
+    required this.borderColor,
   });
 
   @override
@@ -474,29 +476,45 @@ class _GlassSpecularBorderPainter extends CustomPainter {
     final tlStop = 0.5 + brStop;
     final trStop = 1.0 - brStop;
 
+    final List<Color> gradientColors;
+    if (isDark) {
+      final peakSpecular =
+          Color.lerp(borderColor, Colors.white, 0.35)!.withValues(alpha: 0.55);
+      final washSpecular =
+          Color.lerp(borderColor, Colors.white, 0.15)!.withValues(alpha: 0.35);
+
+      gradientColors = [
+        borderColor.withValues(alpha: 0.16), // Right edge
+        borderColor.withValues(alpha: 0.28), // BR corner contact grounding
+        borderColor.withValues(alpha: 0.16), // Bottom edge
+        borderColor.withValues(alpha: 0.08), // BL corner
+        washSpecular,                        // Approach TL
+        peakSpecular,                        // TL corner peak highlight
+        washSpecular,                        // Top edge wash
+        borderColor.withValues(alpha: 0.16), // TR corner return
+      ];
+    } else {
+      // Light mode: Physical glass uses Fresnel occlusion and subtle grounding edge shadow,
+      // avoiding white specular blowouts that wash out against bright canvases.
+      final shadowEdge = borderColor.withValues(alpha: 0.20);
+      final subtleRim = borderColor.withValues(alpha: 0.08);
+      final lightWash = borderColor.withValues(alpha: 0.05);
+
+      gradientColors = [
+        subtleRim,   // Right edge
+        shadowEdge,  // BR corner shadow edge
+        shadowEdge,  // Bottom edge contact
+        subtleRim,   // BL corner
+        lightWash,   // Approach TL
+        subtleRim,   // TL corner
+        lightWash,   // Top edge rim wash
+        subtleRim,   // TR corner return
+      ];
+    }
+
     final gradient = SweepGradient(
       center: Alignment.center,
-      colors: isDark
-          ? [
-              Colors.white.withValues(alpha: 0.10), // Right edge
-              Colors.white.withValues(alpha: 0.22), // BR corner
-              Colors.white.withValues(alpha: 0.10), // Bottom edge
-              Colors.white.withValues(alpha: 0.04), // BL corner
-              Colors.white.withValues(alpha: 0.28), // Approach TL
-              Colors.white.withValues(alpha: 0.48), // TL corner peak!
-              Colors.white.withValues(alpha: 0.30), // Top edge wash
-              Colors.white.withValues(alpha: 0.10), // TR corner return
-            ]
-          : [
-              Colors.black.withValues(alpha: 0.06), // Right edge
-              Colors.black.withValues(alpha: 0.18), // BR corner shadow edge
-              Colors.black.withValues(alpha: 0.08), // Bottom edge
-              Colors.black.withValues(alpha: 0.03), // BL corner
-              Colors.black.withValues(alpha: 0.14), // Approach TL
-              Colors.black.withValues(alpha: 0.28), // TL corner peak!
-              Colors.black.withValues(alpha: 0.16), // Top edge rim wash
-              Colors.black.withValues(alpha: 0.06), // TR corner return
-            ],
+      colors: gradientColors,
       stops: [
         0.0,
         brStop,
@@ -522,5 +540,6 @@ class _GlassSpecularBorderPainter extends CustomPainter {
   bool shouldRepaint(covariant _GlassSpecularBorderPainter old) =>
       old.shape != shape ||
       old.isDark != isDark ||
-      old.strokeWidth != strokeWidth;
+      old.strokeWidth != strokeWidth ||
+      old.borderColor != borderColor;
 }

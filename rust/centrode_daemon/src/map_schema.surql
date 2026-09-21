@@ -515,24 +515,17 @@ DEFINE FIELD OVERWRITE display_mode ON TABLE MapMetaData TYPE any;
 DEFINE FIELD OVERWRITE name ON TABLE MapTheme TYPE string;
 DEFINE FIELD OVERWRITE primary_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE secondary_color ON TABLE MapTheme TYPE int;
+DEFINE FIELD OVERWRITE tertiary_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE accent_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE canvas_accent_color ON TABLE MapTheme TYPE int;
-DEFINE FIELD OVERWRITE scaffold_background_color ON TABLE MapTheme TYPE int;
-DEFINE FIELD OVERWRITE card_color ON TABLE MapTheme TYPE int;
-DEFINE FIELD OVERWRITE divider_color ON TABLE MapTheme TYPE int;
-DEFINE FIELD OVERWRITE text_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE font_family ON TABLE MapTheme TYPE string;
 DEFINE FIELD OVERWRITE body_font_size ON TABLE MapTheme TYPE float;
 DEFINE FIELD OVERWRITE body_font_weight ON TABLE MapTheme TYPE any;
-DEFINE FIELD OVERWRITE body_text_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE border_radius ON TABLE MapTheme TYPE float;
-DEFINE FIELD OVERWRITE app_bar_background_color ON TABLE MapTheme TYPE int;
-DEFINE FIELD OVERWRITE app_bar_foreground_color ON TABLE MapTheme TYPE int;
 DEFINE FIELD OVERWRITE app_bar_elevation ON TABLE MapTheme TYPE float;
 DEFINE FIELD OVERWRITE app_bar_title_font_size ON TABLE MapTheme TYPE float;
 DEFINE FIELD OVERWRITE app_bar_title_font_weight ON TABLE MapTheme TYPE any;
 DEFINE FIELD OVERWRITE use_material3 ON TABLE MapTheme TYPE bool;
-DEFINE FIELD OVERWRITE brightness ON TABLE MapTheme TYPE any;
 
 -- ---------------------------------------------------------------------------
 -- 9. Fields for `History`

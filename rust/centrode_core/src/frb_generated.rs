@@ -8081,65 +8081,39 @@ impl SseDecode for crate::domain::contents::TextMark {
     }
 }
 
-impl SseDecode for crate::domain::theme::ThemeBrightness {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <i32>::sse_decode(deserializer);
-        return match inner {
-            0 => crate::domain::theme::ThemeBrightness::Light,
-            1 => crate::domain::theme::ThemeBrightness::Dark,
-            _ => unreachable!("Invalid variant for ThemeBrightness: {}", inner),
-        };
-    }
-}
-
 impl SseDecode for crate::domain::theme::ThemeFields {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_name = <String>::sse_decode(deserializer);
         let mut var_primaryColor = <u32>::sse_decode(deserializer);
         let mut var_secondaryColor = <u32>::sse_decode(deserializer);
+        let mut var_tertiaryColor = <u32>::sse_decode(deserializer);
         let mut var_accentColor = <u32>::sse_decode(deserializer);
         let mut var_canvasAccentColor = <u32>::sse_decode(deserializer);
-        let mut var_scaffoldBackgroundColor = <u32>::sse_decode(deserializer);
-        let mut var_cardColor = <u32>::sse_decode(deserializer);
-        let mut var_dividerColor = <u32>::sse_decode(deserializer);
-        let mut var_textColor = <u32>::sse_decode(deserializer);
         let mut var_fontFamily = <String>::sse_decode(deserializer);
         let mut var_bodyFontSize = <f64>::sse_decode(deserializer);
         let mut var_bodyFontWeight = <crate::domain::theme::FontWeight>::sse_decode(deserializer);
-        let mut var_bodyTextColor = <u32>::sse_decode(deserializer);
         let mut var_borderRadius = <f64>::sse_decode(deserializer);
-        let mut var_appBarBackgroundColor = <u32>::sse_decode(deserializer);
-        let mut var_appBarForegroundColor = <u32>::sse_decode(deserializer);
         let mut var_appBarElevation = <f64>::sse_decode(deserializer);
         let mut var_appBarTitleFontSize = <f64>::sse_decode(deserializer);
         let mut var_appBarTitleFontWeight =
             <crate::domain::theme::FontWeight>::sse_decode(deserializer);
         let mut var_useMaterial3 = <bool>::sse_decode(deserializer);
-        let mut var_brightness = <crate::domain::theme::ThemeBrightness>::sse_decode(deserializer);
         return crate::domain::theme::ThemeFields {
             name: var_name,
             primary_color: var_primaryColor,
             secondary_color: var_secondaryColor,
+            tertiary_color: var_tertiaryColor,
             accent_color: var_accentColor,
             canvas_accent_color: var_canvasAccentColor,
-            scaffold_background_color: var_scaffoldBackgroundColor,
-            card_color: var_cardColor,
-            divider_color: var_dividerColor,
-            text_color: var_textColor,
             font_family: var_fontFamily,
             body_font_size: var_bodyFontSize,
             body_font_weight: var_bodyFontWeight,
-            body_text_color: var_bodyTextColor,
             border_radius: var_borderRadius,
-            app_bar_background_color: var_appBarBackgroundColor,
-            app_bar_foreground_color: var_appBarForegroundColor,
             app_bar_elevation: var_appBarElevation,
             app_bar_title_font_size: var_appBarTitleFontSize,
             app_bar_title_font_weight: var_appBarTitleFontWeight,
             use_material3: var_useMaterial3,
-            brightness: var_brightness,
         };
     }
 }
@@ -10898,51 +10872,23 @@ impl flutter_rust_bridge::IntoIntoDart<crate::domain::contents::TextMark>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::domain::theme::ThemeBrightness {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        match self {
-            Self::Light => 0.into_dart(),
-            Self::Dark => 1.into_dart(),
-            _ => unreachable!(),
-        }
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::domain::theme::ThemeBrightness
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::domain::theme::ThemeBrightness>
-    for crate::domain::theme::ThemeBrightness
-{
-    fn into_into_dart(self) -> crate::domain::theme::ThemeBrightness {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::domain::theme::ThemeFields {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.name.into_into_dart().into_dart(),
             self.primary_color.into_into_dart().into_dart(),
             self.secondary_color.into_into_dart().into_dart(),
+            self.tertiary_color.into_into_dart().into_dart(),
             self.accent_color.into_into_dart().into_dart(),
             self.canvas_accent_color.into_into_dart().into_dart(),
-            self.scaffold_background_color.into_into_dart().into_dart(),
-            self.card_color.into_into_dart().into_dart(),
-            self.divider_color.into_into_dart().into_dart(),
-            self.text_color.into_into_dart().into_dart(),
             self.font_family.into_into_dart().into_dart(),
             self.body_font_size.into_into_dart().into_dart(),
             self.body_font_weight.into_into_dart().into_dart(),
-            self.body_text_color.into_into_dart().into_dart(),
             self.border_radius.into_into_dart().into_dart(),
-            self.app_bar_background_color.into_into_dart().into_dart(),
-            self.app_bar_foreground_color.into_into_dart().into_dart(),
             self.app_bar_elevation.into_into_dart().into_dart(),
             self.app_bar_title_font_size.into_into_dart().into_dart(),
             self.app_bar_title_font_weight.into_into_dart().into_dart(),
             self.use_material3.into_into_dart().into_dart(),
-            self.brightness.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -13202,46 +13148,23 @@ impl SseEncode for crate::domain::contents::TextMark {
     }
 }
 
-impl SseEncode for crate::domain::theme::ThemeBrightness {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(
-            match self {
-                crate::domain::theme::ThemeBrightness::Light => 0,
-                crate::domain::theme::ThemeBrightness::Dark => 1,
-                _ => {
-                    unimplemented!("");
-                }
-            },
-            serializer,
-        );
-    }
-}
-
 impl SseEncode for crate::domain::theme::ThemeFields {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.name, serializer);
         <u32>::sse_encode(self.primary_color, serializer);
         <u32>::sse_encode(self.secondary_color, serializer);
+        <u32>::sse_encode(self.tertiary_color, serializer);
         <u32>::sse_encode(self.accent_color, serializer);
         <u32>::sse_encode(self.canvas_accent_color, serializer);
-        <u32>::sse_encode(self.scaffold_background_color, serializer);
-        <u32>::sse_encode(self.card_color, serializer);
-        <u32>::sse_encode(self.divider_color, serializer);
-        <u32>::sse_encode(self.text_color, serializer);
         <String>::sse_encode(self.font_family, serializer);
         <f64>::sse_encode(self.body_font_size, serializer);
         <crate::domain::theme::FontWeight>::sse_encode(self.body_font_weight, serializer);
-        <u32>::sse_encode(self.body_text_color, serializer);
         <f64>::sse_encode(self.border_radius, serializer);
-        <u32>::sse_encode(self.app_bar_background_color, serializer);
-        <u32>::sse_encode(self.app_bar_foreground_color, serializer);
         <f64>::sse_encode(self.app_bar_elevation, serializer);
         <f64>::sse_encode(self.app_bar_title_font_size, serializer);
         <crate::domain::theme::FontWeight>::sse_encode(self.app_bar_title_font_weight, serializer);
         <bool>::sse_encode(self.use_material3, serializer);
-        <crate::domain::theme::ThemeBrightness>::sse_encode(self.brightness, serializer);
     }
 }
 

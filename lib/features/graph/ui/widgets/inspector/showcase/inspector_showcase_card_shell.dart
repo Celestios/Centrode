@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 import 'showcase_painters.dart';
 
@@ -14,14 +15,17 @@ class InspectorShowcaseCardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = CentrodeDerivedPalette.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 85,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28),
+        color: palette.surface.controlBackground,
         borderRadius: BorderRadius.circular(UiRadius.card),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: palette.surface.controlBorder,
           width: UiStrokeWidth.subtle,
         ),
       ),
@@ -30,7 +34,9 @@ class InspectorShowcaseCardShell extends StatelessWidget {
         children: [
           CustomPaint(
             size: Size.infinite,
-            painter: ShowcaseGridPainter(accentColor.withValues(alpha: 0.12)),
+            painter: ShowcaseGridPainter(
+              accentColor.withValues(alpha: isDark ? 0.20 : 0.12),
+            ),
           ),
           child,
         ],

@@ -43,9 +43,8 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
     final effectiveCompact = isAndroid || _isCompact;
 
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final onSurface = theme.colorScheme.onSurface;
-    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
 
     final tools = <SegmentItem<String>>[
       (icon: Icons.near_me_outlined, label: 'Select', mode: 'select', tooltip: 'Select Tool (Single or Marquee)', accentBadge: null),
@@ -148,28 +147,29 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                         session.relationLabelModeNotifier.value = _labelModes[nextIndex];
                       },
                       tooltip: 'Relation Label Display: ${_labelTitles[mode]} (Click to cycle)',
-                      borderRadius: BorderRadius.circular(UiRadius.card),
+                      borderRadius: BorderRadius.circular(UiRadius.panel),
                       builder: (context, isHovered, isPressed) {
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
+                          height: UiControlSize.dense + 4,
                           padding: EdgeInsets.symmetric(
                             horizontal: effectiveCompact ? 8 : 10,
-                            vertical: 5,
                           ),
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: mode != 'auto'
                                 ? primaryColor.withValues(alpha: 0.25)
                                 : (isHovered
-                                    ? primaryColor.withValues(alpha: 0.12)
-                                    : Colors.transparent),
-                            borderRadius: BorderRadius.circular(UiRadius.card),
+                                    ? palette.hoverOverlay
+                                    : palette.surface.controlBackground),
+                            borderRadius: BorderRadius.circular(UiRadius.panel),
                             border: Border.all(
                               color: mode != 'auto'
                                   ? primaryColor.withValues(alpha: 0.55)
                                   : (isHovered
                                       ? primaryColor.withValues(alpha: 0.3)
-                                      : Colors.transparent),
-                              width: UiStrokeWidth.standard,
+                                      : palette.surface.controlBorder),
+                              width: UiStrokeWidth.subtle,
                             ),
                             boxShadow: mode != 'auto'
                                 ? [
@@ -188,8 +188,8 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                                 _labelIcons[mode] ?? Icons.label_outlined,
                                 size: UiIconSize.dense,
                                 color: mode != 'auto'
-                                    ? textColor
-                                    : (isHovered ? primaryColor : textColor.withValues(alpha: 0.8)),
+                                    ? palette.textOn(primaryColor.withValues(alpha: 0.25))
+                                    : (isHovered ? primaryColor : palette.surface.controlForeground.withValues(alpha: 0.8)),
                               ),
                               if (!effectiveCompact) ...[
                                 const SizedBox(width: 5),
@@ -199,8 +199,8 @@ class _CanvasToolRibbonState extends State<CanvasToolRibbon> {
                                     fontSize: UiFont.compact,
                                     fontWeight: mode != 'auto' ? FontWeight.bold : FontWeight.w500,
                                     color: mode != 'auto'
-                                        ? textColor
-                                        : (isHovered ? primaryColor : textColor),
+                                        ? palette.textOn(primaryColor.withValues(alpha: 0.25))
+                                        : (isHovered ? primaryColor : palette.surface.controlForeground),
                                   ),
                                 ),
                               ],

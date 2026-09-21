@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:centrode/features/graph/models/models.dart';
 import '../components/node_shape_definitions.dart';
@@ -80,6 +81,9 @@ class NodeShowcaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = CentrodeDerivedPalette.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     Color nodeBgColor;
     final effectiveBaseColor = data.customBgColor ?? accentColor;
     if (data.fillStyle == 'solid') {
@@ -88,7 +92,9 @@ class NodeShowcaseCard extends StatelessWidget {
       if (data.customBgColor != null) {
         nodeBgColor = data.customBgColor!.withValues(alpha: (0.5 * (data.opacity / 100)).clamp(0.05, 0.95));
       } else {
-        nodeBgColor = Colors.black.withValues(alpha: (0.45 * (data.opacity / 100)).clamp(0.05, 0.95));
+        nodeBgColor = palette.surface.cardBackground.withValues(
+          alpha: ((isDark ? 0.65 : 0.85) * (data.opacity / 100)).clamp(0.05, 0.95),
+        );
       }
     } else {
       nodeBgColor = Colors.transparent;
@@ -171,16 +177,20 @@ class NodeShowcaseCard extends StatelessWidget {
 
     final displayedTopic = ContentBuilder.applyLetterCase(data.topicText, data.letterCase);
 
+    final effectiveTextColor = (data.textColor == Colors.white && !isDark)
+        ? palette.textOn(nodeBgColor.a > 0.1 ? nodeBgColor : palette.surface.controlBackground)
+        : data.textColor;
+
     final previewTextStyle = TextStyle(
       fontFamily: effectiveFontFamily,
       fontSize: (data.fontSize * 0.85).clamp(8.0, 15.0),
       fontWeight: data.isBold ? FontWeight.w800 : FontWeight.w500,
       fontStyle: data.isItalic ? FontStyle.italic : FontStyle.normal,
-      color: data.textColor,
+      color: effectiveTextColor,
       backgroundColor: highlightBgColor,
       decoration: effectiveDecoration,
       decorationStyle: decorationStyle,
-      decorationColor: data.underlineColor ?? data.textColor,
+      decorationColor: data.underlineColor ?? effectiveTextColor,
       letterSpacing: data.letterSpacing,
       height: data.lineHeight,
     );
@@ -203,7 +213,6 @@ class NodeShowcaseCard extends StatelessWidget {
                   borderWidth: data.borderWidth,
                   borderColor: borderColor,
                   cornerRadius: data.cornerRadius,
-                  accentColor: accentColor,
                   shadowMode: data.shadowMode,
                   shadowBlur: data.shadowBlur,
                   shadowDistance: data.shadowDistance,
@@ -238,7 +247,6 @@ class ShapeNodePainter extends CustomPainter {
   final double borderWidth;
   final Color borderColor;
   final double cornerRadius;
-  final Color accentColor;
   final String shadowMode;
   final double shadowBlur;
   final double shadowDistance;
@@ -251,7 +259,6 @@ class ShapeNodePainter extends CustomPainter {
     required this.borderWidth,
     required this.borderColor,
     required this.cornerRadius,
-    required this.accentColor,
     this.shadowMode = 'none',
     this.shadowBlur = 14.0,
     this.shadowDistance = 4.0,
@@ -272,13 +279,13 @@ class ShapeNodePainter extends CustomPainter {
     } else if (shadowMode == 'soft') {
       final shadowPath = path.shift(Offset(0, shadowDistance));
       final softShadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.45)
+        ..color = shadowColor.withValues(alpha: 0.35)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, shadowBlur.clamp(2.0, 32.0));
       canvas.drawPath(shadowPath, softShadowPaint);
     } else if (shadowMode == 'crisp') {
       final crispShadowPath = path.shift(Offset(0, shadowDistance));
       final crispPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.75)
+        ..color = shadowColor.withValues(alpha: 0.55)
         ..style = PaintingStyle.fill;
       canvas.drawPath(crispShadowPath, crispPaint);
     }
@@ -314,7 +321,6 @@ class ShapeNodePainter extends CustomPainter {
         oldDelegate.borderWidth != borderWidth ||
         oldDelegate.borderColor != borderColor ||
         oldDelegate.cornerRadius != cornerRadius ||
-        oldDelegate.accentColor != accentColor ||
         oldDelegate.shadowMode != shadowMode ||
         oldDelegate.shadowBlur != shadowBlur ||
         oldDelegate.shadowDistance != shadowDistance ||

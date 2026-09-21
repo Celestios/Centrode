@@ -789,9 +789,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   TextMark dco_decode_text_mark(dynamic raw);
 
   @protected
-  ThemeBrightness dco_decode_theme_brightness(dynamic raw);
-
-  @protected
   ThemeFields dco_decode_theme_fields(dynamic raw);
 
   @protected
@@ -1618,9 +1615,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TextMark sse_decode_text_mark(SseDeserializer deserializer);
-
-  @protected
-  ThemeBrightness sse_decode_theme_brightness(SseDeserializer deserializer);
 
   @protected
   ThemeFields sse_decode_theme_fields(SseDeserializer deserializer);
@@ -2645,12 +2639,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_text_mark(TextMark self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_theme_brightness(
-    ThemeBrightness self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer);

@@ -15,48 +15,38 @@ class RibbonCapsule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (label == null) {
+      return child;
+    }
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.08),
-          width: UiStrokeWidth.subtle,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (label != null) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 3, right: 3),
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Text(
-                  label!,
-                  style: TextStyle(
-                    fontSize: UiFont.micro,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                    color: theme.colorScheme.primary.withValues(alpha: 0.85),
-                  ),
-                ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 3, right: 3),
+          child: RotatedBox(
+            quarterTurns: 3,
+            child: Text(
+              label!,
+              style: TextStyle(
+                fontSize: UiFont.micro,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+                color: theme.colorScheme.primary.withValues(alpha: 0.85),
               ),
             ),
-            GlassDivider(
-              orientation: Axis.vertical,
-              height: 18,
-              useGradient: false,
-              alpha: 0.15,
-              margin: const EdgeInsets.only(right: 4),
-            ),
-          ],
-          child,
-        ],
-      ),
+          ),
+        ),
+        GlassDivider(
+          orientation: Axis.vertical,
+          height: 18,
+          useGradient: false,
+          alpha: 0.15,
+          margin: const EdgeInsets.only(right: 4),
+        ),
+        child,
+      ],
     );
   }
 }

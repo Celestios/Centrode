@@ -46,7 +46,9 @@ class _BootSplashScreenState extends State<BootSplashScreen> {
       await windowManager.center();
     }
 
-    if (mounted) setState(() => _ready = true);
+    if (mounted) {
+      setState(() => _ready = true);
+    }
 
     if (isDesktop) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {

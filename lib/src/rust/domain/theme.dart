@@ -22,53 +22,37 @@ class FontWeight {
           field0 == other.field0;
 }
 
-enum ThemeBrightness { light, dark }
-
 class ThemeFields {
   final String name;
   final int primaryColor;
   final int secondaryColor;
+  final int tertiaryColor;
   final int accentColor;
   final int canvasAccentColor;
-  final int scaffoldBackgroundColor;
-  final int cardColor;
-  final int dividerColor;
-  final int textColor;
   final String fontFamily;
   final double bodyFontSize;
   final FontWeight bodyFontWeight;
-  final int bodyTextColor;
   final double borderRadius;
-  final int appBarBackgroundColor;
-  final int appBarForegroundColor;
   final double appBarElevation;
   final double appBarTitleFontSize;
   final FontWeight appBarTitleFontWeight;
   final bool useMaterial3;
-  final ThemeBrightness brightness;
 
   const ThemeFields({
     required this.name,
     required this.primaryColor,
     required this.secondaryColor,
+    required this.tertiaryColor,
     required this.accentColor,
     required this.canvasAccentColor,
-    required this.scaffoldBackgroundColor,
-    required this.cardColor,
-    required this.dividerColor,
-    required this.textColor,
     required this.fontFamily,
     required this.bodyFontSize,
     required this.bodyFontWeight,
-    required this.bodyTextColor,
     required this.borderRadius,
-    required this.appBarBackgroundColor,
-    required this.appBarForegroundColor,
     required this.appBarElevation,
     required this.appBarTitleFontSize,
     required this.appBarTitleFontWeight,
     required this.useMaterial3,
-    required this.brightness,
   });
 
   @override
@@ -76,24 +60,17 @@ class ThemeFields {
       name.hashCode ^
       primaryColor.hashCode ^
       secondaryColor.hashCode ^
+      tertiaryColor.hashCode ^
       accentColor.hashCode ^
       canvasAccentColor.hashCode ^
-      scaffoldBackgroundColor.hashCode ^
-      cardColor.hashCode ^
-      dividerColor.hashCode ^
-      textColor.hashCode ^
       fontFamily.hashCode ^
       bodyFontSize.hashCode ^
       bodyFontWeight.hashCode ^
-      bodyTextColor.hashCode ^
       borderRadius.hashCode ^
-      appBarBackgroundColor.hashCode ^
-      appBarForegroundColor.hashCode ^
       appBarElevation.hashCode ^
       appBarTitleFontSize.hashCode ^
       appBarTitleFontWeight.hashCode ^
-      useMaterial3.hashCode ^
-      brightness.hashCode;
+      useMaterial3.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -103,22 +80,15 @@ class ThemeFields {
           name == other.name &&
           primaryColor == other.primaryColor &&
           secondaryColor == other.secondaryColor &&
+          tertiaryColor == other.tertiaryColor &&
           accentColor == other.accentColor &&
           canvasAccentColor == other.canvasAccentColor &&
-          scaffoldBackgroundColor == other.scaffoldBackgroundColor &&
-          cardColor == other.cardColor &&
-          dividerColor == other.dividerColor &&
-          textColor == other.textColor &&
           fontFamily == other.fontFamily &&
           bodyFontSize == other.bodyFontSize &&
           bodyFontWeight == other.bodyFontWeight &&
-          bodyTextColor == other.bodyTextColor &&
           borderRadius == other.borderRadius &&
-          appBarBackgroundColor == other.appBarBackgroundColor &&
-          appBarForegroundColor == other.appBarForegroundColor &&
           appBarElevation == other.appBarElevation &&
           appBarTitleFontSize == other.appBarTitleFontSize &&
           appBarTitleFontWeight == other.appBarTitleFontWeight &&
-          useMaterial3 == other.useMaterial3 &&
-          brightness == other.brightness;
+          useMaterial3 == other.useMaterial3;
 }

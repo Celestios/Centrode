@@ -6326,39 +6326,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ThemeBrightness dco_decode_theme_brightness(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ThemeBrightness.values[raw as int];
-  }
-
-  @protected
   ThemeFields dco_decode_theme_fields(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 21)
-      throw Exception('unexpected arr length: expect 21 but see ${arr.length}');
+    if (arr.length != 14)
+      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
     return ThemeFields(
       name: dco_decode_String(arr[0]),
       primaryColor: dco_decode_u_32(arr[1]),
       secondaryColor: dco_decode_u_32(arr[2]),
-      accentColor: dco_decode_u_32(arr[3]),
-      canvasAccentColor: dco_decode_u_32(arr[4]),
-      scaffoldBackgroundColor: dco_decode_u_32(arr[5]),
-      cardColor: dco_decode_u_32(arr[6]),
-      dividerColor: dco_decode_u_32(arr[7]),
-      textColor: dco_decode_u_32(arr[8]),
-      fontFamily: dco_decode_String(arr[9]),
-      bodyFontSize: dco_decode_f_64(arr[10]),
-      bodyFontWeight: dco_decode_font_weight(arr[11]),
-      bodyTextColor: dco_decode_u_32(arr[12]),
-      borderRadius: dco_decode_f_64(arr[13]),
-      appBarBackgroundColor: dco_decode_u_32(arr[14]),
-      appBarForegroundColor: dco_decode_u_32(arr[15]),
-      appBarElevation: dco_decode_f_64(arr[16]),
-      appBarTitleFontSize: dco_decode_f_64(arr[17]),
-      appBarTitleFontWeight: dco_decode_font_weight(arr[18]),
-      useMaterial3: dco_decode_bool(arr[19]),
-      brightness: dco_decode_theme_brightness(arr[20]),
+      tertiaryColor: dco_decode_u_32(arr[3]),
+      accentColor: dco_decode_u_32(arr[4]),
+      canvasAccentColor: dco_decode_u_32(arr[5]),
+      fontFamily: dco_decode_String(arr[6]),
+      bodyFontSize: dco_decode_f_64(arr[7]),
+      bodyFontWeight: dco_decode_font_weight(arr[8]),
+      borderRadius: dco_decode_f_64(arr[9]),
+      appBarElevation: dco_decode_f_64(arr[10]),
+      appBarTitleFontSize: dco_decode_f_64(arr[11]),
+      appBarTitleFontWeight: dco_decode_font_weight(arr[12]),
+      useMaterial3: dco_decode_bool(arr[13]),
     );
   }
 
@@ -9254,58 +9241,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ThemeBrightness sse_decode_theme_brightness(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return ThemeBrightness.values[inner];
-  }
-
-  @protected
   ThemeFields sse_decode_theme_fields(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_String(deserializer);
     var var_primaryColor = sse_decode_u_32(deserializer);
     var var_secondaryColor = sse_decode_u_32(deserializer);
+    var var_tertiaryColor = sse_decode_u_32(deserializer);
     var var_accentColor = sse_decode_u_32(deserializer);
     var var_canvasAccentColor = sse_decode_u_32(deserializer);
-    var var_scaffoldBackgroundColor = sse_decode_u_32(deserializer);
-    var var_cardColor = sse_decode_u_32(deserializer);
-    var var_dividerColor = sse_decode_u_32(deserializer);
-    var var_textColor = sse_decode_u_32(deserializer);
     var var_fontFamily = sse_decode_String(deserializer);
     var var_bodyFontSize = sse_decode_f_64(deserializer);
     var var_bodyFontWeight = sse_decode_font_weight(deserializer);
-    var var_bodyTextColor = sse_decode_u_32(deserializer);
     var var_borderRadius = sse_decode_f_64(deserializer);
-    var var_appBarBackgroundColor = sse_decode_u_32(deserializer);
-    var var_appBarForegroundColor = sse_decode_u_32(deserializer);
     var var_appBarElevation = sse_decode_f_64(deserializer);
     var var_appBarTitleFontSize = sse_decode_f_64(deserializer);
     var var_appBarTitleFontWeight = sse_decode_font_weight(deserializer);
     var var_useMaterial3 = sse_decode_bool(deserializer);
-    var var_brightness = sse_decode_theme_brightness(deserializer);
     return ThemeFields(
       name: var_name,
       primaryColor: var_primaryColor,
       secondaryColor: var_secondaryColor,
+      tertiaryColor: var_tertiaryColor,
       accentColor: var_accentColor,
       canvasAccentColor: var_canvasAccentColor,
-      scaffoldBackgroundColor: var_scaffoldBackgroundColor,
-      cardColor: var_cardColor,
-      dividerColor: var_dividerColor,
-      textColor: var_textColor,
       fontFamily: var_fontFamily,
       bodyFontSize: var_bodyFontSize,
       bodyFontWeight: var_bodyFontWeight,
-      bodyTextColor: var_bodyTextColor,
       borderRadius: var_borderRadius,
-      appBarBackgroundColor: var_appBarBackgroundColor,
-      appBarForegroundColor: var_appBarForegroundColor,
       appBarElevation: var_appBarElevation,
       appBarTitleFontSize: var_appBarTitleFontSize,
       appBarTitleFontWeight: var_appBarTitleFontWeight,
       useMaterial3: var_useMaterial3,
-      brightness: var_brightness,
     );
   }
 
@@ -11804,38 +11770,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_theme_brightness(
-    ThemeBrightness self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
   void sse_encode_theme_fields(ThemeFields self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.name, serializer);
     sse_encode_u_32(self.primaryColor, serializer);
     sse_encode_u_32(self.secondaryColor, serializer);
+    sse_encode_u_32(self.tertiaryColor, serializer);
     sse_encode_u_32(self.accentColor, serializer);
     sse_encode_u_32(self.canvasAccentColor, serializer);
-    sse_encode_u_32(self.scaffoldBackgroundColor, serializer);
-    sse_encode_u_32(self.cardColor, serializer);
-    sse_encode_u_32(self.dividerColor, serializer);
-    sse_encode_u_32(self.textColor, serializer);
     sse_encode_String(self.fontFamily, serializer);
     sse_encode_f_64(self.bodyFontSize, serializer);
     sse_encode_font_weight(self.bodyFontWeight, serializer);
-    sse_encode_u_32(self.bodyTextColor, serializer);
     sse_encode_f_64(self.borderRadius, serializer);
-    sse_encode_u_32(self.appBarBackgroundColor, serializer);
-    sse_encode_u_32(self.appBarForegroundColor, serializer);
     sse_encode_f_64(self.appBarElevation, serializer);
     sse_encode_f_64(self.appBarTitleFontSize, serializer);
     sse_encode_font_weight(self.appBarTitleFontWeight, serializer);
     sse_encode_bool(self.useMaterial3, serializer);
-    sse_encode_theme_brightness(self.brightness, serializer);
   }
 
   @protected

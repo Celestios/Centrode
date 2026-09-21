@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
+import '../theme/theme_derived_palette.dart';
+import '../utils/color_theory_engine.dart';
 
 class CentrodeColorOption<T> {
   final T value;
@@ -25,42 +27,60 @@ class CentrodeColorDot extends StatelessWidget {
 
   const CentrodeColorDot({
     super.key,
-    required this.color,
+    this.color,
     this.isNone = false,
-    this.size = UiIconSize.dense,
+    this.size = 12.0,
     this.isSelected = false,
     this.selectedBorderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final palette = CentrodeDerivedPalette.of(context);
+    final fallbackSelectedBorder = palette.borderStrong;
+    final unselectedBorder = palette.borderSubtle;
+
+    if (isNone || color == null) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected
+                ? (selectedBorderColor ?? fallbackSelectedBorder)
+                : unselectedBorder,
+            width: isSelected ? UiStrokeWidth.thick : UiStrokeWidth.standard,
+          ),
+        ),
+        child: Center(
+          child: Container(
+            width: size * 0.7,
+            height: 1.0,
+            color: palette.semantic.danger,
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
+        color: color,
         shape: BoxShape.circle,
-        color: isNone ? Colors.transparent : (color ?? Colors.white),
         border: Border.all(
           color: isSelected
-              ? (selectedBorderColor ?? Colors.white)
-              : (isNone ? Colors.white38 : Colors.white24),
-          width: isSelected ? UiStrokeWidth.thick : UiStrokeWidth.standard,
+              ? (selectedBorderColor ?? fallbackSelectedBorder)
+              : unselectedBorder,
+          width: isSelected ? UiStrokeWidth.thick : UiStrokeWidth.subtle,
         ),
       ),
-      child: isNone
-          ? Center(
-              child: Icon(
-                Icons.block_rounded,
-                size: size * 0.7,
-                color: Colors.white60,
-              ),
-            )
-          : null,
     );
   }
 }
 
-/// Frosted glass color pill button displaying a color dot + label with popup options.
+/// Pill-style button that opens a popup color picker menu.
 class CentrodeColorPillButton<T> extends StatelessWidget {
   final String label;
   final T selectedValue;
@@ -81,24 +101,36 @@ class CentrodeColorPillButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final currentOpt = options.firstWhere(
-      (opt) => opt.value == selectedValue,
+    final palette = CentrodeDerivedPalette.of(context);
+    final matchingOpt = options.cast<CentrodeColorOption<T>?>().firstWhere(
+      (opt) => opt?.value == selectedValue,
+      orElse: () => null,
     );
+    final currentOpt = matchingOpt ??
+        CentrodeColorOption<T>(
+          value: selectedValue,
+          color: selectedValue is Color ? selectedValue as Color : null,
+          label: selectedValue is Color
+              ? ColorTheoryEngine.toHex(selectedValue as Color)
+              : (selectedValue?.toString() ?? 'None'),
+          isNone: selectedValue == null || selectedValue == 'none',
+        );
 
     return PopupMenuButton<T>(
       tooltip: '$label: ${currentOpt.label}',
-      color: const Color(0xFF151820),
+      color: palette.surface.cardBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(UiRadius.card),
         side: BorderSide(
-          color: Colors.white.withValues(alpha: 0.12),
+          color: palette.surface.controlBorder,
           width: UiStrokeWidth.subtle,
         ),
       ),
       offset: const Offset(0, 34),
       onSelected: onSelected,
       itemBuilder: (context) {
+        final cardBg = palette.surface.cardBackground;
+        final cardText = palette.textOn(cardBg);
         return options.map((opt) {
           final isSel = opt.value == selectedValue;
           return PopupMenuItem<T>(
@@ -121,7 +153,7 @@ class CentrodeColorPillButton<T> extends StatelessWidget {
                     fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                     color: isSel
                         ? activeColor
-                        : Colors.white.withValues(alpha: 0.85),
+                        : cardText.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -133,10 +165,10 @@ class CentrodeColorPillButton<T> extends StatelessWidget {
         height: height,
         padding: const EdgeInsets.symmetric(horizontal: UiSpacing.tight),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.22),
+          color: palette.surface.controlBackground,
           borderRadius: BorderRadius.circular(UiRadius.control),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: palette.surface.controlBorder,
             width: UiStrokeWidth.subtle,
           ),
         ),
@@ -156,9 +188,7 @@ class CentrodeColorPillButton<T> extends StatelessWidget {
                 style: TextStyle(
                   fontSize: UiFont.standard,
                   fontWeight: FontWeight.w500,
-                  color: theme.textTheme.bodyMedium?.color
-                          ?.withValues(alpha: 0.75) ??
-                      Colors.white70,
+                  color: palette.surface.controlForeground.withValues(alpha: 0.75),
                 ),
               ),
             ),

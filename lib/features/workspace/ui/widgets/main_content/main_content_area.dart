@@ -4,33 +4,50 @@ import 'dart:io';
 import 'maps_section.dart';
 import 'analytics_box.dart';
 import 'package:centrode/shared/elements/elements.dart';
+import 'package:centrode/shared/widgets/scroll_fade_mask.dart';
 
-class MainContentArea extends StatelessWidget {
+class MainContentArea extends StatefulWidget {
   const MainContentArea({super.key});
 
   @override
+  State<MainContentArea> createState() => _MainContentAreaState();
+}
+
+class _MainContentAreaState extends State<MainContentArea> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isAndroid = !kIsWeb && Platform.isAndroid;
     final statusBarHeight = isAndroid ? MediaQuery.of(context).padding.top : 0.0;
-    final isDark = theme.brightness == Brightness.dark;
-    final titleColor = isDark ? Colors.white : theme.colorScheme.onSurface;
-    final subtitleColor = isDark
-        ? Colors.white.withValues(alpha: 0.5)
-        : theme.colorScheme.onSurface.withValues(alpha: 0.5);
+    final palette = CentrodeDerivedPalette.of(context);
+    final mainAreaColor = palette.surface.workspaceBackground;
+    final titleColor = palette.textOn(mainAreaColor);
+    final subtitleColor = titleColor.withValues(alpha: 0.5);
 
     final content = Container(
-      color: theme.scaffoldBackgroundColor,
+      color: mainAreaColor,
       child: Stack(
         children: [
           Positioned.fill(
             child: Column(
               children: [
                 SizedBox(height: WorkspaceTokens.topBarHeight + statusBarHeight),
-                const Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.only(top: 16),
-                    child: MapsSection(),
+                Expanded(
+                  child: ScrollFadeMask(
+                    scrollController: _scrollController,
+                    surfaceColor: mainAreaColor,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(top: 16),
+                      child: const MapsSection(),
+                    ),
                   ),
                 ),
                 const AnalyticsBox(),

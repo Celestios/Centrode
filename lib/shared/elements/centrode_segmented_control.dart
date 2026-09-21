@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 
 typedef SegmentItem<T> = ({
@@ -51,9 +52,10 @@ class _CentrodeSegmentedControlState<T>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final onSurface = theme.colorScheme.onSurface;
-    final textColor = theme.textTheme.bodyMedium?.color ?? onSurface;
+    final textColor = palette.surface.controlForeground;
+    final activeTextColor = palette.textOn(primaryColor);
 
     final activeIndex = widget.items.indexWhere(
       (item) => item.mode == widget.currentMode,
@@ -84,10 +86,10 @@ class _CentrodeSegmentedControlState<T>
       child: Container(
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.15),
+          color: palette.surface.controlBackground,
           borderRadius: BorderRadius.circular(UiRadius.panel),
           border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.08),
+            color: palette.surface.controlBorder,
             width: UiStrokeWidth.subtle,
           ),
         ),
@@ -168,7 +170,7 @@ class _CentrodeSegmentedControlState<T>
                                   widget.items[i].icon,
                                   size: UiIconSize.dense,
                                   color: i == activeIndex
-                                      ? textColor
+                                      ? activeTextColor
                                       : textColor.withValues(alpha: 0.75),
                                 ),
                                 if (!widget.isCompact) ...[
@@ -183,7 +185,7 @@ class _CentrodeSegmentedControlState<T>
                                             ? FontWeight.bold
                                             : FontWeight.w500,
                                         color: i == activeIndex
-                                            ? textColor
+                                            ? activeTextColor
                                             : textColor.withValues(alpha: 0.75),
                                       ),
                                     ),
@@ -203,10 +205,10 @@ class _CentrodeSegmentedControlState<T>
                                     ),
                                     child: Text(
                                       widget.items[i].accentBadge!,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 7,
                                         fontWeight: FontWeight.w900,
-                                        color: Colors.black,
+                                        color: palette.textOn(primaryColor),
                                       ),
                                     ),
                                   ),

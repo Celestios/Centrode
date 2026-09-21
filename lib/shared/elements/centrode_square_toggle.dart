@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
+import '../theme/theme_derived_palette.dart';
 
 class CentrodeSquareOption<T> {
   final T value;
@@ -47,10 +48,23 @@ class CentrodeSquareToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final baseControlBg = palette.surface.controlBackground;
+    final controlFg = palette.surface.controlForeground;
+
+    final backgroundColor = isActive
+        ? activeColor.withValues(alpha: isDark ? 0.28 : 0.18)
+        : baseControlBg;
+
     final foregroundColor = isActive
         ? activeColor
-        : (theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.75) ??
-            Colors.white70);
+        : controlFg.withValues(alpha: 0.75);
+
+    final borderColor = isActive
+        ? activeColor.withValues(alpha: 0.6)
+        : palette.surface.controlBorder;
 
     return Tooltip(
       message: tooltip,
@@ -61,14 +75,10 @@ class CentrodeSquareToggle extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: isActive
-                ? activeColor.withValues(alpha: 0.28)
-                : Colors.black.withValues(alpha: 0.25),
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(UiRadius.control),
             border: Border.all(
-              color: isActive
-                  ? activeColor.withValues(alpha: 0.6)
-                  : Colors.white.withValues(alpha: 0.08),
+              color: borderColor,
               width: UiStrokeWidth.subtle,
             ),
           ),

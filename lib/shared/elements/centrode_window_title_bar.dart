@@ -39,10 +39,32 @@ class CentrodeWindowTitleBar extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final lightSourceColor = isDark
+        ? Color.lerp(theme.colorScheme.primary, Colors.white, 0.70)!
+        : Colors.white;
 
     Widget content = Stack(
       alignment: Alignment.center,
       children: [
+        // Specular ambient light source in the background
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0.0, -1.0),
+                  radius: 2.2,
+                  colors: [
+                    lightSourceColor.withValues(alpha: isDark ? 0.09 : 0.12),
+                    lightSourceColor.withValues(alpha: 0.0),
+                  ],
+                  stops: const [0.0, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ),
         Positioned.fill(
           child: DragToMoveArea(child: const SizedBox.expand()),
         ),

@@ -1,4 +1,5 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 import 'showcase_painters.dart';
 import 'inspector_showcase_card_shell.dart';
@@ -17,7 +18,6 @@ class RelationShowcaseCard extends StatelessWidget {
   final double strokeWidth;
   final String startCap;
   final String endCap;
-  final String crossingStrategy;
   final Color accentColor;
 
   const RelationShowcaseCard({
@@ -34,7 +34,6 @@ class RelationShowcaseCard extends StatelessWidget {
     required this.strokeWidth,
     required this.startCap,
     required this.endCap,
-    required this.crossingStrategy,
     required this.accentColor,
   });
 
@@ -58,11 +57,14 @@ class RelationShowcaseCard extends StatelessWidget {
       labelRadius = BorderRadius.circular(cornerRadius.clamp(0, 16));
     }
 
+    final palette = CentrodeDerivedPalette.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     Color labelBg;
     if (labelFill == 'solid') {
       labelBg = accentColor.withValues(alpha: 0.9);
     } else if (labelFill == 'glass') {
-      labelBg = Colors.black.withValues(alpha: 0.65);
+      labelBg = palette.surface.cardBackground.withValues(alpha: isDark ? 0.65 : 0.85);
     } else {
       labelBg = Colors.transparent;
     }
@@ -101,7 +103,7 @@ class RelationShowcaseCard extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
+                    color: palette.surface.controlBorderStrong.withValues(alpha: isDark ? 0.4 : 0.15),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -113,7 +115,7 @@ class RelationShowcaseCard extends StatelessWidget {
                   fontFamily: effectiveFontFamily,
                   fontSize: (fontSize * 0.8).clamp(8.0, 12.0),
                   fontWeight: FontWeight.w700,
-                  color: labelFill == 'solid' ? Colors.black87 : Colors.white,
+                  color: palette.textOn(labelBg.a > 0.1 ? labelBg : palette.surface.controlBackground),
                 ),
               ),
             ),

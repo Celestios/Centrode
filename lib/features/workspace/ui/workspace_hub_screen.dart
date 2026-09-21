@@ -33,10 +33,10 @@ class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
     final isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
     final isAndroid = !kIsWeb && Platform.isAndroid;
 
-    final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: palette.surface.workspaceBackground,
       drawer: isAndroid ? Drawer(child: SafeArea(child: LeftPanel(controller: _hubController))) : null,
       body: Stack(
         children: [

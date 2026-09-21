@@ -193,7 +193,7 @@ class GlassSectionShell extends StatelessWidget {
           // Glass Content Box
           Container(
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.18),
+              color: CentrodeDerivedPalette.of(context).surface.subtleBackground,
               borderRadius: BorderRadius.circular(UiRadius.panel),
               border: Border.all(
                 color: accentColor.withValues(alpha: 0.22),
@@ -222,6 +222,7 @@ class _SectionScopeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isGlobal = label.toUpperCase().contains('GLOBAL');
+    final textColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.white;
 
     if (isGlobal) {
       return Row(
@@ -230,7 +231,7 @@ class _SectionScopeBadge extends StatelessWidget {
           Icon(
             Icons.public_rounded,
             size: 13,
-            color: Colors.white.withValues(alpha: 0.55),
+            color: textColor.withValues(alpha: 0.55),
           ),
           const SizedBox(width: UiSpacing.tight),
           Text(
@@ -239,7 +240,7 @@ class _SectionScopeBadge extends StatelessWidget {
               fontSize: UiFont.compact,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.8,
-              color: Colors.white.withValues(alpha: 0.55),
+              color: textColor.withValues(alpha: 0.55),
             ),
           ),
         ],

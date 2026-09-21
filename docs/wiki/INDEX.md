@@ -83,6 +83,7 @@
 | Document | Description |
 |----------|-------------|
 | [Theme System](design/themes.md) | JSON theme format, AppTheme, color palette, theming |
+| [Color Philosophy](design/color-philosophy.md) | 5-anchor chromatic engine and semantic derivation framework |
 | [Shaders](design/shaders.md) | GLSL liquid glass shader breakdown |
 | [GUI Specification Summary](design/gui-spec-summary.md) | Highlights from gui_specification.yaml |
 

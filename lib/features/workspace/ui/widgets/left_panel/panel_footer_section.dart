@@ -1,5 +1,6 @@
 import 'package:centrode/features/settings/ui/settings_screen.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:flutter/material.dart';
 
 class PanelFooterSection extends StatelessWidget {
@@ -8,6 +9,9 @@ class PanelFooterSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
+    final iconColor = palette.textOn(palette.surface.panelBackground).withValues(alpha: 0.75);
+    final textColor = palette.textOn(palette.surface.panelBackground);
 
     return Container(
       decoration: BoxDecoration(
@@ -24,11 +28,11 @@ class PanelFooterSection extends StatelessWidget {
             leading: Icon(
               Icons.person_outline,
               size: UiIconSize.standard,
-              color: theme.iconTheme.color,
+              color: iconColor,
             ),
             title: Text(
               'Account',
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
             ),
             dense: true,
             onTap: () {},
@@ -38,11 +42,11 @@ class PanelFooterSection extends StatelessWidget {
             leading: Icon(
               Icons.help_outline,
               size: UiIconSize.standard,
-              color: theme.iconTheme.color,
+              color: iconColor,
             ),
             title: Text(
               'Help',
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
             ),
             dense: true,
             onTap: () {},
@@ -51,11 +55,11 @@ class PanelFooterSection extends StatelessWidget {
             leading: Icon(
               Icons.info_outline,
               size: UiIconSize.standard,
-              color: theme.iconTheme.color,
+              color: iconColor,
             ),
             title: Text(
               'About',
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
             ),
             dense: true,
             onTap: () {},
@@ -138,17 +142,20 @@ class _SettingsTileState extends State<_SettingsTile> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
+    final iconColor = palette.textOn(palette.surface.panelBackground).withValues(alpha: 0.75);
+    final textColor = palette.textOn(palette.surface.panelBackground);
 
     return ListTile(
       key: _tileKey,
       leading: Icon(
         Icons.settings_outlined,
         size: UiIconSize.standard,
-        color: theme.iconTheme.color,
+        color: iconColor,
       ),
       title: Text(
         'Settings',
-        style: theme.textTheme.bodyMedium,
+        style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
       ),
       dense: true,
       onTap: _openSettings,

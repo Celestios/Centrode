@@ -1,7 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/presentation/theme/app_theme.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
+import 'package:centrode/shared/theme/theme_surface_derivation.dart';
 import 'package:centrode/shared/utils/color_theory_engine.dart';
+
+/// Minimal anchor contract decoupling shared palette derivation from concrete presentation themes.
+abstract interface class ThemeAnchorPaletteSource {
+  Color get primaryColor;
+  Color get secondaryColor;
+  Color get tertiaryColor;
+  Color get accentColor;
+  Color get canvasAccentColor;
+  Brightness get brightness;
+}
+
+/// In-memory holder of the 5 chromatic anchors.
+class ThemeAnchorPaletteValues implements ThemeAnchorPaletteSource {
+  @override
+  final Color primaryColor;
+  @override
+  final Color secondaryColor;
+  @override
+  final Color tertiaryColor;
+  @override
+  final Color accentColor;
+  @override
+  final Color canvasAccentColor;
+  @override
+  final Brightness brightness;
+
+  const ThemeAnchorPaletteValues({
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.tertiaryColor,
+    required this.accentColor,
+    required this.canvasAccentColor,
+    this.brightness = Brightness.dark,
+  });
+}
 
 /// Semantic node tint colors derived dynamically from the theme.
 @immutable
@@ -28,23 +63,23 @@ class NodeTintColors {
     required this.inter,
   });
 
-  factory NodeTintColors.fromTheme(AppTheme theme) {
-    final primOklch = OklchColor.fromColor(theme.primaryColor);
-    final accOklch = OklchColor.fromColor(theme.accentColor);
-    final canOklch = OklchColor.fromColor(theme.canvasAccentColor);
+  factory NodeTintColors.fromSource(ThemeAnchorPaletteSource theme) {
+    final primMono = ColorTheoryEngine.generateMonochromatic(theme.primaryColor, count: 5);
 
     return NodeTintColors(
-      info: primOklch.copyWith(l: 0.78, c: 0.12).toColor(),
-      task: canOklch.copyWith(l: 0.76, c: 0.14).toColor(),
-      comment: primOklch.copyWith(l: 0.72, c: 0.04).toColor(),
-      drawing: accOklch.copyWith(l: 0.74, c: 0.16).toColor(),
-      shape: ColorTheoryEngine.shiftHue(theme.accentColor, 40),
-      frame: ColorTheoryEngine.shiftHue(theme.primaryColor, 35),
-      container: ColorTheoryEngine.shiftHue(theme.primaryColor, -20),
+      info: theme.primaryColor,
+      task: theme.tertiaryColor,
+      comment: primMono[1],
+      drawing: theme.accentColor,
+      shape: ColorTheoryEngine.shiftHue(theme.accentColor, 35),
+      frame: theme.secondaryColor,
+      container: theme.canvasAccentColor,
       media: ColorTheoryEngine.shiftHue(theme.canvasAccentColor, 25),
-      inter: ColorTheoryEngine.shiftHue(theme.canvasAccentColor, 60),
+      inter: ColorTheoryEngine.shiftHue(theme.secondaryColor, -30),
     );
   }
+
+  factory NodeTintColors.fromTheme(ThemeAnchorPaletteSource theme) => NodeTintColors.fromSource(theme);
 }
 
 /// Canvas rendering and interaction colors derived dynamically from the theme.
@@ -76,21 +111,23 @@ class CanvasColors {
     required this.miniMapLensBorder,
   });
 
-  factory CanvasColors.fromTheme(AppTheme theme) {
+  factory CanvasColors.fromSource(ThemeAnchorPaletteSource theme) {
     return CanvasColors(
       selectionBorder: theme.primaryColor,
       selectionFill: theme.primaryColor.withValues(alpha: UiAlpha.tint),
       containerBorder: theme.canvasAccentColor,
-      frameBorder: theme.accentColor,
+      frameBorder: theme.tertiaryColor,
       nodeHover: theme.primaryColor.withValues(alpha: UiAlpha.subtle),
-      portIndicator: theme.primaryColor,
+      portIndicator: theme.canvasAccentColor,
       portIndicatorActive: theme.accentColor,
-      connectionLine: theme.textColor.withValues(alpha: UiAlpha.muted),
+      connectionLine: theme.canvasAccentColor.withValues(alpha: UiAlpha.muted),
       connectionLineActive: theme.primaryColor,
       miniMapLens: theme.primaryColor.withValues(alpha: UiAlpha.medium),
       miniMapLensBorder: theme.primaryColor,
     );
   }
+
+  factory CanvasColors.fromTheme(ThemeAnchorPaletteSource theme) => CanvasColors.fromSource(theme);
 }
 
 /// Status and feedback semantic colors derived dynamically from the theme.
@@ -108,43 +145,85 @@ class SemanticColors {
     required this.info,
   });
 
-  factory SemanticColors.fromTheme(AppTheme theme) {
+  factory SemanticColors.fromSource(ThemeAnchorPaletteSource theme) {
     return SemanticColors(
-      success: theme.canvasAccentColor,
-      warning: ColorTheoryEngine.shiftHue(theme.accentColor, 40),
-      danger: ColorTheoryEngine.shiftHue(theme.accentColor, -30),
+      success: const Color(0xFF10B981),
+      warning: theme.tertiaryColor,
+      danger: theme.accentColor,
       info: theme.primaryColor,
     );
   }
+
+  factory SemanticColors.fromTheme(ThemeAnchorPaletteSource theme) => SemanticColors.fromSource(theme);
 }
 
 /// Surfaces, card elevations, and border framing colors derived from the theme.
 @immutable
 class SurfaceColors {
   final Color panelBackground;
+  final Color workspaceBackground;
   final Color cardBackground;
   final Color dialogBackground;
+  final Color controlBackground;
+  final Color subtleBackground;
+  final Color controlForeground;
+  final Color controlBorder;
+  final Color controlBorderStrong;
   final Color borderSubtle;
   final Color borderStrong;
 
   const SurfaceColors({
     required this.panelBackground,
+    required this.workspaceBackground,
     required this.cardBackground,
     required this.dialogBackground,
+    required this.controlBackground,
+    required this.subtleBackground,
+    required this.controlForeground,
+    required this.controlBorder,
+    required this.controlBorderStrong,
     required this.borderSubtle,
     required this.borderStrong,
   });
 
-  factory SurfaceColors.fromTheme(AppTheme theme) {
+  factory SurfaceColors.fromSource(ThemeAnchorPaletteSource theme) {
     final isDark = theme.brightness == Brightness.dark;
+    final surfaces = ThemeSurfaceDerivation.deriveThemeSurfaces(
+      primary: theme.primaryColor,
+      secondary: theme.secondaryColor,
+      tertiary: theme.tertiaryColor,
+      anchors: [
+        theme.primaryColor,
+        theme.secondaryColor,
+        theme.tertiaryColor,
+        theme.accentColor,
+        theme.canvasAccentColor,
+      ],
+      explicitBrightness: theme.brightness,
+    );
+
+    final controlFg = ColorTheoryEngine.bestContrastingTextColor(surfaces.control);
+
     return SurfaceColors(
-      panelBackground: isDark ? const Color(0xFF16181E) : const Color(0xFFFFFFFF),
-      cardBackground: isDark ? const Color(0xFF1A1D24) : const Color(0xFFF8FAFC),
-      dialogBackground: isDark ? const Color(0xFF12141A) : const Color(0xFFFFFFFF),
-      borderSubtle: theme.dividerColor.withValues(alpha: isDark ? UiAlpha.medium : UiAlpha.borderSubtle),
-      borderStrong: Colors.white.withValues(alpha: isDark ? UiAlpha.borderSubtle : UiAlpha.wash),
+      panelBackground: surfaces.panel,
+      workspaceBackground: surfaces.workspaceBackground,
+      cardBackground: surfaces.card,
+      dialogBackground: surfaces.scaffoldBackground,
+      controlBackground: surfaces.control,
+      subtleBackground: surfaces.subtleSurface,
+      controlForeground: controlFg,
+      controlBorder: controlFg.withValues(alpha: isDark ? 0.08 : 0.12),
+      controlBorderStrong: controlFg.withValues(alpha: isDark ? 0.18 : 0.22),
+      borderSubtle: isDark
+          ? Colors.white.withValues(alpha: 0.12)
+          : Colors.black.withValues(alpha: 0.08),
+      borderStrong: isDark
+          ? Colors.white.withValues(alpha: 0.22)
+          : Colors.black.withValues(alpha: 0.16),
     );
   }
+
+  factory SurfaceColors.fromTheme(ThemeAnchorPaletteSource theme) => SurfaceColors.fromSource(theme);
 }
 
 /// Centralized dynamic alpha & opacity configuration for Centrode.
@@ -189,7 +268,7 @@ class AlphaSettings {
 @immutable
 class CentrodeDerivedPalette {
   /// The underlying theme this palette was derived from (if available).
-  final AppTheme? theme;
+  final ThemeAnchorPaletteSource? theme;
 
   /// Centralized alpha and opacity parameters.
   final AlphaSettings alpha;
@@ -239,8 +318,8 @@ class CentrodeDerivedPalette {
     required this.primaryMonochromatic,
   });
 
-  /// Factory constructing the derived palette directly from an [AppTheme].
-  factory CentrodeDerivedPalette.fromTheme(AppTheme theme) {
+  /// Factory constructing the derived palette directly from a [ThemeAnchorPaletteSource].
+  factory CentrodeDerivedPalette.fromSource(ThemeAnchorPaletteSource theme) {
     final swatches = ColorTheoryEngine.deriveThemePalette(
       primary: theme.primaryColor,
       accent: theme.accentColor,
@@ -249,10 +328,10 @@ class CentrodeDerivedPalette {
 
     final tagColors = [
       theme.primaryColor,
+      theme.secondaryColor,
+      theme.tertiaryColor,
       theme.accentColor,
       theme.canvasAccentColor,
-      ColorTheoryEngine.shiftHue(theme.primaryColor, 120),
-      ColorTheoryEngine.shiftHue(theme.accentColor, 180),
     ];
 
     return CentrodeDerivedPalette._(
@@ -260,10 +339,10 @@ class CentrodeDerivedPalette {
       alpha: const AlphaSettings(),
       swatches: swatches,
       tagColors: tagColors,
-      nodeTints: NodeTintColors.fromTheme(theme),
-      canvas: CanvasColors.fromTheme(theme),
-      semantic: SemanticColors.fromTheme(theme),
-      surface: SurfaceColors.fromTheme(theme),
+      nodeTints: NodeTintColors.fromSource(theme),
+      canvas: CanvasColors.fromSource(theme),
+      semantic: SemanticColors.fromSource(theme),
+      surface: SurfaceColors.fromSource(theme),
       primaryAnalogous: ColorTheoryEngine.generateAnalogous(theme.primaryColor),
       primaryComplementary: ColorTheoryEngine.generateComplementary(theme.primaryColor),
       primaryTriadic: ColorTheoryEngine.generateTriadic(theme.primaryColor),
@@ -271,68 +350,52 @@ class CentrodeDerivedPalette {
     );
   }
 
+  /// Alias preserving API compatibility for theme consumers.
+  factory CentrodeDerivedPalette.fromTheme(ThemeAnchorPaletteSource theme) =>
+      CentrodeDerivedPalette.fromSource(theme);
+
   /// Factory constructing the derived palette from raw anchor colors.
   factory CentrodeDerivedPalette.fromColors({
     required Color primary,
     required Color accent,
     required Color canvasAccent,
+    Color? secondary,
+    Color? tertiary,
     Brightness brightness = Brightness.dark,
   }) {
-    final swatches = ColorTheoryEngine.deriveThemePalette(
-      primary: primary,
-      accent: accent,
-      canvasAccent: canvasAccent,
-    );
+    final secColor = secondary ?? ColorTheoryEngine.shiftHue(primary, 180);
+    final tertColor = tertiary ?? ColorTheoryEngine.shiftHue(primary, 120);
 
-    final tagColors = [
-      primary,
-      accent,
-      canvasAccent,
-      ColorTheoryEngine.shiftHue(primary, 120),
-      ColorTheoryEngine.shiftHue(accent, 180),
-    ];
-
-    final dummyTheme = AppTheme(
-      primaryColor: primary,
-      secondaryColor: primary,
-      accentColor: accent,
-      canvasAccentColor: canvasAccent,
-      scaffoldBackgroundColor: const Color(0xFF101216),
-      cardColor: const Color(0xFF1A1D24),
-      dividerColor: const Color(0xFF334155),
-      textColor: const Color(0xFFF8FAFC),
-      fontFamily: 'Inter',
-      bodyFontSize: 14.0,
-      bodyFontWeight: FontWeight.w400,
-      bodyTextColor: const Color(0xFFF8FAFC),
-      borderRadius: 8.0,
-      appBarBackgroundColor: const Color(0xFF101216),
-      appBarForegroundColor: const Color(0xFFF8FAFC),
-      appBarElevation: 0.0,
-      appBarTitleFontSize: 16.0,
-      appBarTitleFontWeight: FontWeight.w600,
-      useMaterial3: true,
-      brightness: brightness,
-    );
-
-    return CentrodeDerivedPalette._(
-      alpha: const AlphaSettings(),
-      swatches: swatches,
-      tagColors: tagColors,
-      nodeTints: NodeTintColors.fromTheme(dummyTheme),
-      canvas: CanvasColors.fromTheme(dummyTheme),
-      semantic: SemanticColors.fromTheme(dummyTheme),
-      surface: SurfaceColors.fromTheme(dummyTheme),
-      primaryAnalogous: ColorTheoryEngine.generateAnalogous(primary),
-      primaryComplementary: ColorTheoryEngine.generateComplementary(primary),
-      primaryTriadic: ColorTheoryEngine.generateTriadic(primary),
-      primaryMonochromatic: ColorTheoryEngine.generateMonochromatic(primary),
+    return CentrodeDerivedPalette.fromSource(
+      ThemeAnchorPaletteValues(
+        primaryColor: primary,
+        secondaryColor: secColor,
+        tertiaryColor: tertColor,
+        accentColor: accent,
+        canvasAccentColor: canvasAccent,
+        brightness: brightness,
+      ),
     );
   }
 
   // ---------------------------------------------------------------------------
   // Color & Alpha Helpers
   // ---------------------------------------------------------------------------
+
+  /// Subtle border outline (glass rims, sub-blocks), derived from tertiaryColor (borders).
+  Color get borderSubtle => surface.borderSubtle;
+
+  /// Strong border outline (card elevation, modals), derived from tertiaryColor (borders).
+  Color get borderStrong => surface.borderStrong;
+
+  /// Focus outline on active controls.
+  Color get borderFocus => theme?.primaryColor ?? swatches[0];
+
+  /// Hover overlay wash on interactive elements.
+  Color get hoverOverlay => (theme?.primaryColor ?? swatches[0]).withValues(alpha: alpha.hover);
+
+  /// Active pressed overlay on interactive elements.
+  Color get activeOverlay => (theme?.primaryColor ?? swatches[0]).withValues(alpha: alpha.selectionFill);
 
   /// Returns a soft wash / tint of [color] using the centralized tint alpha.
   Color tint(Color color, [double? targetAlpha]) =>
@@ -355,13 +418,50 @@ class CentrodeDerivedPalette {
   Color glassBackground({bool isHeader = false}) =>
       surface.cardBackground.withValues(alpha: isHeader ? alpha.glassHeader : alpha.glassBody);
 
+  /// Returns the smart WCAG AAA contrasting text color for any arbitrary background surface.
+  Color textOn(Color background) => ColorTheoryEngine.bestContrastingTextColor(background);
+
+  /// Returns muted contrasting text color for any arbitrary background surface.
+  Color mutedTextOn(Color background) =>
+      ColorTheoryEngine.bestContrastingTextColor(background).withValues(alpha: alpha.textMuted);
+
   static CentrodeDerivedPalette of(BuildContext context) {
+    final ext = Theme.of(context).extension<CentrodeThemeExtension>();
+    if (ext != null) return ext.palette;
+
     final materialTheme = Theme.of(context);
     return CentrodeDerivedPalette.fromColors(
       primary: materialTheme.colorScheme.primary,
+      secondary: materialTheme.colorScheme.secondary,
+      tertiary: materialTheme.colorScheme.tertiary,
       accent: materialTheme.colorScheme.secondary,
-      canvasAccent: materialTheme.colorScheme.tertiary,
+      canvasAccent: materialTheme.colorScheme.primary,
       brightness: materialTheme.brightness,
     );
+  }
+}
+
+/// ThemeExtension delivering [CentrodeDerivedPalette] down the widget tree.
+@immutable
+class CentrodeThemeExtension extends ThemeExtension<CentrodeThemeExtension> {
+  final CentrodeDerivedPalette palette;
+
+  const CentrodeThemeExtension({
+    required this.palette,
+  });
+
+  @override
+  CentrodeThemeExtension copyWith({
+    CentrodeDerivedPalette? palette,
+  }) {
+    return CentrodeThemeExtension(
+      palette: palette ?? this.palette,
+    );
+  }
+
+  @override
+  CentrodeThemeExtension lerp(ThemeExtension<CentrodeThemeExtension>? other, double t) {
+    if (other is! CentrodeThemeExtension) return this;
+    return t < 0.5 ? this : other;
   }
 }

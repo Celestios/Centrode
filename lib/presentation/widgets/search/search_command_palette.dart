@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
-import 'package:centrode/features/graph/store/graph_data_query_controller.dart';
 import 'search_registry.dart';
 import 'search_overlay_widget.dart';
 
@@ -117,11 +117,8 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
   void _showOverlay() {
     if (_overlayEntry != null) return;
 
-    GraphDataQueryController? queryController;
-    try {
-      final tabsController = context.read<WorkspaceTabsController>();
-      queryController = tabsController.activeSession.queryController;
-    } catch (_) {}
+    final tabsController = context.read<WorkspaceTabsController>();
+    final queryController = tabsController.activeSession.queryController;
 
     final overlay = Overlay.of(context);
     _overlayEntry = OverlayEntry(
@@ -244,7 +241,9 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final hasFocus = _focusNode.hasFocus;
+    final isDark = theme.brightness == Brightness.dark;
 
     return KeyboardListener(
       focusNode: _keyboardFocusNode,
@@ -267,26 +266,27 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
             child: GlassPanel(
               borderRadius: 8,
               blur: 10.0,
+              enableBackdrop: hasFocus,
               duration: UiMotion.standard,
               curve: hasFocus ? Curves.fastOutSlowIn : Curves.easeOutCubic,
               width: hasFocus ? 420.0 : 240.0,
               height: UiControlSize.dense,
               color: hasFocus
-                  ? theme.cardColor.withValues(alpha: 0.85)
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                  ? palette.surface.cardBackground.withValues(alpha: 0.95)
+                  : theme.cardColor.withValues(alpha: 0.65),
               shadow: hasFocus
                   ? BoxShadow(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.3 : 0.2),
                       blurRadius: 10,
                       spreadRadius: 1,
                     )
                   : null,
-              border: hasFocus
-                  ? Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                      width: UiStrokeWidth.standard,
-                    )
-                  : null,
+              border: Border.all(
+                color: hasFocus
+                    ? theme.colorScheme.primary.withValues(alpha: 0.6)
+                    : palette.surface.controlBorder.withValues(alpha: isDark ? 0.4 : 0.25),
+                width: hasFocus ? UiStrokeWidth.standard : UiStrokeWidth.subtle,
+              ),
               child: Row(
                   children: [
                     const SizedBox(width: UiSpacing.standard),

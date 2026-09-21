@@ -390,11 +390,15 @@ abstract final class ColorTheoryEngine {
     return (lighter + 0.05) / (darker + 0.05);
   }
 
-  /// Returns [Colors.white] or [Colors.black] depending on optimal readability against [background].
+  /// Returns optimal readability text color against [background], using refined
+  /// slate off-black (0xFF0F172A) or luminous off-white (0xFFF8FAFC) instead of harsh
+  /// pure #000000 or blinding #FFFFFF.
   static Color bestContrastingTextColor(Color background) {
-    final whiteContrast = contrastRatio(Colors.white, background);
-    final blackContrast = contrastRatio(Colors.black, background);
-    return (whiteContrast >= blackContrast) ? Colors.white : Colors.black;
+    const lightText = Color(0xFFF8FAFC);
+    const darkText = Color(0xFF0F172A);
+    final lightContrast = contrastRatio(lightText, background);
+    final darkContrast = contrastRatio(darkText, background);
+    return (lightContrast >= darkContrast) ? lightText : darkText;
   }
 
   // ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
+import '../theme/theme_derived_palette.dart';
 
 /// Ultra-compact, micro slider box for high-density forms and inspector sub-blocks.
 class CentrodeCompactSlider extends StatelessWidget {
@@ -26,7 +27,7 @@ class CentrodeCompactSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final clampedValue = value.clamp(min, max);
     final isInt = clampedValue == clampedValue.roundToDouble() || unit == '%';
     final formattedValue = isInt
@@ -41,10 +42,10 @@ class CentrodeCompactSlider extends StatelessWidget {
         bottom: UiSpacing.tight,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.24),
+        color: palette.surface.controlBackground,
         borderRadius: BorderRadius.circular(UiRadius.control),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: palette.surface.controlBorder,
           width: UiStrokeWidth.subtle,
         ),
       ),
@@ -63,9 +64,7 @@ class CentrodeCompactSlider extends StatelessWidget {
                   style: TextStyle(
                     fontSize: UiFont.micro,
                     fontWeight: FontWeight.w500,
-                    color: theme.textTheme.bodyMedium?.color
-                            ?.withValues(alpha: 0.65) ??
-                        Colors.white70,
+                    color: palette.surface.controlForeground.withValues(alpha: 0.70),
                   ),
                 ),
               ),
@@ -93,7 +92,7 @@ class CentrodeCompactSlider extends StatelessWidget {
                   overlayRadius: UiRadius.control,
                 ),
                 activeTrackColor: activeColor,
-                inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
+                inactiveTrackColor: palette.surface.controlBorderStrong,
                 thumbColor: activeColor,
                 trackShape: const CentrodeCompactTrackShape(),
               ),

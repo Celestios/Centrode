@@ -119,10 +119,13 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
 
     final node = nodes.first;
     final style = node.style;
+    final isDark = theme.brightness == Brightness.dark;
     if (style != null) {
       _fontFamily = style.fontFamily.isNotEmpty ? style.fontFamily : 'outfit';
       _fontSize = style.fontSize > 0 ? style.fontSize : 13.0;
-      _textColor = style.textColor != 0 ? Color(style.textColor) : Colors.white;
+      _textColor = style.textColor != 0
+          ? Color(style.textColor)
+          : (isDark ? Colors.white : theme.colorScheme.onSurface);
 
       _nodeShape = style.shape.isNotEmpty ? style.shape : 'rounded';
       _cornerRadius = style.borderRadius >= 0 ? style.borderRadius : 12.0;
@@ -213,7 +216,9 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
   void _resetToDefaults(ThemeData theme) {
     _fontFamily = 'outfit';
     _fontSize = 13.0;
-    _textColor = Colors.white;
+    _textColor = theme.brightness == Brightness.dark
+        ? Colors.white
+        : theme.colorScheme.onSurface;
     _highlightColor = 'none';
     _nodeBgColor = null;
     _isBold = false;
@@ -293,7 +298,10 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
         (style) => style.copyWith(
           fontFamily: 'outfit',
           fontSize: 13.0,
-          textColor: Colors.white.toARGB32(),
+          textColor: (theme.brightness == Brightness.dark
+                  ? Colors.white
+                  : theme.colorScheme.onSurface)
+              .toARGB32(),
           bgColor: theme.cardColor.toARGB32(),
         ),
       );
@@ -374,6 +382,8 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryAccent = theme.colorScheme.primary;
+    final previewAccent = CentrodeDerivedPalette.of(context).theme?.canvasAccentColor ??
+        const Color(0xFF06B6D4);
     final effectiveRenderState = _getRenderState(context);
     final selectedNodes = _getSelectedNodes(effectiveRenderState);
 
@@ -398,7 +408,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
     return ShowcaseSectionShell(
       title: 'Node',
       icon: Icons.account_tree_rounded,
-      accentColor: primaryAccent,
+      accentColor: previewAccent,
       badgeText: badgeText,
       showcase: NodeShowcaseCard(
         data: NodeShowcaseData(
@@ -431,7 +441,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
           customShadowColor: _shadowColor,
           topicText: 'Topic',
         ),
-        accentColor: primaryAccent,
+        accentColor: previewAccent,
       ),
       child: Column(
         children: [
@@ -446,11 +456,7 @@ class _NodesSectionShellState extends State<NodesSectionShell> {
             isItalic: _isItalic,
             isStrikethrough: _isStrikethrough,
             letterCase: _letterCase,
-            letterSpacing: _letterSpacing,
-            lineHeight: _lineHeight,
             hasUnderline: _hasUnderline,
-            underlineStyle: _underlineStyle,
-            underlineColor: _underlineColor,
             textAlign: _textAlign,
             textDirection: _textDirection,
             accentColor: primaryAccent,
