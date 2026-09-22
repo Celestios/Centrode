@@ -65,7 +65,7 @@ migrate_working_dir/
 notes.txt
 .hermes/
 
+
 # === Machine Learning Models & Temp ===
 assets/models/
-scratch/
 simkgc_pipeline/

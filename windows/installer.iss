@@ -3,7 +3,7 @@
 #define MyAppExeName "centrode.exe"
 
 #ifndef MyAppVersion
-#define MyAppVersion "0.7.0"
+#define MyAppVersion "0.8.0"
 #endif
 
 [Setup]

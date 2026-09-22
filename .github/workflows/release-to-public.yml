@@ -98,6 +98,15 @@ jobs:
       - name: Install Project Dependencies
         run: flutter pub get
 
+      - name: Download Model Assets
+        run: |
+          mkdir -p assets/models/simkgc_256d
+          curl -L -o assets/models/simkgc_256d/simkgc_256d_int8.onnx "https://huggingface.co/Celestios/Persian-simkgc-256d/resolve/main/simkgc_256d_int8.onnx"
+          curl -L -o assets/models/simkgc_256d/concepts_256d_int8.bin "https://huggingface.co/Celestios/Persian-simkgc-256d/resolve/main/concepts_256d_int8.bin"
+          curl -L -o assets/models/simkgc_256d/concepts_dict.json "https://huggingface.co/Celestios/Persian-simkgc-256d/resolve/main/concepts_dict.json"
+          curl -L -o assets/models/simkgc_256d/relations_256d_int8.bin "https://huggingface.co/Celestios/Persian-simkgc-256d/resolve/main/relations_256d_int8.bin"
+          curl -L -o assets/models/simkgc_256d/relations_ontology.json "https://huggingface.co/Celestios/Persian-simkgc-256d/resolve/main/relations_ontology.json"
+          
       - name: Verify Flutter & Windows Build Tools
         run: |
           flutter doctor
@@ -379,6 +388,8 @@ jobs:
     needs: build-windows
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
 
     steps:
       - name: Download Windows Artifacts
@@ -389,8 +400,7 @@ jobs:
       - name: Publish Windows Artifacts to Public GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
-          repository: Celestios/Centrode
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           draft: false
@@ -405,6 +415,8 @@ jobs:
     needs: build-android
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
 
     steps:
       - name: Download Android APKs
@@ -416,8 +428,7 @@ jobs:
       - name: Publish Android Artifacts to Public GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
-          repository: Celestios/Centrode
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           draft: false

@@ -1,6 +1,6 @@
 [package]
 name = "centrode_daemon"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2021"
 description = "Standalone daemon for Centrode — tray, hotkeys, and Custodian IPC."
 authors = ["Celestios <shahin.id5638@gmail.com>"]

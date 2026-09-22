@@ -96,7 +96,7 @@ if not exist "%PRECOMPILED%" (
     if exist "%BUILD_TOOL_PKG_DIR%\pubspec.lock" (
         copy /Y "%BUILD_TOOL_PKG_DIR%\pubspec.lock" . > nul
     )
-    "%DART%" pub get --offline --no-precompile
+    "%DART%" pub get --no-precompile
     "%DART%" compile kernel bin/build_tool_runner.dart
 )
 
@@ -107,7 +107,7 @@ If %ERRORLEVEL% equ 253 (
     if exist "%BUILD_TOOL_PKG_DIR%\pubspec.lock" (
         copy /Y "%BUILD_TOOL_PKG_DIR%\pubspec.lock" . > nul
     )
-    "%DART%" pub get --offline --no-precompile
+    "%DART%" pub get --no-precompile
     "%DART%" compile kernel bin/build_tool_runner.dart
     "%DART%" "%PRECOMPILED%" %*
 )
