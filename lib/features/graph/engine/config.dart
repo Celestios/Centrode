@@ -14,7 +14,6 @@ abstract final class AppConfig {
   static const toolbar = _Toolbar();
   static const visuals = _Visuals();
   static const editor = _Editor();
-  static const liquidGlass = _LiquidGlass();
 }
 
 class _Grid {
@@ -141,14 +140,6 @@ class _Editor {
   final double fontSizeRelation = UiFont.micro;
 }
 
-class _LiquidGlass {
-  const _LiquidGlass();
-
-  final double refractStrength = 0.16;
-  final double bridgeReachFactor = 2.0;
-  final double bridgeThicknessFactor = 0.4;
-  final bool useLocalCoordinates = true;
-}
 
 double calculateEffectiveGridSize(double scale) {
   if (scale <= 0) return AppConfig.grid.baseSize;

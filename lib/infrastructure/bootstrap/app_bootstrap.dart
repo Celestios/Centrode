@@ -11,7 +11,6 @@ import '../telemetry/log_manager.dart';
 import '../../presentation/theme/app_theme.dart';
 import '../../presentation/theme/app_theme_manager.dart';
 import '../../presentation/theme/theme_repository.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/utils/boot_cache.dart';
 import '../lifecycle/custodian_manager.dart';
 import '../lifecycle/daemon_gateway.dart';
@@ -96,9 +95,6 @@ class AppBootstrap {
   static Future<void> initializeBackgroundServices([
     void Function(String status)? onProgress,
   ]) async {
-    onProgress?.call('Loading shaders...');
-    await GlassShaderProvider.load();
-
     onProgress?.call('Connecting storage daemon...');
     final coreDbDir = await AppPaths.mapsDirectory;
     await DaemonGateway.instance.init(coreDbDir);
