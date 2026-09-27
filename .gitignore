@@ -34,6 +34,9 @@
 # === Project Specific & Data ===
 /.Archive
 docs/compose/
+docs/liquid_glass/
+test/prototype/glass_app/
+scratch_batch.html
 /.kilo
 /.mimocode
 /.arch/
