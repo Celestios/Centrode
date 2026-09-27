@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../theme/design_tokens.dart';
-import 'window_control_buttons.dart';
+import 'centrode_window_controls.dart';
 
 /// Centralized unified window title bar for Centrode.
 class CentrodeWindowTitleBar extends StatelessWidget {
@@ -73,7 +73,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
             if (leading != null) leading!,
             const Spacer(),
             if (actions.isNotEmpty) ...actions,
-            if (showWindowControls) const WindowControlButtons(),
+            if (showWindowControls) const CentrodeWindowControls(),
           ],
         ),
         if (center != null)

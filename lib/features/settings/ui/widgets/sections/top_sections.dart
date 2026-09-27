@@ -291,22 +291,63 @@ class ShaderSettingsCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: UiSpacing.standard),
+              const SizedBox(height: UiSpacing.standard),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Refraction Distortion Intensity',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w500,
+                      color: palette.surface.controlForeground,
+                    ),
+                  ),
+                  Text(
+                    controller.refractionStrength.toStringAsFixed(2),
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w700,
+                      color: primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: UiSpacing.tight),
               CentrodeCompactSlider(
-                label: 'Refraction Distortion Intensity',
                 value: controller.refractionStrength,
                 min: 0.0,
                 max: 0.4,
-                unit: '',
                 activeColor: primaryColor,
                 onChanged: controller.setRefractionStrength,
               ),
               const SizedBox(height: UiSpacing.standard),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Optical Backdrop Blur Radius',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w500,
+                      color: palette.surface.controlForeground,
+                    ),
+                  ),
+                  Text(
+                    '${controller.blurRadius.toStringAsFixed(1)}px',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w700,
+                      color: primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: UiSpacing.tight),
               CentrodeCompactSlider(
-                label: 'Optical Backdrop Blur Radius',
                 value: controller.blurRadius,
                 min: 0.0,
                 max: 20.0,
-                unit: 'px',
                 activeColor: primaryColor,
                 onChanged: controller.setBlurRadius,
               ),
@@ -420,12 +461,32 @@ class CanvasSettingsCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: UiSpacing.standard),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Port & Node Snap Hitbox Distance',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w500,
+                      color: palette.surface.controlForeground,
+                    ),
+                  ),
+                  Text(
+                    '${controller.snapDistance.round()}px',
+                    style: TextStyle(
+                      fontSize: UiFont.compact,
+                      fontWeight: FontWeight.w700,
+                      color: primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: UiSpacing.tight),
               CentrodeCompactSlider(
-                label: 'Port & Node Snap Hitbox Distance',
                 value: controller.snapDistance,
                 min: 10.0,
                 max: 80.0,
-                unit: 'px',
                 activeColor: primaryColor,
                 onChanged: controller.setSnapDistance,
               ),

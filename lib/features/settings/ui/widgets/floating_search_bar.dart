@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:centrode/shared/elements/centrode_close_button.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import '../../presentation/settings_controller.dart';
@@ -122,54 +123,8 @@ class _SettingsTopControlsBarState extends State<SettingsTopControlsBar> {
         ),
 
         // Circular red close button at top-right
-        const _CircularRedCloseButton(),
+        const CentrodeCloseButton(),
       ],
-    );
-  }
-}
-
-class _CircularRedCloseButton extends StatefulWidget {
-  const _CircularRedCloseButton();
-
-  @override
-  State<_CircularRedCloseButton> createState() => _CircularRedCloseButtonState();
-}
-
-class _CircularRedCloseButtonState extends State<_CircularRedCloseButton> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).maybePop(),
-        child: AnimatedContainer(
-          duration: UiMotion.fast,
-          width: 34.0,
-          height: 34.0,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _isHovered ? const Color(0xFFFF5252) : const Color(0xFFE53935),
-            boxShadow: [
-              BoxShadow(
-                color: (_isHovered ? const Color(0xFFFF5252) : const Color(0xFFE53935))
-                    .withValues(alpha: 0.35),
-                blurRadius: _isHovered ? 8.0 : 4.0,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.close_rounded,
-              size: 18.0,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

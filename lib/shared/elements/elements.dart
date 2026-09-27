@@ -10,6 +10,9 @@ export 'centrode_palette_generator.dart';
 export 'centrode_color_swatch_button.dart';
 export 'centrode_compact_slider.dart';
 export 'centrode_dialogs.dart';
+export 'centrode_modal_dialog.dart';
+export 'centrode_declarative_dialog.dart';
+export 'centrode_close_button.dart';
 export 'centrode_glass_dropdown.dart';
 export 'centrode_icon_button.dart';
 export 'centrode_icon_tile.dart';
@@ -25,5 +28,6 @@ export 'hover_expandable_menu_bar.dart';
 export 'logo_home_button.dart';
 export 'ribbon_capsule.dart';
 export 'submenu_button_data.dart';
-export 'window_control_buttons.dart';
+export 'centrode_window_controls.dart';
+export 'surfaces/surfaces.dart';
 

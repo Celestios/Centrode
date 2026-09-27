@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'hover_scale_button.dart';
 
-class WindowControlButtons extends StatefulWidget {
-  const WindowControlButtons({super.key});
+class CentrodeWindowControls extends StatefulWidget {
+  const CentrodeWindowControls({super.key});
 
   @override
-  State<WindowControlButtons> createState() => _WindowControlButtonsState();
+  State<CentrodeWindowControls> createState() => _CentrodeWindowControlsState();
 }
 
-class _WindowControlButtonsState extends State<WindowControlButtons>
+class _CentrodeWindowControlsState extends State<CentrodeWindowControls>
     with WindowListener {
   bool _isMaximized = false;
 

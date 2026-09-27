@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/src/glass_alert_dialog.dart';
 import '../theme/design_tokens.dart';
 import '../theme/ui_strings.dart';
+import 'centrode_modal_dialog.dart';
+import 'centrode_button.dart';
 
-/// Shows a standardized Centrode confirmation modal with frosted glass backdrop.
 Future<bool?> showCentrodeConfirmDialog({
   required BuildContext context,
   required String title,
@@ -15,69 +15,75 @@ Future<bool?> showCentrodeConfirmDialog({
 }) {
   final resolvedConfirmLabel = confirmLabel ?? UiStrings.common.delete;
   final resolvedCancelLabel = cancelLabel ?? UiStrings.common.cancel;
+
   return showDialog<bool>(
     context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.4),
+    barrierColor: Colors.transparent,
     builder: (dialogContext) {
       final theme = Theme.of(dialogContext);
-      final primaryColor = isDestructive
+      final isDark = theme.brightness == Brightness.dark;
+      final actionColor = isDestructive
           ? theme.colorScheme.error
           : theme.colorScheme.primary;
 
-      return GlassAlertDialog(
-        title: Row(
-          children: [
-            Icon(
-              icon,
-              color: primaryColor,
-              size: UiIconSize.header,
-            ),
-            const SizedBox(width: UiSpacing.standard),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  fontSize: UiFont.title,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          message,
-          style: TextStyle(
-            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.85),
-            height: 1.4,
-          ),
-        ),
+      return CentrodeModalDialog(
+        icon: Icon(icon, color: actionColor),
+        title: Text(title),
+        content: Text(message),
+        accentColor: actionColor,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              resolvedCancelLabel,
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+          CentrodeButton(
+            onTap: () => Navigator.of(dialogContext).pop(false),
+            child: Container(
+              height: 44.0,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(UiRadius.pill),
+                color: isDark
+                    ? const Color(0xFF1E2631).withValues(alpha: 0.85)
+                    : Colors.white.withValues(alpha: 0.88),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.10),
+                  width: 1.0,
+                ),
               ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor.withValues(alpha: 0.15),
-              foregroundColor: primaryColor,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(UiRadius.card),
-                side: BorderSide(
-                  color: primaryColor.withValues(alpha: 0.3),
-                  width: UiStrokeWidth.standard,
+              child: Text(
+                resolvedCancelLabel,
+                style: TextStyle(
+                  fontSize: UiFont.standard,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF333E48),
                 ),
               ),
             ),
-            child: Text(resolvedConfirmLabel),
+          ),
+          CentrodeButton(
+            onTap: () => Navigator.of(dialogContext).pop(true),
+            child: Container(
+              height: 44.0,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(UiRadius.pill),
+                color: actionColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: actionColor.withValues(alpha: 0.35),
+                    blurRadius: 12.0,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Text(
+                resolvedConfirmLabel,
+                style: const TextStyle(
+                  fontSize: UiFont.standard,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ],
       );
@@ -85,7 +91,6 @@ Future<bool?> showCentrodeConfirmDialog({
   );
 }
 
-/// Shows a standardized Centrode text input modal with frosted glass backdrop.
 Future<String?> showCentrodeInputDialog({
   required BuildContext context,
   required String title,
@@ -102,120 +107,84 @@ Future<String?> showCentrodeInputDialog({
 
   return showDialog<String>(
     context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.4),
+    barrierColor: Colors.transparent,
     builder: (dialogContext) {
       final theme = Theme.of(dialogContext);
+      final isDark = theme.brightness == Brightness.dark;
       final primaryColor = theme.colorScheme.primary;
 
-      return GlassAlertDialog(
-        title: Row(
-          children: [
-            Icon(
-              icon,
-              color: primaryColor,
-              size: UiIconSize.header,
-            ),
-            const SizedBox(width: UiSpacing.standard),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  fontSize: UiFont.title,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (message != null) ...[
-              Text(
-                message,
-                style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.85),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: UiSpacing.gutter),
-            ],
-            TextField(
-              controller: textController,
-              autofocus: true,
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: UiFont.header,
-              ),
-              decoration: InputDecoration(
-                hintText: hintText,
-                hintStyle: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
-                  fontSize: UiFont.header,
-                ),
-                filled: true,
-                fillColor: Colors.black.withValues(alpha: 0.15),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: UiSpacing.container,
-                  vertical: 10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(UiRadius.card),
-                  borderSide: BorderSide(
-                    color: theme.dividerColor.withValues(alpha: 0.2),
-                    width: UiStrokeWidth.standard,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(UiRadius.card),
-                  borderSide: BorderSide(
-                    color: primaryColor.withValues(alpha: 0.6),
-                    width: UiStrokeWidth.thick,
-                  ),
-                ),
-              ),
-              onSubmitted: (value) {
-                final trimmed = value.trim();
-                if (trimmed.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(trimmed);
-                }
-              },
-            ),
-          ],
-        ),
+      return CentrodeModalDialog(
+        icon: Icon(icon, color: primaryColor),
+        title: Text(title),
+        content: message != null ? Text(message) : null,
+        showInput: true,
+        inputController: textController,
+        inputPlaceholder: hintText,
+        accentColor: primaryColor,
+        onInputSubmitted: (val) {
+          final trimmed = val.trim();
+          if (trimmed.isNotEmpty) {
+            Navigator.of(dialogContext).pop(trimmed);
+          }
+        },
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(null),
-            child: Text(
-              resolvedCancelLabel,
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+          CentrodeButton(
+            onTap: () => Navigator.of(dialogContext).pop(null),
+            child: Container(
+              height: 44.0,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(UiRadius.pill),
+                color: isDark
+                    ? const Color(0xFF1E2631).withValues(alpha: 0.85)
+                    : Colors.white.withValues(alpha: 0.88),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.10),
+                  width: 1.0,
+                ),
+              ),
+              child: Text(
+                resolvedCancelLabel,
+                style: TextStyle(
+                  fontSize: UiFont.standard,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF333E48),
+                ),
               ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
+          CentrodeButton(
+            onTap: () {
               final trimmed = textController.text.trim();
               if (trimmed.isNotEmpty) {
                 Navigator.of(dialogContext).pop(trimmed);
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor.withValues(alpha: 0.15),
-              foregroundColor: primaryColor,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(UiRadius.card),
-                side: BorderSide(
-                  color: primaryColor.withValues(alpha: 0.3),
-                  width: UiStrokeWidth.standard,
+            child: Container(
+              height: 44.0,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(UiRadius.pill),
+                color: primaryColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withValues(alpha: 0.35),
+                    blurRadius: 12.0,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Text(
+                resolvedActionLabel,
+                style: const TextStyle(
+                  fontSize: UiFont.standard,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
             ),
-            child: Text(resolvedActionLabel),
           ),
         ],
       );
