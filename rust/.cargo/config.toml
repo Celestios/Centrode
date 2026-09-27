@@ -1,2 +1,5 @@
 [net]
 offline = false
+
+[target.aarch64-linux-android]
+rustflags = ["-C", "target-feature=+fp16"]
