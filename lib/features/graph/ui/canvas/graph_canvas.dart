@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/copy_buffer.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import '../../engine/config.dart';
 import '../../engine/interaction_engine.dart';
 import '../../store/graph_data_query_controller.dart';
 import '../../store/command_queue_processor.dart';
@@ -123,10 +121,6 @@ class _GraphCanvasState extends State<GraphCanvas>
     final vp = _lifecycleCoordinator.viewportController;
     final interaction = _lifecycleCoordinator.interactionController;
 
-    final backdropRepaintListenable = Listenable.merge([
-      vp.transformController,
-      renderState.movementNotifier,
-    ]);
 
     return MultiProvider(
       providers: [
@@ -140,18 +134,10 @@ class _GraphCanvasState extends State<GraphCanvas>
           lifecycleCoordinator: _lifecycleCoordinator,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              return GlassStage(
-                mode: GlassMode.performance,
-                settings: GlassSettings(
-                  refractStrength: AppConfig.liquidGlass.refractStrength,
-                  bridgeReachFactor: AppConfig.liquidGlass.bridgeReachFactor,
-                  bridgeThicknessFactor:
-                      AppConfig.liquidGlass.bridgeThicknessFactor,
-                  useLocalCoordinates:
-                      AppConfig.liquidGlass.useLocalCoordinates,
-                ),
-                backdropRepaint: backdropRepaintListenable,
-                background: CanvasTemplateDropTarget(
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  CanvasTemplateDropTarget(
                   onTemplateDropped: (templateKey, localOffset) async {
                     final canvasOffset = vp.screenToCanvas(localOffset);
                     await commandProcessor.templateMutations
@@ -199,7 +185,7 @@ class _GraphCanvasState extends State<GraphCanvas>
                     ],
                   ),
                 ),
-                child: CanvasOverlayLayout(
+                CanvasOverlayLayout(
                   constraints: constraints,
                   renderState: renderState,
                   queryController: queryController,
@@ -208,7 +194,8 @@ class _GraphCanvasState extends State<GraphCanvas>
                   session: session,
                   drawingInterceptor: _lifecycleCoordinator.drawingInterceptor,
                 ),
-              );
+              ],
+            );
             },
           ),
         ),
@@ -216,3 +203,4 @@ class _GraphCanvasState extends State<GraphCanvas>
     );
   }
 }
+

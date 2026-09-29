@@ -100,7 +100,6 @@ centrode/
 ├── lib/                    # Flutter frontend
 ├── rust/                   # Rust backend
 ├── packages/               # Internal Dart packages
-├── shaders/                # GLSL shaders
 ├── assets/                 # Themes, images
 ├── scripts/                # Utility scripts
 ├── test/                   # Dart tests

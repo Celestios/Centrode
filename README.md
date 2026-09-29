@@ -38,10 +38,10 @@ A high-performance, canvas-based visual knowledge graphing and relational mappin
 * **Embedded Attachments:** Automatically collects and bundles local file/media attachments into the compressed `.cent` archive.
 
 ### 6. Liquid Glass & Rich Aesthetics
-* **Liquid Glass Shader:** Implements a premium glassmorphic blending effect via a custom GLSL fragment shader (`shaders/liquid_glass.frag`). The shader features:
-  * Rounded-rect Signed Distance Fields (SDFs) with smooth `smin` union blending for organic node bridges.
-  * Refraction distortion and physical-coordinate radial blur.
-  * Directional rim lighting (lightbands) and angular specular highlights.
+* **Liquid Glass & Dual Surface System:** Implements premium glassmorphism and real-time refractive optics powered by `liquid_glass_easy` alongside stepped specular bevels in dual surface modes:
+  * **Quality Mode:** Real-time backdrop refraction, chromatic dispersion, and fluid lens distortions.
+  * **Performance Mode:** Lightweight, zero-shader specular double-edge borders and semi-translucent backdrops.
+  * Reusable fluid mechanics including `CentrodeGlidingLens` volume-conserving stretch-glide transitions.
 * **Extensive Custom Theming:** Dynamic JSON-based theme management loading stylesheets directly into the Flutter runtime, supporting fluid transitions.
 
 ---
@@ -63,7 +63,7 @@ centrode/
 │   │       ├── store/               # Sync engine, mutations, and database queries
 │   │       └── ui/                  # Canvas widgets, rendering layers, and side panels
 │   ├── infrastructure/              # Telemetry, logger hooks, and device services
-│   └── shared/                      # Shared widgets, glass panel rendering, and common code
+│   └── shared/                      # Shared widgets, elements, surfaces, and common code
 ├── packages/
 │   └── centrode_codegen/            # Custom Dart build_runner generator for UI nodes
 ├── rust/                            # Rust centrode_core crate
@@ -75,7 +75,6 @@ centrode/
 │       ├── persistence/             # SurrealDB connection, schema queries, and history manager
 │       ├── plugin_system/           # Extension layer for external features
 │       └── telemetry.rs             # Log subscriber bridging to the frontend
-├── shaders/                         # GLSL fragment shaders for UI rendering
 └── assets/                          # App assets, including default themes and images
 ```
 

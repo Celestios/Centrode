@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import '../centrode_close_button.dart';
+import 'centrode_close_button.dart';
 import '../theme/design_tokens.dart';
 import 'surfaces/double_edge_surface.dart';
 import 'surfaces/inset_surface.dart';

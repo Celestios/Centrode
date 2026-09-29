@@ -32,7 +32,7 @@ cd rust && cargo test            # Rust backend tests
 - `lib/features/graph/` — infinite canvas, node editing, routing engine
 - `lib/features/workspace/` — project management
 - `lib/infrastructure/` — telemetry, device services
-- `lib/shared/` — shared widgets, glass panel rendering
+- `lib/shared/` — shared widgets, elements, surface architecture
 - `rust/src/bridge/` — FFI endpoints (API surface for Flutter)
 - `rust/src/domain/` — node/relation structs, patches
 - `rust/src/persistence/` — SurrealDB connection, queries, history

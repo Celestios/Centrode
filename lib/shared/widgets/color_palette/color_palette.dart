@@ -1,8 +1,6 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/utils/color_theory_engine.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/shared/utils/color_utils.dart';
 
 enum ColorPaletteMode { compactPresets, radial, advanced }
@@ -158,8 +156,7 @@ class _UniversalColorPaletteState extends State<UniversalColorPalette> {
 
     return GlassPanel(
       padding: const EdgeInsets.all(12),
-      blur: 16.0,
-      mode: GlassMode.performance,
+      mode: CentrodeSurfaceMode.performance,
       borderRadius: 16.0,
       width: 176,
       child: Column(

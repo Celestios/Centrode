@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
-import 'package:centrode/shared/theme/theme_derived_palette.dart';
 import 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
 import 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart';
+import 'surfaces/double_edge_surface.dart';
+import 'surfaces/gliding_lens.dart';
 
 export 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
 export 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart'
     show MenuPositioningMode;
 
-class ContextMenuOverlay {
+class CentrodeContextMenu {
   static OverlayEntry? show({
     required BuildContext context,
     required Offset position,
@@ -20,6 +21,9 @@ class ContextMenuOverlay {
     MenuPositioningMode positioningMode = MenuPositioningMode.auto,
     VoidCallback? onDismissed,
     double? menuWidth,
+    bool useGlidingLens = false,
+    int? selectedIndex,
+    bool showChevron = false,
   }) {
     final effectiveTargetRect =
         targetRect ?? Rect.fromLTWH(position.dx, position.dy, 0, 0);
@@ -37,6 +41,9 @@ class ContextMenuOverlay {
       positioningMode: positioningMode,
       onDismissed: onDismissed,
       menuWidth: menuWidth,
+      useGlidingLens: useGlidingLens,
+      selectedIndex: selectedIndex,
+      showChevron: showChevron,
     );
   }
 
@@ -50,6 +57,9 @@ class ContextMenuOverlay {
     MenuPositioningMode positioningMode = MenuPositioningMode.auto,
     VoidCallback? onDismissed,
     double? menuWidth,
+    bool useGlidingLens = false,
+    int? selectedIndex,
+    bool showChevron = false,
   }) {
     final visibleItems = items.where((item) => item.visible).toList();
     if (visibleItems.isEmpty) return null;
@@ -83,6 +93,9 @@ class ContextMenuOverlay {
           positioningMode: positioningMode,
           onDismiss: dismiss,
           menuWidth: menuWidth,
+          useGlidingLens: useGlidingLens,
+          selectedIndex: selectedIndex,
+          showChevron: showChevron,
         ),
       ),
     );
@@ -92,8 +105,6 @@ class ContextMenuOverlay {
   }
 }
 
-typedef CentrodeContextMenu = ContextMenuOverlay;
-
 class _ContextMenuRouteWidget extends StatefulWidget {
   final Rect targetRect;
   final Offset? clickPosition;
@@ -102,6 +113,9 @@ class _ContextMenuRouteWidget extends StatefulWidget {
   final MenuPositioningMode positioningMode;
   final VoidCallback onDismiss;
   final double? menuWidth;
+  final bool useGlidingLens;
+  final int? selectedIndex;
+  final bool showChevron;
 
   const _ContextMenuRouteWidget({
     required this.targetRect,
@@ -111,6 +125,9 @@ class _ContextMenuRouteWidget extends StatefulWidget {
     this.positioningMode = MenuPositioningMode.auto,
     required this.onDismiss,
     this.menuWidth,
+    this.useGlidingLens = false,
+    this.selectedIndex,
+    this.showChevron = false,
   });
 
   @override
@@ -127,15 +144,16 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
   @override
   void initState() {
     super.initState();
+    _focusedIndex = widget.selectedIndex ?? -1;
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 120),
+      duration: const Duration(milliseconds: 140),
     );
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutCubic,
     );
-    _scaleAnimation = Tween<double>(begin: 0.96, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.94, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _controller.forward();
@@ -229,6 +247,10 @@ class _ContextMenuRouteWidgetState extends State<_ContextMenuRouteWidget>
                   items: widget.items,
                   focusedIndex: _focusedIndex,
                   menuWidth: widget.menuWidth,
+                  useGlidingLens: widget.useGlidingLens,
+                  selectedIndex: widget.selectedIndex,
+                  showChevron: widget.showChevron,
+                  animationValue: _controller.value,
                   onSelect: (item) {
                     widget.onDismiss();
                     item.onTap?.call();
@@ -248,65 +270,154 @@ class _ContextMenuCard extends StatefulWidget {
   final int focusedIndex;
   final ValueChanged<ContextMenuItem> onSelect;
   final double? menuWidth;
+  final bool useGlidingLens;
+  final int? selectedIndex;
+  final bool showChevron;
+  final double animationValue;
 
   const _ContextMenuCard({
     required this.items,
     required this.focusedIndex,
     required this.onSelect,
     this.menuWidth,
+    required this.useGlidingLens,
+    this.selectedIndex,
+    required this.showChevron,
+    required this.animationValue,
   });
 
   @override
   State<_ContextMenuCard> createState() => _ContextMenuCardState();
 }
 
-class _ContextMenuCardState extends State<_ContextMenuCard> {
+class _ContextMenuCardState extends State<_ContextMenuCard>
+    with SingleTickerProviderStateMixin {
   int _hoveredIndex = -1;
+  double _fromRowFraction = 0.0;
+  double _toRowFraction = 0.0;
+  bool _isLensTransitioning = false;
+  late AnimationController _lensController;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialPos = (widget.selectedIndex ?? 0).toDouble();
+    _fromRowFraction = initialPos;
+    _toRowFraction = initialPos;
+    _hoveredIndex = widget.selectedIndex ?? -1;
+
+    _lensController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 240),
+    );
+    _lensController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (mounted) {
+          setState(() {
+            _isLensTransitioning = false;
+            _fromRowFraction = _toRowFraction;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContextMenuCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusedIndex != oldWidget.focusedIndex && widget.focusedIndex >= 0) {
+      _onHoverRow(widget.focusedIndex);
+    }
+  }
+
+  @override
+  void dispose() {
+    _lensController.dispose();
+    super.dispose();
+  }
+
+  void _onHoverRow(int targetIndex) {
+    if (_hoveredIndex == targetIndex && !_isLensTransitioning) return;
+    final startPos = _isLensTransitioning
+        ? (_fromRowFraction +
+            (_toRowFraction - _fromRowFraction) *
+                CentrodeGlidingLensPhysics.calculatePosProgress(_lensController.value))
+        : _fromRowFraction;
+
+    setState(() {
+      _hoveredIndex = targetIndex;
+      _fromRowFraction = startPos;
+      _toRowFraction = targetIndex.toDouble();
+      _isLensTransitioning = true;
+    });
+    _lensController.forward(from: 0.0);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final palette = CentrodeDerivedPalette.of(context);
+    final theme = Theme.of(context);
+    final accentColor = theme.colorScheme.primary;
 
-    final backgroundColor = palette.surface.cardBackground;
-    final borderColor = palette.surface.borderSubtle;
+    const double rowHeight = UiControlSize.standard;
+    const double paddingV = 5.0;
+    const double paddingH = 4.0;
 
     return Material(
       color: Colors.transparent,
-      child: Container(
+      child: SizedBox(
         width: widget.menuWidth,
-        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 5.0),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(UiRadius.card),
-          border: Border.all(
-            color: borderColor,
-            width: UiStrokeWidth.subtle,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.35),
-              blurRadius: 2.0,
-              offset: const Offset(0, 1),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 12.0,
-              offset: const Offset(0, 6),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 24.0,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: CentrodeDoubleEdgeSurface(
+          cornerRadius: UiRadius.card,
+          accentColor: accentColor,
+          padding: const EdgeInsets.symmetric(horizontal: paddingH, vertical: paddingV),
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              for (int i = 0; i < widget.items.length; i++)
-                _buildEntry(context, widget.items[i], i),
+              if (widget.useGlidingLens)
+                AnimatedBuilder(
+                  animation: _lensController,
+                  builder: (context, _) {
+                    final t = _lensController.value;
+                    final posProgress = _isLensTransitioning
+                        ? CentrodeGlidingLensPhysics.calculatePosProgress(t)
+                        : 1.0;
+                    final stretch = _isLensTransitioning
+                        ? CentrodeGlidingLensPhysics.calculateStretch(t)
+                        : 0.0;
+                    final activeFraction = _isLensTransitioning
+                        ? _fromRowFraction + (_toRowFraction - _fromRowFraction) * posProgress
+                        : (_hoveredIndex >= 0
+                            ? _hoveredIndex.toDouble()
+                            : (widget.selectedIndex ?? 0).toDouble());
+
+                    final rowDistance = (_toRowFraction - _fromRowFraction).abs();
+                    final maxStretch = (rowHeight * 0.40 * rowDistance.clamp(1.0, 2.5)).clamp(8.0, 36.0);
+                    final currentStretch = stretch * maxStretch;
+                    final currentHeight = rowHeight + currentStretch;
+
+                    final baseCenterY = (activeFraction + 0.5) * rowHeight;
+                    final dir = (_toRowFraction >= _fromRowFraction) ? 1.0 : -1.0;
+                    final leadBias = (1.0 - (2.0 * posProgress).clamp(0.0, 1.0)) * 0.44 * dir * currentStretch;
+                    final centerY = baseCenterY + leadBias;
+                    final top = centerY - (currentHeight / 2);
+
+                    return CentrodeGlidingLens(
+                      direction: Axis.vertical,
+                      activeRect: Rect.fromLTWH(0, top, (widget.menuWidth ?? 180) - (paddingH * 2), currentHeight),
+                      cornerRadius: UiRadius.control,
+                      accentColor: accentColor,
+                      isVisible: _hoveredIndex >= 0 || widget.selectedIndex != null,
+                    );
+                  },
+                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (int i = 0; i < widget.items.length; i++)
+                    _buildEntry(context, widget.items[i], i, rowHeight),
+                ],
+              ),
             ],
           ),
         ),
@@ -314,7 +425,7 @@ class _ContextMenuCardState extends State<_ContextMenuCard> {
     );
   }
 
-  Widget _buildEntry(BuildContext context, ContextMenuItem item, int index) {
+  Widget _buildEntry(BuildContext context, ContextMenuItem item, int index, double rowHeight) {
     if (item.isDivider) {
       return Container(
         height: UiStrokeWidth.subtle,
@@ -341,11 +452,18 @@ class _ContextMenuCardState extends State<_ContextMenuCard> {
 
     final isFocused = index == widget.focusedIndex;
     final isHovered = index == _hoveredIndex;
+    final isSelected = index == widget.selectedIndex;
 
     if (item.builder != null) {
       return MouseRegion(
-        onEnter: (_) => setState(() => _hoveredIndex = index),
-        onExit: (_) => setState(() => _hoveredIndex = -1),
+        onEnter: (_) {
+          _onHoverRow(index);
+        },
+        onExit: (_) {
+          if (!widget.useGlidingLens) {
+            setState(() => _hoveredIndex = -1);
+          }
+        },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: item.onTap,
@@ -354,11 +472,30 @@ class _ContextMenuCardState extends State<_ContextMenuCard> {
       );
     }
 
-    return _ContextMenuItemRow(
-      item: item,
-      isFocused: isFocused,
-      isHovered: isHovered,
-      onTap: () => widget.onSelect(item),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => _onHoverRow(index),
+      onExit: (_) {
+        if (!widget.useGlidingLens) {
+          setState(() => _hoveredIndex = -1);
+        }
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => widget.onSelect(item),
+        child: SizedBox(
+          height: rowHeight,
+          child: _ContextMenuItemRow(
+            item: item,
+            isFocused: isFocused,
+            isHovered: isHovered,
+            isSelected: isSelected,
+            useGlidingLens: widget.useGlidingLens,
+            showChevron: widget.showChevron && isSelected,
+            animationValue: widget.animationValue,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -367,13 +504,19 @@ class _ContextMenuItemRow extends StatelessWidget {
   final ContextMenuItem item;
   final bool isFocused;
   final bool isHovered;
-  final VoidCallback onTap;
+  final bool isSelected;
+  final bool useGlidingLens;
+  final bool showChevron;
+  final double animationValue;
 
   const _ContextMenuItemRow({
     required this.item,
     required this.isFocused,
     required this.isHovered,
-    required this.onTap,
+    required this.isSelected,
+    required this.useGlidingLens,
+    required this.showChevron,
+    required this.animationValue,
   });
 
   @override
@@ -390,59 +533,62 @@ class _ContextMenuItemRow extends StatelessWidget {
         ? const Color(0xFFFF5C5C).withValues(alpha: 0.14)
         : theme.colorScheme.primary.withValues(alpha: 0.12);
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          height: UiControlSize.standard,
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          decoration: BoxDecoration(
-            color: isActive ? hoverBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(UiRadius.control),
-          ),
-          child: Row(
-            children: [
-              if (item.leadingIcon != null) ...[
-                Icon(
-                  item.leadingIcon,
-                  size: UiIconSize.dense,
-                  color: isDestructive
-                      ? const Color(0xFFFF5C5C)
-                      : baseTextColor.withValues(alpha: 0.75),
-                ),
-                const SizedBox(width: UiSpacing.standard),
-              ],
-              Expanded(
-                child: Text(
-                  item.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: UiFont.standard,
-                    fontWeight: FontWeight.w500,
-                    color: baseTextColor,
-                  ),
-                ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: BoxDecoration(
+        color: (!useGlidingLens && isActive) ? hoverBg : Colors.transparent,
+        borderRadius: BorderRadius.circular(UiRadius.control),
+      ),
+      child: Row(
+        children: [
+          if (item.leadingIcon != null) ...[
+            Icon(
+              item.leadingIcon,
+              size: UiIconSize.dense,
+              color: isDestructive
+                  ? const Color(0xFFFF5C5C)
+                  : (isActive ? theme.colorScheme.primary : baseTextColor.withValues(alpha: 0.75)),
+            ),
+            const SizedBox(width: UiSpacing.standard),
+          ],
+          Expanded(
+            child: Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: UiFont.standard,
+                fontWeight: isSelected ? FontWeight.w700 : (isActive ? FontWeight.w600 : FontWeight.w500),
+                color: isActive ? Colors.white : baseTextColor,
               ),
-              if (item.shortcut != null) ...[
-                const SizedBox(width: UiSpacing.standard),
-                Text(
-                  item.shortcut!,
-                  style: TextStyle(
-                    fontSize: UiFont.micro,
-                    fontFamily: 'monospace',
-                    color: isDestructive
-                        ? const Color(0xFFFF5C5C).withValues(alpha: 0.6)
-                        : (theme.textTheme.bodySmall?.color ?? Colors.grey)
-                            .withValues(alpha: 0.55),
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
+          if (showChevron) ...[
+            AnimatedRotation(
+              turns: animationValue * 0.5,
+              duration: Duration.zero,
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: UiIconSize.standard,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: UiSpacing.tight),
+          ],
+          if (item.shortcut != null) ...[
+            const SizedBox(width: UiSpacing.standard),
+            Text(
+              item.shortcut!,
+              style: TextStyle(
+                fontSize: UiFont.micro,
+                fontFamily: 'monospace',
+                color: isDestructive
+                    ? const Color(0xFFFF5C5C).withValues(alpha: 0.6)
+                    : (theme.textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.55),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

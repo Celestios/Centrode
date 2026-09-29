@@ -1,8 +1,5 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/shared/elements/centrode_icon_button.dart';
-import 'package:centrode/shared/elements/glass_divider.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class VerticalTextFormatToolbar extends StatefulWidget {
   final VoidCallback onToggleHeader1;

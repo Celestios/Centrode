@@ -12,6 +12,7 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
   final double cornerRadius;
   final double stepWidth;
   final Color? backgroundColor;
+  final Color? accentColor;
   final Gradient? gradient;
   final List<BoxShadow>? boxShadow;
   final CentrodeSurfaceMode? mode;
@@ -29,6 +30,7 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
     this.cornerRadius = 16.0,
     this.stepWidth = 2.0,
     this.backgroundColor,
+    this.accentColor,
     this.gradient,
     this.boxShadow,
     this.mode,
@@ -46,7 +48,19 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
         (isDark ? const Color(0x18FFFFFF) : const Color(0x0AFFFFFF));
 
     final effectiveGradient = gradient ??
-        CentrodeSurfaceScope.maybeOf(context)?.partialColorGradient;
+        CentrodeSurfaceScope.maybeOf(context)?.partialColorGradient ??
+        (accentColor != null
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  accentColor!.withValues(alpha: isDark ? 0.18 : 0.10),
+                  accentColor!.withValues(alpha: isDark ? 0.05 : 0.02),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.45, 1.0],
+              )
+            : null);
 
     final outerContainer = Container(
       width: width,

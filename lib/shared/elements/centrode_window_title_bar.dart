@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'centrode_panel.dart';
 import '../theme/design_tokens.dart';
 import 'centrode_window_controls.dart';
 
@@ -112,7 +112,6 @@ class CentrodeWindowTitleBar extends StatelessWidget {
     if (enableGlass) {
       return GlassPanel(
         borderRadius: UiRadius.none,
-        blur: 16.0,
         color: backgroundColor ?? theme.cardColor.withValues(alpha: 0.65),
         height: height,
         shadow: BoxShadow(

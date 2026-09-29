@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/features/graph/engine/config.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/src/rust/domain/styles.dart';
 import 'package:centrode/shared/domain/raw_uuid.dart';
-import 'package:centrode/shared/elements/elements.dart';
 
 class VerticalContextToolbar extends StatelessWidget {
   final VoidCallback onDelete;
@@ -75,12 +73,6 @@ class VerticalContextToolbar extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
 
     return GlassGroup(
-      settings: GlassSettings(
-        refractStrength: AppConfig.liquidGlass.refractStrength,
-        bridgeReachFactor: 2.5,
-        bridgeThicknessFactor: AppConfig.liquidGlass.bridgeThicknessFactor,
-        useLocalCoordinates: AppConfig.liquidGlass.useLocalCoordinates,
-      ),
       child: SizedBox(
         width: 520,
         child: Stack(
@@ -521,4 +513,6 @@ class _VerticalToolbarGroupButtonState
     );
   }
 }
+
+
 

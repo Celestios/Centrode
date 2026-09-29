@@ -1,10 +1,10 @@
-# Glass Panel
+# Glass Panel & Surfaces
 
 ---
 
 ## Overview
 
-The glass panel system implements glassmorphic UI containers using a custom GLSL fragment shader for real-time rendering.
+The surface system implements glassmorphic UI containers and interactive elements using `liquid_glass_easy` for real-time refractive optics alongside stepped specular bevels in dual surface modes (`CentrodeSurfaceMode.quality` and `CentrodeSurfaceMode.performance`).
 
 ---
 
@@ -12,47 +12,31 @@ The glass panel system implements glassmorphic UI containers using a custom GLSL
 
 | File | Role |
 |------|------|
-| `glass_panel.dart` | Barrel export |
-| `src/glass_panel_widget.dart` | Main glass container widget |
-| `src/glass_shader_provider.dart` | Shader compilation and caching |
-| `src/glass_settings.dart` | Effect parameters (blend, refraction, specular) |
-| `src/glass_mode.dart` | Glass rendering modes |
-| `src/glass_stage.dart` | Rendering stage management |
-| `src/glass_alert_dialog.dart` | Glass-styled alert dialogs |
-| `src/glass_group.dart` | Grouped glass elements |
+| `elements.dart` | Master barrel export |
+| `centrode_panel.dart` | High-level surface container (`CentrodePanel` / `GlassPanel`) |
+| `surfaces/double_edge_surface.dart` | Double stepped specular bevel container (`CentrodeDoubleEdgeSurface`) |
+| `surfaces/double_edge_painter.dart` | Custom canvas stepped specular bevel painter |
+| `surfaces/inset_surface.dart` | Debossed wells, capillary channels, and fields |
+| `surfaces/gliding_lens.dart` | Reusable volume-conserving fluid lens selector |
+| `surfaces/surface_mode.dart` | Dual surface mode scope and enum |
 
 ---
 
-## Shader
+## Surface Modes & Optics
 
-The liquid glass shader (`shaders/liquid_glass.frag`) implements:
-- Rounded-rect SDFs with smooth `smin` union blending
-- Refraction distortion and radial blur
-- Directional rim lighting (lightbands)
-- Angular specular highlights
-- Anti-aliasing via physical pixel width
-
-See [Shader documentation](../../design/shaders.md) for the full breakdown.
-
----
-
-## Shadow and Corner Geometry
-
-`GlassPanel` uses a `ShapeDecoration` with `ContinuousRectangleBorder` (squircle) for its outer shadow casting, specular border highlight, face fill, and backdrop clipping.
-- **Continuous Curvature**: Outer multi-layered shadows conform directly to the continuous squircle curve without clipping or corner drop-off.
-- **Asymmetric Radii**: Supports `customBorderRadius: BorderRadiusGeometry?` to independently round specific corners (e.g. `topRight` and `bottomRight` for docked sidebars) while maintaining smooth squircle bezier continuity.
+The system supports two rendering modes:
+- **Quality Mode**: Real-time backdrop refraction, chromatic dispersion, and fluid lens distortions powered by `liquid_glass_easy`.
+- **Performance Mode**: Lightweight, zero-shader specular double-edge borders and semi-translucent backdrops for resource-constrained environments.
 
 ---
 
 ## Usage
 
 ```dart
-GlassPanel(
-  settings: GlassSettings(
-    blendPx: 20.0,
-    refractStrength: 0.5,
-    specStrength: 0.3,
-  ),
+CentrodePanel(
+  borderRadius: UiRadius.panel,
+  blur: 16.0,
+  accentColor: theme.colorScheme.primary,
   child: MyContent(),
 )
 ```

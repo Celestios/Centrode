@@ -1,8 +1,7 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
-import 'package:centrode/shared/widgets/context_menu_overlay.dart';
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'centrode_context_menu.dart';
+import 'dart:async';
 
 class CentrodeMenuSection {
   final String title;
@@ -11,16 +10,15 @@ class CentrodeMenuSection {
   const CentrodeMenuSection({required this.title, required this.items});
 }
 
-class HoverExpandableMenuBar extends StatefulWidget {
+class CentrodeExpandableMenuBar extends StatefulWidget {
   final List<CentrodeMenuSection>? sections;
   final List<Widget> Function(
     BuildContext context,
     ButtonStyle menuButtonStyle,
-  )?
-  menuBuilder;
+  )? menuBuilder;
   final VoidCallback? onClose;
 
-  const HoverExpandableMenuBar({
+  const CentrodeExpandableMenuBar({
     super.key,
     this.sections,
     this.menuBuilder,
@@ -28,10 +26,10 @@ class HoverExpandableMenuBar extends StatefulWidget {
   });
 
   @override
-  State<HoverExpandableMenuBar> createState() => _HoverExpandableMenuBarState();
+  State<CentrodeExpandableMenuBar> createState() => _CentrodeExpandableMenuBarState();
 }
 
-class _HoverExpandableMenuBarState extends State<HoverExpandableMenuBar> {
+class _CentrodeExpandableMenuBarState extends State<CentrodeExpandableMenuBar> {
   bool _isExpanded = false;
   Timer? _closeTimer;
   OverlayEntry? _openMenuEntry;
@@ -79,6 +77,7 @@ class _HoverExpandableMenuBarState extends State<HoverExpandableMenuBar> {
       targetRect: rect,
       items: section.items,
       positioningMode: MenuPositioningMode.below,
+      useGlidingLens: true,
       onDismissed: () {
         if (mounted) {
           setState(() => _activeSectionTitle = null);
@@ -182,6 +181,8 @@ class _HoverExpandableMenuBarState extends State<HoverExpandableMenuBar> {
   }
 }
 
+typedef HoverExpandableMenuBar = CentrodeExpandableMenuBar;
+
 class _SectionHeaderButton extends StatefulWidget {
   final CentrodeMenuSection section;
   final bool isActive;
@@ -211,8 +212,8 @@ class _SectionHeaderButtonState extends State<_SectionHeaderButton> {
     final hoverBg = widget.isActive
         ? theme.colorScheme.primary.withValues(alpha: 0.18)
         : (isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.06));
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.06));
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,

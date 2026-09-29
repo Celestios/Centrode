@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:centrode/shared/logging.dart';
 import 'package:centrode/shared/elements/elements.dart';
-import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import '../store/graph_data_query_controller.dart';
 import '../store/command_queue_processor.dart';
 import '../presentation/node_render_state.dart';

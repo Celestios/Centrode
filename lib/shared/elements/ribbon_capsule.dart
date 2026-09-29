@@ -1,7 +1,7 @@
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 
-import 'glass_divider.dart';
+import 'centrode_divider.dart';
 
 class RibbonCapsule extends StatelessWidget {
   final Widget child;

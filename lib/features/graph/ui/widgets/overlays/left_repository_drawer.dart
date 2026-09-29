@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/left_panel_type.dart';
-import 'package:centrode/shared/elements/centrode_icon_tile.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class LeftRepositoryDrawer extends StatelessWidget {
   final LeftPanelType activePanel;
@@ -93,3 +92,4 @@ class LeftRepositoryDrawer extends StatelessWidget {
     );
   }
 }
+

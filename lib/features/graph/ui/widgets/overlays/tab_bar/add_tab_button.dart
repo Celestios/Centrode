@@ -1,8 +1,6 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/shared/elements/glass_presets.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/shared/utils/map_scanner.dart';
 import 'package:centrode/features/graph/presentation/map_manager.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
@@ -430,3 +428,4 @@ class _AddTabButtonState extends State<AddTabButton> {
     );
   }
 }
+

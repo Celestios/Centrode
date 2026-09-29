@@ -232,20 +232,14 @@ theme:
         inner_shadow: "{ color: black, alpha: 0.10, offset: { x: -1.2, y: -1.2 }, blur: 2.0, style: \"inner\" }"
 
     glassmorphism:
-      shader_asset: "shaders/liquid_glass.frag"
-      max_concurrent_rects: 4
-      settings:
-        blend_px: 14.0
-        refract_strength: 0.08
-        distort_falloff_px: 45.0
-        blur_radius_px: 7.0
-        spec_angle: 4.0
-        spec_strength: 2.0
-        spec_power: 100.0
-        lightband_strength: 0.9
-        bridge_reach_factor: 2.0
-        bridge_thickness_factor: 1.0
-        aa_px: 1.5
+      engine: "liquid_glass_easy: ^4.3.1"
+      modes:
+        quality: "Real-time backdrop refraction, chromatic dispersion, fluid lens distortions"
+        performance: "Stepped specular double-edge bevels, zero shader overhead"
+      surfaces:
+        double_edge_surface: "CentrodeDoubleEdgeSurface with stepped specular highlights"
+        inset_surface: "CentrodeInsetSurface with capillary channels"
+        gliding_lens: "CentrodeGlidingLens volume-conserving fluid lens selector"
 
     borders:
       radii:
@@ -327,7 +321,7 @@ canvas_graph_components:
     path: lib/features/graph/ui/canvas/graph_canvas.dart
     description: "Main infinite canvas widget. Manages viewport, interaction engine, drawing interceptor, gesture handling."
     layout:
-      type: GlassStage > CanvasInteractiveViewer
+      type: CanvasInteractiveViewer
       stack_layers:
         - GridLayer: dot grid background
         - RelationLayer: connection lines
@@ -335,10 +329,6 @@ canvas_graph_components:
         - OverlayLayer: marquee, opt-area, temp relations, metadata preview
         - PortLayer: connection port indicators
         - ActiveDrawingPainter: transient freehand strokes
-    styles:
-      glass:
-        refract_strength: 0.16
-        bridge_reach_factor: 2.0
         bridge_thickness_factor: 0.4
       cursor: dynamic from InteractionController
     behaviors:
@@ -826,11 +816,11 @@ shared_widgets:
         curve: "decelerate"
         friction_coefficient: 0.0000135
 
-  - name: ContextMenuOverlay
-    path: lib/shared/widgets/context_menu_overlay.dart
-    description: "Static utility showing context menu at screen position using Overlay."
+  - name: CentrodeContextMenu
+    path: lib/shared/elements/centrode_context_menu.dart
+    description: "Centralized context menu overlay with support for gliding lens highlight, action items, dividers, and custom styling."
     styles:
-      material: "{ elevation: 4, border_radius: 4 }"
+      menu_surface: "CentrodeDoubleEdgeSurface with subtle specular border"
       item_padding: "{ horizontal: 16, vertical: 8 }"
 
   - name: UnboundedStack
@@ -861,57 +851,28 @@ shared_widgets:
       - Dropdown for harmony type
       - Shuffle button for random colors
 
-  - name: GlassPanel
-    path: lib/shared/widgets/glass_panel/glass_panel.dart
-    description: "Core glassmorphic panel with BackdropFilter blur or liquid-glass shader."
+  - name: CentrodePanel
+    path: lib/shared/elements/centrode_panel.dart
+    description: "Core surface panel backed by CentrodeDoubleEdgeSurface and dual surface modes."
     parameters:
       borderRadius: 16.0 (default)
       blur: 10.0 (default)
       color: cardColor at alpha 0.85
+      accentColor: dynamic theme accent
       onTap: VoidCallback?
     styles:
       performance_mode:
-        gradient: "[color 0.18, color 0.08] top-left to bottom-right"
-        border: "{ color: primary 0.225, width: 0.75 }"
-        inner_shadows:
-          highlight: "{ white, 0.18, offset: (1.2, 1.2), blur: 2.0, style: inner }"
-          shadow: "{ black, 0.10, offset: (-1.2, -1.2), blur: 2.0, style: inner }"
+        surface: "Stepped specular double-edge border highlight, no shader overhead"
       quality_mode:
-        fragment_shader: "liquid_glass.frag"
-        refraction: true
-        specular_highlights: true
+        surface: "Hardware-accelerated refractive liquid glass with dynamic chromatic dispersion"
 
-  - name: GlassStage
-    path: lib/shared/widgets/glass_panel/src/glass_stage.dart
-    description: "Captures background at 25% scale for glass panel backdrop sampling."
-    styles:
-      downsample_scale: 0.25
-      capture_throttle: 33ms
-      warmup_delays: "[100, 400, 1000, 2500]ms"
-
-  - name: GlassGroup
-    path: lib/shared/widgets/glass_panel/src/glass_group.dart
-    description: "Scope for bridge blending between descendant glass panels."
-    styles:
-      max_rects: 4
-    behaviors:
-      - Loads liquid_glass.frag shader
-      - Route animation sync
-      - Scroll position sync
-
-  - name: GlassSettings
-    path: lib/shared/widgets/glass_panel/src/glass_settings.dart
-    description: "Immutable configuration for liquid-glass shader effect."
-    defaults:
-      blend_px: 14.0
-      refract_strength: 0.08
-      distort_falloff_px: 45.0
-      blur_radius_px: 7.0
-      spec_angle: 4.0
-      spec_strength: 2.0
-      lightband_strength: 0.9
-      bridge_reach_factor: 2.0
-      aa_px: 1.5
+  - name: CentrodeGlidingLens
+    path: lib/shared/elements/surfaces/gliding_lens.dart
+    description: "Reusable fluid volume-conserving lens selector for segmented controls, tab switchers, and dropdowns."
+    physics:
+      width_stretch: "+42% during rapid pointer movement"
+      height_squash: "2.5px conservation"
+      spring_easing: "Fast stretch, fluid deceleration"
 
   - name: ColorUtils
     path: lib/shared/utils/color_utils.dart
@@ -1021,8 +982,8 @@ presentation_widgets:
   # ---------------------------------------------------------------------------
   # Menu Bar (hover-expandable)
   # ---------------------------------------------------------------------------
-  - name: HoverExpandableMenuBar
-    path: lib/presentation/widgets/window_title_bar.dart
+  - name: CentrodeExpandableMenuBar
+    path: lib/shared/elements/centrode_expandable_menu_bar.dart
     description: "Menu bar that starts as hamburger icon (menu_rounded, size 18, alpha 0.7) and expands into full MenuBar on mouse hover. Collapses after 300ms delay on mouse exit. Uses AnimatedCrossFade 200ms for expand/collapse transition."
     layout:
       collapsed: "Container(padding: 4) > Icon(menu_rounded, size: 18, color: bodyMedium.color alpha 0.7)"
@@ -1334,9 +1295,9 @@ presentation_widgets:
   # ---------------------------------------------------------------------------
   # Context Menu
   # ---------------------------------------------------------------------------
-  - name: ContextMenuOverlay
-    path: lib/shared/widgets/context_menu_overlay.dart
-    description: "Static utility that shows a context menu at screen position using OverlayEntry. Menu items in Material with elevation."
+  - name: CentrodeContextMenu
+    path: lib/shared/elements/centrode_context_menu.dart
+    description: "Centralized context menu overlay with optional gliding lens highlight, action items, dividers, and custom styling."
     layout:
       type: OverlayEntry > GestureDetector(translucent) > Stack
       positioning: "Positioned(left: position.dx, top: position.dy)"

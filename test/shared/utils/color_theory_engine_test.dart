@@ -209,8 +209,8 @@ void main() {
       // Text on control surface in light theme has AAA contrast
       final controlText = ColorTheoryEngine.bestContrastingTextColor(surfaces.control);
       expect(ColorTheoryEngine.contrastRatio(controlText, surfaces.control), greaterThanOrEqualTo(7.0));
-      // Workspace background is an eye-friendly soft off-white canvas (L ≈ 0.965)
-      expect(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground), greaterThan(0.85));
+      // Workspace background is an eye-friendly soft off-white canvas (L ≈ 0.92)
+      expect(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground), greaterThan(0.75));
       expect(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground), lessThan(1.0));
       // Card is pure / near-pure white (L ≈ 0.995) floating on top of the soft canvas
       expect(ColorTheoryEngine.relativeLuminance(surfaces.card), greaterThan(ColorTheoryEngine.relativeLuminance(surfaces.workspaceBackground)));

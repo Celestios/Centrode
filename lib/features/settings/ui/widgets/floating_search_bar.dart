@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/elements/centrode_close_button.dart';
-import 'package:centrode/shared/theme/design_tokens.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../../presentation/settings_controller.dart';
 
 class SettingsTopControlsBar extends StatefulWidget {
@@ -128,3 +126,4 @@ class _SettingsTopControlsBarState extends State<SettingsTopControlsBar> {
     );
   }
 }
+

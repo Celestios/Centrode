@@ -1,4 +1,3 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +10,7 @@ import '../../../presentation/node_render_state.dart';
 import '../../../models/models.dart';
 import 'content_text_editing_controller.dart';
 import 'markdown_text_selection_controls.dart';
-import '../../../../../shared/widgets/context_menu_overlay.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class CanvasTextEditor extends StatefulWidget {
   final RawUuid entityId;
@@ -272,7 +271,7 @@ class _CanvasTextEditorState extends State<CanvasTextEditor> {
       editorRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
     }
 
-    _contextMenuEntry = ContextMenuOverlay.show(
+    _contextMenuEntry = CentrodeContextMenu.show(
       context: context,
       position: tapPosition,
       targetRect: editorRect,
@@ -462,3 +461,4 @@ class _CanvasGestureDelegate
   @override
   bool get selectionEnabled => true;
 }
+

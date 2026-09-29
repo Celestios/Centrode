@@ -1,4 +1,4 @@
-import 'dart:ui' as ui;
+﻿import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
 import '../../../../presentation/node_render_state.dart';
 import '../../../../models/models.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'mini_map_painter.dart';
 import 'status_bar_metrics.dart';
 
@@ -356,3 +356,4 @@ class _SnapshotPainter extends CustomPainter {
         oldDelegate.viewportHeight != viewportHeight;
   }
 }
+

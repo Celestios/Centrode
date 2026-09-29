@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:centrode/features/graph/ui/graph_screen.dart';
 import 'package:centrode/features/workspace/presentation/workspace_hub_controller.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 
 class QuickActionsSection extends StatelessWidget {
   final WorkspaceHubController controller;

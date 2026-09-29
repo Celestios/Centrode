@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/design_tokens.dart';
 import 'surfaces/double_edge_surface.dart';
 import 'surfaces/inset_surface.dart';
 
@@ -159,8 +158,9 @@ class _CentrodeDeclarativeDialogState extends State<CentrodeDeclarativeDialog>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveAccent = widget.accentColor ?? DesignTokens.accent;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final effectiveAccent = widget.accentColor ?? theme.colorScheme.primary;
     final targetAlpha = (_dimmed && !_isHovered) ? widget.idleOpacity : 1.0;
 
     return MouseRegion(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/color_utils.dart';
 import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/features/graph/store/graph_data_query_controller.dart';

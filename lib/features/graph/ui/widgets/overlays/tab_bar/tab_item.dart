@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:centrode/shared/elements/elements.dart';
 
 class TabItem extends StatelessWidget {
@@ -88,3 +87,5 @@ class TabItem extends StatelessWidget {
     );
   }
 }
+
+

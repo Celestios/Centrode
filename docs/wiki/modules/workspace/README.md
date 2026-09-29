@@ -65,7 +65,7 @@ The workspace hub strictly uses dynamic surfaces derived from the active theme's
 
 ## Test Harness
 
-`LiquidGlassDemo` lives in `test/prototype/liquid_glass_test_screen.dart`, outside the production workspace UI. It provides draggable [glass panels](../shared/glass-panel.md) and shader parameter sliders for testing. `test/liquid_glass_rendering_test.dart` mounts it in a `MaterialApp` and checks for four `GlassPanel` widgets and one `GlassGroup`.
+The interactive design showcase lives in `test/prototype/glass_app`, outside the production workspace UI. It demonstrates [glass panels](../shared/glass-panel.md), morphing tab switchers, and dropdown components with real-time liquid glass refraction.
 
 ---
 

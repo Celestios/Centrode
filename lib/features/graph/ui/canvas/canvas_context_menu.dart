@@ -12,7 +12,7 @@ import 'package:centrode/features/graph/presentation/viewport_state.dart';
 import 'package:centrode/features/graph/presentation/strategies/node_layout_strategy.dart';
 import 'package:centrode/shared/copy_buffer.dart';
 import 'package:centrode/shared/utils/app_paths.dart';
-import 'package:centrode/shared/widgets/context_menu_overlay.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'paste_handler.dart';
 
 class CanvasContextMenu {
@@ -37,7 +37,7 @@ class CanvasContextMenu {
   }) {
     dismiss();
 
-    _entry = ContextMenuOverlay.show(
+    _entry = CentrodeContextMenu.show(
       context: context,
       position: position,
       targetRect: targetRect,
@@ -410,3 +410,4 @@ class CanvasContextMenu {
     );
   }
 }
+

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/design_tokens.dart';
-import '../theme/theme_derived_palette.dart';
-import '../utils/color_theory_engine.dart';
-import '../widgets/context_menu_overlay.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class CentrodeColorOption<T> {
   final T value;
@@ -247,3 +244,4 @@ class _CentrodeColorPillButtonState<T> extends State<CentrodeColorPillButton<T>>
     );
   }
 }
+

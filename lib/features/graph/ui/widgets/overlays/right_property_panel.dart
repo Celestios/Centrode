@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
 import '../inspector/nodes_section_shell.dart';
 import '../inspector/relations_section_shell.dart';
@@ -507,3 +506,5 @@ class _BadgeCircle extends StatelessWidget {
     );
   }
 }
+
+

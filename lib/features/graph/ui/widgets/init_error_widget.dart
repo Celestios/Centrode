@@ -1,5 +1,4 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:flutter/material.dart';
 
 class InitErrorWidget extends StatelessWidget {
@@ -80,3 +79,4 @@ class InitErrorWidget extends StatelessWidget {
     );
   }
 }
+

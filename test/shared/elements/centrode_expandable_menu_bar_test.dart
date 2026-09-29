@@ -1,25 +1,24 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:centrode/shared/elements/hover_expandable_menu_bar.dart';
-import 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 void main() {
   testWidgets(
-    'HoverExpandableMenuBar renders without RenderFlex overflow in collapsed state',
+    'CentrodeExpandableMenuBar renders without RenderFlex overflow in collapsed state',
     (tester) async {
       final sections = [
         CentrodeMenuSection(
           title: 'File',
-          items: [CentrodeMenuItem.action(label: 'Save', onTap: () {})],
+          items: [ContextMenuItem.action(label: 'Save', onTap: () {})],
         ),
         CentrodeMenuSection(
           title: 'Edit',
-          items: [CentrodeMenuItem.action(label: 'Undo', onTap: () {})],
+          items: [ContextMenuItem.action(label: 'Undo', onTap: () {})],
         ),
         CentrodeMenuSection(
           title: 'View',
-          items: [CentrodeMenuItem.action(label: 'Zoom In', onTap: () {})],
+          items: [ContextMenuItem.action(label: 'Zoom In', onTap: () {})],
         ),
       ];
 
@@ -30,7 +29,7 @@ void main() {
               child: SizedBox(
                 width: 50,
                 height: 40,
-                child: HoverExpandableMenuBar(sections: sections),
+                child: CentrodeExpandableMenuBar(sections: sections),
               ),
             ),
           ),

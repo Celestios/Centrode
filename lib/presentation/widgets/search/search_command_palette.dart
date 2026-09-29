@@ -1,10 +1,8 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
-import 'package:centrode/shared/theme/theme_derived_palette.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/features/graph/presentation/workspace_tabs_controller.dart';
 import 'search_registry.dart';
 import 'search_overlay_widget.dart';
@@ -344,3 +342,4 @@ class _SearchCommandPaletteState extends State<SearchCommandPalette> {
     );
   }
 }
+

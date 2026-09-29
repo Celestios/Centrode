@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/theme/design_tokens.dart';
-import 'package:centrode/shared/theme/theme_derived_palette.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import 'package:centrode/shared/widgets/scroll_fade_mask.dart';
 import '../../presentation/settings_category.dart';
 import '../../presentation/settings_controller.dart';
@@ -305,3 +303,4 @@ class _CategoryHeader extends StatelessWidget {
     );
   }
 }
+

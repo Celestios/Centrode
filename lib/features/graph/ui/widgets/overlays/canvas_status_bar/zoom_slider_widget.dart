@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../presentation/viewport_state.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
 
 // -----------------------------------------------------------------------------
@@ -120,3 +119,5 @@ class ZoomSliderWidget extends StatelessWidget {
     controller.updateScale(newScale);
   }
 }
+
+

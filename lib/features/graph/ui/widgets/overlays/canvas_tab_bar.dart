@@ -1,7 +1,6 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 import '../../../presentation/workspace_tabs_controller.dart';
 import 'tab_bar/tab_bar.dart';
 
@@ -49,3 +48,4 @@ class CanvasTabBar extends StatelessWidget {
     );
   }
 }
+

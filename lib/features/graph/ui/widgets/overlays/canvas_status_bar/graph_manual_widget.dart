@@ -1,7 +1,6 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 // -----------------------------------------------------------------------------
 // BOTTOM LEFT: Graph Manual Legend Dialog Trigger
@@ -212,3 +211,4 @@ class GraphManualWidget extends StatelessWidget {
     );
   }
 }
+

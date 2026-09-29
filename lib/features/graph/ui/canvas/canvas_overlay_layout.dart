@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../store/graph_data_query_controller.dart';
@@ -21,9 +21,7 @@ import 'package:centrode/features/graph/ui/widgets/tag_manager/global_tags_manag
 import 'package:centrode/features/graph/ui/widgets/template_manager/global_templates_manager_panel.dart';
 import 'package:centrode/features/graph/ui/widgets/drawing_manager/global_drawing_panel.dart';
 import 'package:centrode/features/graph/ui/widgets/relation_manager/global_relations_manager_panel.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
 import 'package:centrode/shared/elements/elements.dart';
-import 'package:centrode/shared/widgets/context_menu_overlay.dart';
 import 'package:centrode/presentation/widgets/search/search_command_palette.dart';
 import 'package:centrode/presentation/theme/app_theme_manager.dart';
 import 'package:centrode/presentation/theme/app_theme.dart';
@@ -525,3 +523,5 @@ class _ContentSizerState extends State<_ContentSizer> {
     );
   }
 }
+
+

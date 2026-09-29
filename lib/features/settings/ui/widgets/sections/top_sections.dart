@@ -248,6 +248,7 @@ class ShaderSettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final primaryColor = theme.colorScheme.primary;
 
     return ListenableBuilder(
@@ -367,6 +368,7 @@ class CanvasSettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = CentrodeDerivedPalette.of(context);
     final primaryColor = theme.colorScheme.primary;
 
     return ListenableBuilder(

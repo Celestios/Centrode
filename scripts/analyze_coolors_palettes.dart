@@ -143,6 +143,7 @@ void main() async {
   stdout.writeln('   • Principle: Clamped between 0.08 and 0.24 in OKLCH to eliminate muddy grays and eye-searing neon.');
   stdout.writeln('');
   stdout.writeln('3. HUE HARMONY DISTRIBUTION ACROSS PALETTE SLOTS:');
+  stdout.writeln('   • Average Delta Hue (Δh):             ${avgHueDelta.toStringAsFixed(1)}°');
   stdout.writeln('   • Analogous Step (0° - 35°):          ${((analogousCount / totalDeltas) * 100).toStringAsFixed(1)}% (Highest frequency for cohesion)');
   stdout.writeln('   • Complementary (150° - 180°):        ${((complementaryCount / totalDeltas) * 100).toStringAsFixed(1)}% (For visual pop / accent slot)');
   stdout.writeln('   • Triadic (105° - 135°):              ${((triadicCount / totalDeltas) * 100).toStringAsFixed(1)}%');

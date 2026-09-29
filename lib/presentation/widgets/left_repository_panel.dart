@@ -1,6 +1,5 @@
-import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:flutter/material.dart';
-import 'package:centrode/shared/widgets/glass_panel/glass_panel.dart';
+import 'package:centrode/shared/elements/elements.dart';
 
 class LeftRepositoryPanel extends StatelessWidget {
   final String title;
@@ -50,3 +49,4 @@ class LeftRepositoryPanel extends StatelessWidget {
     );
   }
 }
+
