@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'centrode_panel.dart';
 import '../theme/design_tokens.dart';
+import '../theme/theme_derived_palette.dart';
 import 'centrode_window_controls.dart';
 
 /// Centralized unified window title bar for Centrode.
@@ -109,11 +110,14 @@ class CentrodeWindowTitleBar extends StatelessWidget {
       ],
     );
 
+    final palette = CentrodeDerivedPalette.of(context);
+    final defaultBg = palette.surface.panelBackground;
+
     if (enableGlass) {
       return GlassPanel(
         borderRadius: UiRadius.none,
         enableDoubleEdge: false,
-        color: backgroundColor ?? theme.cardColor.withValues(alpha: 0.65),
+        color: backgroundColor ?? defaultBg,
         height: height,
         shadow: BoxShadow(
           color: theme.dividerColor.withValues(alpha: 0.2),
@@ -126,7 +130,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
 
     return Container(
       height: height,
-      color: backgroundColor ?? theme.colorScheme.surface,
+      color: backgroundColor ?? defaultBg,
       child: content,
     );
   }

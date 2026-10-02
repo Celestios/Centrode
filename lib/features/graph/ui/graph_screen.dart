@@ -140,7 +140,9 @@ class _GraphScreenState extends State<GraphScreen> {
               builder: (context) {
                 final session = tabsController.activeSession;
                 final theme = Theme.of(context);
+                final palette = CentrodeDerivedPalette.of(context);
                 return CentrodeWindowTitleBar(
+                  backgroundColor: palette.surface.panelBackground,
                   leading: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
