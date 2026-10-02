@@ -49,6 +49,10 @@ class CentrodeGlidingLens extends StatelessWidget {
   final Color accentColor;
   final double morph;
   final bool isVisible;
+  final double distortion;
+  final double distortionWidth;
+  final double magnification;
+  final double blur;
 
   const CentrodeGlidingLens({
     super.key,
@@ -58,6 +62,10 @@ class CentrodeGlidingLens extends StatelessWidget {
     required this.accentColor,
     this.morph = 1.0,
     this.isVisible = true,
+    this.distortion = 0.06,
+    this.distortionWidth = 10.0,
+    this.magnification = 1.0,
+    this.blur = 1.5,
   });
 
   @override
@@ -93,7 +101,7 @@ class CentrodeGlidingLens extends StatelessWidget {
                   ),
                   appearance: LiquidGlassAppearance(
                     color: Colors.transparent,
-                    blur: const LiquidGlassBlur(sigmaX: 0.0, sigmaY: 0.0),
+                    blur: LiquidGlassBlur(sigmaX: blur, sigmaY: blur),
                     shadow: LiquidGlassShadow(
                       color: accentColor.withValues(
                         alpha: isDark ? (0.35 * morph) : (0.25 * morph),
@@ -102,10 +110,10 @@ class CentrodeGlidingLens extends StatelessWidget {
                       offset: const Offset(0, 2.0),
                     ),
                   ),
-                  refraction: const LiquidGlassRefraction(
-                    distortion: 0.24,
-                    distortionWidth: 22.0,
-                    magnification: 1.12,
+                  refraction: LiquidGlassRefraction(
+                    distortion: distortion,
+                    distortionWidth: distortionWidth,
+                    magnification: magnification,
                     chromaticAberration: 0.0,
                   ),
                 ),
@@ -155,7 +163,7 @@ class CentrodeGlidingLens extends StatelessWidget {
               child: CustomPaint(
                 painter: CentrodeDoubleEdgePainter(
                   cornerRadius: cornerRadius,
-                  stepWidth: 1.2,
+                  stepWidth: 0.8,
                   lightIntensity: isDark ? 1.0 : 0.8,
                 ),
               ),

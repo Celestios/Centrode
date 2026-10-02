@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:centrode/shared/elements/elements.dart';
@@ -6,6 +7,9 @@ class ProjectCard extends StatefulWidget {
   final String name;
   final String lastOpened;
   final String? previewPath;
+  final Color? previewColor;
+  final int? seed;
+  final ContourConfig? contourConfig;
   final VoidCallback? onTap;
   final VoidCallback? onMenuPressed;
   final ValueChanged<String>? onRename;
@@ -19,6 +23,9 @@ class ProjectCard extends StatefulWidget {
     required this.name,
     required this.lastOpened,
     this.previewPath,
+    this.previewColor,
+    this.seed,
+    this.contourConfig,
     this.onTap,
     this.onMenuPressed,
     this.onRename,
@@ -36,11 +43,25 @@ class _ProjectCardState extends State<ProjectCard> {
   bool _isHovered = false;
   bool _isEditing = false;
   late TextEditingController _controller;
+  late Color _primaryAestheticColor;
+  late Color _secondaryAestheticColor;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.name);
+    _initColors();
+  }
+
+  void _initColors() {
+    final seed = widget.seed ?? widget.name.hashCode;
+    final rng = math.Random(seed);
+    _primaryAestheticColor = widget.previewColor ??
+        ColorTheoryEngine.generateHarmonicRandomColor(random: rng);
+    _secondaryAestheticColor = ColorTheoryEngine.shiftHue(
+      _primaryAestheticColor,
+      35.0 + rng.nextDouble() * 30.0,
+    );
   }
 
   @override
@@ -48,6 +69,10 @@ class _ProjectCardState extends State<ProjectCard> {
     super.didUpdateWidget(oldWidget);
     if (widget.name != oldWidget.name && !_isEditing) {
       _controller.text = widget.name;
+      _initColors();
+    } else if (widget.previewColor != oldWidget.previewColor ||
+        widget.seed != oldWidget.seed) {
+      _initColors();
     }
   }
 
@@ -113,18 +138,36 @@ class _ProjectCardState extends State<ProjectCard> {
                       child: Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: palette.surface.subtleBackground,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(UiRadius.panel),
+                          ),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color.alphaBlend(
+                                _primaryAestheticColor.withValues(
+                                  alpha: theme.brightness == Brightness.dark ? 0.24 : 0.16,
+                                ),
+                                palette.surface.subtleBackground,
+                              ),
+                              Color.alphaBlend(
+                                _secondaryAestheticColor.withValues(
+                                  alpha: theme.brightness == Brightness.dark ? 0.12 : 0.08,
+                                ),
+                                palette.surface.subtleBackground,
+                              ),
+                            ],
                           ),
                         ),
                         child: widget.previewPath != null
                             ? Image.asset(
                                 widget.previewPath!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _buildPlaceholder(theme),
+                                errorBuilder: (_, __, ___) =>
+                                    _buildPlaceholder(theme, palette),
                               )
-                            : _buildPlaceholder(theme),
+                            : _buildPlaceholder(theme, palette),
                       ),
                     ),
                   ),
@@ -294,13 +337,77 @@ class _ProjectCardState extends State<ProjectCard> {
   );
 }
 
-  Widget _buildPlaceholder(ThemeData theme) {
-    return Center(
-      child: Icon(
-        Icons.account_tree_outlined,
-        color: theme.colorScheme.primary.withValues(alpha: 0.3),
-        size: 32,
-      ),
+  Widget _buildPlaceholder(ThemeData theme, CentrodeDerivedPalette palette) {
+    final isDark = theme.brightness == Brightness.dark;
+    final seed = widget.seed ?? widget.name.hashCode;
+
+    final config = widget.contourConfig ??
+        ContourConfig(
+          style: seed.isEven
+              ? ContourStyle.topographic
+              : ContourStyle.flowingWaves,
+          origin: ContourOrigin.bottomRight,
+          layerCount: 5,
+          amplitude: 0.28,
+          frequency: 1.4,
+          strokeWidth: 0.8,
+          showLines: true,
+          showFills: true,
+          fillOpacity: isDark ? 0.22 : 0.16,
+          lineOpacity: isDark ? 0.35 : 0.25,
+          seed: seed,
+        );
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CentrodeContourPattern(
+          config: config,
+          primaryColor: _primaryAestheticColor,
+          secondaryColor: _secondaryAestheticColor,
+        ),
+        Center(
+          child: AnimatedContainer(
+            duration: UiMotion.fast,
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _primaryAestheticColor.withValues(
+                alpha: _isHovered
+                    ? (isDark ? 0.28 : 0.22)
+                    : (isDark ? 0.18 : 0.14),
+              ),
+              border: Border.all(
+                color: _primaryAestheticColor.withValues(
+                  alpha: _isHovered
+                      ? (isDark ? 0.55 : 0.45)
+                      : (isDark ? 0.35 : 0.25),
+                ),
+                width: UiStrokeWidth.subtle,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: _primaryAestheticColor.withValues(
+                    alpha: _isHovered
+                        ? (isDark ? 0.35 : 0.20)
+                        : (isDark ? 0.15 : 0.08),
+                  ),
+                  blurRadius: _isHovered ? 16 : 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Icon(
+                Icons.hub_rounded,
+                color: _primaryAestheticColor,
+                size: UiIconSize.header,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

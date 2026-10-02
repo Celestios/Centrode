@@ -52,7 +52,9 @@ class _CentrodeExpandableMenuBarState extends State<CentrodeExpandableMenuBar> {
 
   void _closeMenu() {
     _closeTimer?.cancel();
-    _openMenuEntry?.remove();
+    if (_openMenuEntry?.mounted == true) {
+      _openMenuEntry?.remove();
+    }
     _openMenuEntry = null;
     if (_isExpanded) {
       setState(() {
@@ -64,7 +66,9 @@ class _CentrodeExpandableMenuBarState extends State<CentrodeExpandableMenuBar> {
   }
 
   void _openSectionMenu(BuildContext btnContext, CentrodeMenuSection section) {
-    _openMenuEntry?.remove();
+    if (_openMenuEntry?.mounted == true) {
+      _openMenuEntry?.remove();
+    }
     _openMenuEntry = null;
 
     final renderBox = btnContext.findRenderObject() as RenderBox;
@@ -77,7 +81,7 @@ class _CentrodeExpandableMenuBarState extends State<CentrodeExpandableMenuBar> {
       targetRect: rect,
       items: section.items,
       positioningMode: MenuPositioningMode.below,
-      useGlidingLens: true,
+      useGlidingLens: false,
       onDismissed: () {
         if (mounted) {
           setState(() => _activeSectionTitle = null);
@@ -90,7 +94,9 @@ class _CentrodeExpandableMenuBarState extends State<CentrodeExpandableMenuBar> {
   @override
   void dispose() {
     _closeTimer?.cancel();
-    _openMenuEntry?.remove();
+    if (_openMenuEntry?.mounted == true) {
+      _openMenuEntry?.remove();
+    }
     _openMenuEntry = null;
     super.dispose();
   }

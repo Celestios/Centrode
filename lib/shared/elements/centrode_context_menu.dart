@@ -3,12 +3,23 @@ import 'package:flutter/services.dart';
 import 'package:centrode/shared/theme/design_tokens.dart';
 import 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
 import 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart';
-import 'surfaces/double_edge_surface.dart';
-import 'surfaces/gliding_lens.dart';
 
 export 'package:centrode/shared/widgets/context_menu/context_menu_item.dart';
 export 'package:centrode/shared/widgets/context_menu/context_menu_layout_delegate.dart'
     show MenuPositioningMode;
+
+class CentrodeContextMenuEntry extends OverlayEntry {
+  CentrodeContextMenuEntry({required super.builder});
+
+  bool _isRemoved = false;
+
+  @override
+  void remove() {
+    if (_isRemoved) return;
+    _isRemoved = true;
+    super.remove();
+  }
+}
 
 class CentrodeContextMenu {
   static OverlayEntry? show({
@@ -71,7 +82,7 @@ class CentrodeContextMenu {
 
     final overlay = Overlay.of(context);
     final theme = Theme.of(context);
-    late OverlayEntry entry;
+    late final CentrodeContextMenuEntry entry;
     bool isDismissed = false;
 
     void dismiss() {
@@ -82,7 +93,7 @@ class CentrodeContextMenu {
       }
     }
 
-    entry = OverlayEntry(
+    entry = CentrodeContextMenuEntry(
       builder: (context) => Theme(
         data: theme,
         child: _ContextMenuRouteWidget(
@@ -290,36 +301,13 @@ class _ContextMenuCard extends StatefulWidget {
   State<_ContextMenuCard> createState() => _ContextMenuCardState();
 }
 
-class _ContextMenuCardState extends State<_ContextMenuCard>
-    with SingleTickerProviderStateMixin {
+class _ContextMenuCardState extends State<_ContextMenuCard> {
   int _hoveredIndex = -1;
-  double _fromRowFraction = 0.0;
-  double _toRowFraction = 0.0;
-  bool _isLensTransitioning = false;
-  late AnimationController _lensController;
 
   @override
   void initState() {
     super.initState();
-    final initialPos = (widget.selectedIndex ?? 0).toDouble();
-    _fromRowFraction = initialPos;
-    _toRowFraction = initialPos;
     _hoveredIndex = widget.selectedIndex ?? -1;
-
-    _lensController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-    );
-    _lensController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        if (mounted) {
-          setState(() {
-            _isLensTransitioning = false;
-            _fromRowFraction = _toRowFraction;
-          });
-        }
-      }
-    });
   }
 
   @override
@@ -330,33 +318,15 @@ class _ContextMenuCardState extends State<_ContextMenuCard>
     }
   }
 
-  @override
-  void dispose() {
-    _lensController.dispose();
-    super.dispose();
-  }
-
   void _onHoverRow(int targetIndex) {
-    if (_hoveredIndex == targetIndex && !_isLensTransitioning) return;
-    final startPos = _isLensTransitioning
-        ? (_fromRowFraction +
-            (_toRowFraction - _fromRowFraction) *
-                CentrodeGlidingLensPhysics.calculatePosProgress(_lensController.value))
-        : _fromRowFraction;
-
-    setState(() {
-      _hoveredIndex = targetIndex;
-      _fromRowFraction = startPos;
-      _toRowFraction = targetIndex.toDouble();
-      _isLensTransitioning = true;
-    });
-    _lensController.forward(from: 0.0);
+    if (_hoveredIndex == targetIndex) return;
+    setState(() => _hoveredIndex = targetIndex);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
 
     const double rowHeight = UiControlSize.standard;
     const double paddingV = 5.0;
@@ -366,58 +336,34 @@ class _ContextMenuCardState extends State<_ContextMenuCard>
       color: Colors.transparent,
       child: SizedBox(
         width: widget.menuWidth,
-        child: CentrodeDoubleEdgeSurface(
-          cornerRadius: UiRadius.card,
-          accentColor: accentColor,
-          padding: const EdgeInsets.symmetric(horizontal: paddingH, vertical: paddingV),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              if (widget.useGlidingLens)
-                AnimatedBuilder(
-                  animation: _lensController,
-                  builder: (context, _) {
-                    final t = _lensController.value;
-                    final posProgress = _isLensTransitioning
-                        ? CentrodeGlidingLensPhysics.calculatePosProgress(t)
-                        : 1.0;
-                    final stretch = _isLensTransitioning
-                        ? CentrodeGlidingLensPhysics.calculateStretch(t)
-                        : 0.0;
-                    final activeFraction = _isLensTransitioning
-                        ? _fromRowFraction + (_toRowFraction - _fromRowFraction) * posProgress
-                        : (_hoveredIndex >= 0
-                            ? _hoveredIndex.toDouble()
-                            : (widget.selectedIndex ?? 0).toDouble());
-
-                    final rowDistance = (_toRowFraction - _fromRowFraction).abs();
-                    final maxStretch = (rowHeight * 0.40 * rowDistance.clamp(1.0, 2.5)).clamp(8.0, 36.0);
-                    final currentStretch = stretch * maxStretch;
-                    final currentHeight = rowHeight + currentStretch;
-
-                    final baseCenterY = (activeFraction + 0.5) * rowHeight;
-                    final dir = (_toRowFraction >= _fromRowFraction) ? 1.0 : -1.0;
-                    final leadBias = (1.0 - (2.0 * posProgress).clamp(0.0, 1.0)) * 0.44 * dir * currentStretch;
-                    final centerY = baseCenterY + leadBias;
-                    final top = centerY - (currentHeight / 2);
-
-                    return CentrodeGlidingLens(
-                      direction: Axis.vertical,
-                      activeRect: Rect.fromLTWH(0, top, (widget.menuWidth ?? 180) - (paddingH * 2), currentHeight),
-                      cornerRadius: UiRadius.control,
-                      accentColor: accentColor,
-                      isVisible: _hoveredIndex >= 0 || widget.selectedIndex != null,
-                    );
-                  },
-                ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (int i = 0; i < widget.items.length; i++)
-                    _buildEntry(context, widget.items[i], i, rowHeight),
-                ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: paddingH,
+            vertical: paddingV,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E242B) : Colors.white,
+            borderRadius: BorderRadius.circular(UiRadius.card),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.10),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.15),
+                blurRadius: 14.0,
+                offset: const Offset(0, 4.0),
               ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (int i = 0; i < widget.items.length; i++)
+                _buildEntry(context, widget.items[i], i, rowHeight),
             ],
           ),
         ),
@@ -456,14 +402,8 @@ class _ContextMenuCardState extends State<_ContextMenuCard>
 
     if (item.builder != null) {
       return MouseRegion(
-        onEnter: (_) {
-          _onHoverRow(index);
-        },
-        onExit: (_) {
-          if (!widget.useGlidingLens) {
-            setState(() => _hoveredIndex = -1);
-          }
-        },
+        onEnter: (_) => _onHoverRow(index),
+        onExit: (_) => setState(() => _hoveredIndex = -1),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: item.onTap,
@@ -475,11 +415,7 @@ class _ContextMenuCardState extends State<_ContextMenuCard>
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => _onHoverRow(index),
-      onExit: (_) {
-        if (!widget.useGlidingLens) {
-          setState(() => _hoveredIndex = -1);
-        }
-      },
+      onExit: (_) => setState(() => _hoveredIndex = -1),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => widget.onSelect(item),
@@ -490,7 +426,7 @@ class _ContextMenuCardState extends State<_ContextMenuCard>
             isFocused: isFocused,
             isHovered: isHovered,
             isSelected: isSelected,
-            useGlidingLens: widget.useGlidingLens,
+            useGlidingLens: false,
             showChevron: widget.showChevron && isSelected,
             animationValue: widget.animationValue,
           ),
@@ -522,21 +458,24 @@ class _ContextMenuItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isDestructive = item.isDestructive;
     final isActive = isHovered || isFocused;
 
     final baseTextColor = isDestructive
         ? const Color(0xFFFF5C5C)
-        : (theme.textTheme.bodyMedium?.color ?? Colors.white);
+        : (isDark ? Colors.white : const Color(0xFF1E242B));
 
     final hoverBg = isDestructive
         ? const Color(0xFFFF5C5C).withValues(alpha: 0.14)
-        : theme.colorScheme.primary.withValues(alpha: 0.12);
+        : (isDark
+            ? Colors.white.withValues(alpha: 0.10)
+            : theme.colorScheme.primary.withValues(alpha: 0.12));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       decoration: BoxDecoration(
-        color: (!useGlidingLens && isActive) ? hoverBg : Colors.transparent,
+        color: isActive ? hoverBg : Colors.transparent,
         borderRadius: BorderRadius.circular(UiRadius.control),
       ),
       child: Row(
@@ -559,7 +498,9 @@ class _ContextMenuItemRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: UiFont.standard,
                 fontWeight: isSelected ? FontWeight.w700 : (isActive ? FontWeight.w600 : FontWeight.w500),
-                color: isActive ? Colors.white : baseTextColor,
+                color: isActive
+                    ? (isDark ? Colors.white : theme.colorScheme.primary)
+                    : baseTextColor,
               ),
             ),
           ),

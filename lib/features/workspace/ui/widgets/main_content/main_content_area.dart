@@ -43,9 +43,11 @@ class _MainContentAreaState extends State<MainContentArea> {
                   child: ScrollFadeMask(
                     scrollController: _scrollController,
                     surfaceColor: mainAreaColor,
+                    topFadeHeight: 34.0,
+                    bottomFadeHeight: 22.0,
                     child: SingleChildScrollView(
                       controller: _scrollController,
-                      padding: const EdgeInsets.only(top: 16),
+                      padding: const EdgeInsets.only(top: 8, bottom: 8),
                       child: const MapsSection(),
                     ),
                   ),

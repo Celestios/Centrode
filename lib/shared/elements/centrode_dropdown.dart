@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
 import '../theme/theme_derived_palette.dart';
 import 'surfaces/double_edge_surface.dart';
-import 'surfaces/gliding_lens.dart';
 
 class CentrodeDropdownItem<T> {
   final T value;
@@ -60,7 +59,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
   final _triggerKey = GlobalKey();
 
   late AnimationController _morphController;
-  late AnimationController _lensTransitionController;
 
   double _buttonWidth = 220.0;
   double _buttonHeight = UiControlSize.standard;
@@ -68,10 +66,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
   bool _isHovered = false;
 
   int _hoveredIndex = 0;
-  bool _isHoveringMenu = false;
-  double _fromRowFraction = 0.0;
-  double _toRowFraction = 0.0;
-  bool _isLensTransitioning = false;
   late T _selectedValue;
 
   @override
@@ -84,21 +78,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
       duration: const Duration(milliseconds: 380),
       reverseDuration: const Duration(milliseconds: 240),
     );
-
-    _lensTransitionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-    );
-    _lensTransitionController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        if (mounted) {
-          setState(() {
-            _isLensTransitioning = false;
-            _fromRowFraction = _toRowFraction;
-          });
-        }
-      }
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureTrigger());
   }
@@ -117,7 +96,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
   @override
   void dispose() {
     _morphController.dispose();
-    _lensTransitionController.dispose();
     super.dispose();
   }
 
@@ -141,10 +119,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
     setState(() {
       _isOpen = true;
       _hoveredIndex = safeIdx;
-      _fromRowFraction = safeIdx.toDouble();
-      _toRowFraction = safeIdx.toDouble();
-      _isLensTransitioning = false;
-      _isHoveringMenu = true;
     });
     _portalController.show();
     _morphController.forward(from: 0.0);
@@ -177,21 +151,10 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
   }
 
   void _onHoverRow(int targetIndex) {
-    if (_hoveredIndex == targetIndex && !_isLensTransitioning) return;
-    final double startPos = _isLensTransitioning
-        ? (_fromRowFraction +
-            (_toRowFraction - _fromRowFraction) *
-                CentrodeGlidingLensPhysics.calculatePosProgress(_lensTransitionController.value))
-        : _fromRowFraction;
-
+    if (_hoveredIndex == targetIndex) return;
     setState(() {
-      _isHoveringMenu = true;
       _hoveredIndex = targetIndex;
-      _fromRowFraction = startPos;
-      _toRowFraction = targetIndex.toDouble();
-      _isLensTransitioning = true;
     });
-    _lensTransitionController.forward(from: 0.0);
   }
 
   @override
@@ -231,8 +194,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
           final double frameHeight = targetBottom - targetTop;
           final double pillTop = -targetTop;
 
-          final int dropletCount = count.clamp(0, 8);
-
           return Stack(
             children: [
               Positioned.fill(
@@ -247,7 +208,7 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
                 targetAnchor: Alignment.topLeft,
                 followerAnchor: Alignment.topLeft,
                 child: AnimatedBuilder(
-                  animation: Listenable.merge([_morphController, _lensTransitionController]),
+                  animation: _morphController,
                   builder: (context, _) {
                     final t = _morphController.value;
                     final isReversing = _morphController.status == AnimationStatus.reverse;
@@ -268,34 +229,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
                     final double boxLeft = widthSquash / 2.0;
                     final double boxWidth = frameWidth - widthSquash;
 
-                    const double dropletHeight = 26.0;
-                    const double dropletInset = 10.0;
-                    const double dropletRadius = 13.0;
-                    final List<Rect> droplets = <Rect>[];
-                    for (int i = 0; i < dropletCount; i++) {
-                      final int dist = (i - safeSelected).abs();
-                      double p;
-                      if (i == safeSelected) {
-                        p = 1.0;
-                      } else if (isReversing) {
-                        p = Curves.easeInQuad.transform((t / 0.70).clamp(0.0, 1.0));
-                      } else {
-                        final double start = 0.06 + (dist * 0.08);
-                        p = Curves.easeOutBack.transform(((t - start) / 0.24).clamp(0.0, 1.0));
-                      }
-                      if (p <= 0.02) continue;
-                      final double w = (frameWidth - 2 * dropletInset) * math.min(p, 1.0);
-                      final double h = dropletHeight * p;
-                      droplets.add(Rect.fromCenter(
-                        center: Offset(
-                          frameWidth / 2,
-                          verticalPadding + (i * itemHeight) + (itemHeight / 2),
-                        ),
-                        width: w,
-                        height: h,
-                      ));
-                    }
-
                     final double fillLinear = isReversing
                         ? t
                         : ((t - 0.30) / 0.66).clamp(0.0, 1.0);
@@ -314,40 +247,6 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
                         : Curves.easeOutCubic.transform(((t - 0.10) / 0.75).clamp(0.0, 1.0));
                     final double currentRadius = lerpDouble(startRadius, endRadius, radiusT) ?? endRadius;
 
-                    final double posProgress = _isLensTransitioning
-                        ? CentrodeGlidingLensPhysics.calculatePosProgress(_lensTransitionController.value)
-                        : 1.0;
-                    final double stretch = _isLensTransitioning
-                        ? CentrodeGlidingLensPhysics.calculateStretch(_lensTransitionController.value)
-                        : 0.0;
-                    final double activePosFraction = _isLensTransitioning
-                        ? _fromRowFraction + (_toRowFraction - _fromRowFraction) * posProgress
-                        : (_isHoveringMenu ? _hoveredIndex.toDouble() : safeSelected.toDouble());
-
-                    final int safeActiveIndex = activePosFraction.round().clamp(0, count - 1);
-
-                    final double rowDistance = (_toRowFraction - _fromRowFraction).abs();
-                    final double maxStretchHeight = (itemHeight * 0.40 * rowDistance.clamp(1.0, 2.5)).clamp(10.0, 36.0);
-                    final double currentStretch = stretch * maxStretchHeight;
-                    final double currentHeight = itemHeight + currentStretch;
-
-                    final double baseCenterY = verticalPadding + (activePosFraction + 0.5) * itemHeight;
-                    final double dir = (_toRowFraction >= _fromRowFraction) ? 1.0 : -1.0;
-                    final double leadBias = (1.0 - (2.0 * posProgress).clamp(0.0, 1.0)) * 0.44 * dir * currentStretch;
-                    final double centerY = baseCenterY + leadBias;
-                    final double lensTop = centerY - (currentHeight / 2);
-
-                    final activeLensRect = Rect.fromLTWH(
-                      horizontalPadding,
-                      lensTop,
-                      boxWidth - (horizontalPadding * 2),
-                      currentHeight,
-                    );
-
-                    final Color glassBody = isDark
-                        ? Color.lerp(const Color(0xEB131B24), const Color(0xFB151C26), morph)!
-                        : Color.lerp(const Color(0xF4FAF7F2), Colors.white, morph)!;
-
                     return Transform.translate(
                       offset: Offset(0, targetTop),
                       child: SizedBox(
@@ -360,50 +259,23 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
                               rect: boxRect,
                               child: Container(
                                 decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E242B) : Colors.white,
                                   borderRadius: BorderRadius.circular(currentRadius),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.12)
+                                        : Colors.black.withValues(alpha: 0.10),
+                                    width: 1.0,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: isDark ? (0.35 * morph) : (0.10 * morph)),
-                                      blurRadius: 18.0 * morph,
-                                      offset: Offset(0, 8.0 * morph),
-                                    ),
-                                    BoxShadow(
-                                      color: accent.withValues(alpha: isDark ? (0.22 * morph) : (0.12 * morph)),
-                                      blurRadius: 12.0 * morph,
-                                      offset: Offset(0, 2.0 * morph),
+                                      color: Colors.black.withValues(alpha: isDark ? (0.45 * morph) : (0.18 * morph)),
+                                      blurRadius: 16.0 * morph,
+                                      offset: Offset(0, 4.0 * morph),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                            Positioned.fromRect(
-                              rect: boxRect,
-                              child: CentrodeDoubleEdgeSurface(
-                                cornerRadius: currentRadius,
-                                accentColor: accent,
-                                padding: EdgeInsets.zero,
-                                child: const SizedBox.expand(),
-                              ),
-                            ),
-                            for (final Rect r in droplets)
-                              Positioned.fromRect(
-                                rect: r,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: glassBody,
-                                    borderRadius: BorderRadius.circular(
-                                      math.min(dropletRadius, math.min(r.width, r.height) / 2),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            CentrodeGlidingLens(
-                              direction: Axis.vertical,
-                              activeRect: activeLensRect,
-                              cornerRadius: UiRadius.control,
-                              accentColor: accent,
-                              morph: morph,
-                              isVisible: t > 0.15,
                             ),
                             Positioned(
                               top: verticalPadding,
@@ -432,6 +304,11 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
                                           }
                                         }
 
+                                        final isItemHovered = i == _hoveredIndex && t > 0.15;
+                                        final hoverBg = isDark
+                                            ? Colors.white.withValues(alpha: 0.10)
+                                            : accent.withValues(alpha: 0.12);
+
                                         return Transform.translate(
                                           offset: Offset(0, itemSlide),
                                           child: Opacity(
@@ -442,54 +319,57 @@ class _CentrodeDropdownState<T> extends State<CentrodeDropdown<T>>
                                               child: GestureDetector(
                                                 behavior: HitTestBehavior.opaque,
                                                 onTap: () => _handleSelect(widget.items[i].value),
-                                                child: SizedBox(
+                                                child: Container(
                                                   height: itemHeight,
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        if (widget.items[i].icon != null) ...[
-                                                          Icon(
-                                                            widget.items[i].icon,
-                                                            size: UiIconSize.dense,
-                                                            color: (i == safeActiveIndex)
-                                                                ? accent
-                                                                : palette.surface.controlForeground
-                                                                    .withValues(alpha: 0.7),
-                                                          ),
-                                                          const SizedBox(width: 8.0),
-                                                        ],
-                                                        Expanded(
-                                                          child: widget.items[i].child ??
-                                                              Text(
-                                                                widget.items[i].label,
-                                                                maxLines: 1,
-                                                                overflow: TextOverflow.ellipsis,
-                                                                style: TextStyle(
-                                                                  fontSize: UiFont.compact,
-                                                                  fontWeight: (widget.items[i].value == _selectedValue)
-                                                                      ? FontWeight.w700
-                                                                      : (i == safeActiveIndex
-                                                                          ? FontWeight.w600
-                                                                          : FontWeight.w500),
-                                                                  color: (i == safeActiveIndex)
-                                                                      ? (isDark ? Colors.white : Colors.black87)
-                                                                      : palette.surface.controlForeground,
-                                                                ),
-                                                              ),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                  decoration: BoxDecoration(
+                                                    color: isItemHovered ? hoverBg : Colors.transparent,
+                                                    borderRadius: BorderRadius.circular(UiRadius.control),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      if (widget.items[i].icon != null) ...[
+                                                        Icon(
+                                                          widget.items[i].icon,
+                                                          size: UiIconSize.dense,
+                                                          color: isItemHovered
+                                                              ? accent
+                                                              : (isDark
+                                                                  ? Colors.white.withValues(alpha: 0.75)
+                                                                  : const Color(0xFF1E242B).withValues(alpha: 0.75)),
                                                         ),
-                                                        if (i == safeSelected && t < 0.25)
-                                                          AnimatedRotation(
-                                                            turns: Curves.easeInOutCubic.transform(t) * 0.5,
-                                                            duration: Duration.zero,
-                                                            child: Icon(
-                                                              Icons.keyboard_arrow_down_rounded,
-                                                              size: UiIconSize.standard,
-                                                              color: accent,
-                                                            ),
-                                                          ),
+                                                        const SizedBox(width: 8.0),
                                                       ],
-                                                    ),
+                                                      Expanded(
+                                                        child: widget.items[i].child ??
+                                                            Text(
+                                                              widget.items[i].label,
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: UiFont.compact,
+                                                                fontWeight: (widget.items[i].value == _selectedValue)
+                                                                    ? FontWeight.w700
+                                                                    : (isItemHovered
+                                                                        ? FontWeight.w600
+                                                                        : FontWeight.w500),
+                                                                color: isItemHovered
+                                                                    ? (isDark ? Colors.white : accent)
+                                                                    : (isDark ? Colors.white : const Color(0xFF1E242B)),
+                                                              ),
+                                                            ),
+                                                      ),
+                                                      if (i == safeSelected && t < 0.25)
+                                                        AnimatedRotation(
+                                                          turns: Curves.easeInOutCubic.transform(t) * 0.5,
+                                                          duration: Duration.zero,
+                                                          child: Icon(
+                                                            Icons.keyboard_arrow_down_rounded,
+                                                            size: UiIconSize.standard,
+                                                            color: accent,
+                                                          ),
+                                                        ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),

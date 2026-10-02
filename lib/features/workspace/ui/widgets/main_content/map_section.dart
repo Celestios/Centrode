@@ -134,6 +134,7 @@ class MapSectionState extends State<MapSection> {
               for (final map in _maps)
                 ProjectCard(
                   name: map.name,
+                  seed: map.id.hashCode,
                   lastOpened: _formatTimeAgo(map.lastModified),
                   isSelected: widget.selectedPaths.contains(map.path),
                   isSelectionMode: widget.selectedPaths.isNotEmpty,

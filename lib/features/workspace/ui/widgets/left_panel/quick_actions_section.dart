@@ -82,7 +82,7 @@ class _ReturnToMapButton extends StatelessWidget {
       builder: (context, _) {
         final hasOpenMaps = controller.hasOpenMaps;
         final primaryColor = theme.colorScheme.primary;
-        final disabledColor = palette.surface.controlForeground.withValues(alpha: 0.35);
+        final disabledColor = primaryColor.withValues(alpha: 0.45);
 
         final buttonColor = hasOpenMaps ? primaryColor : disabledColor;
 
@@ -100,38 +100,42 @@ class _ReturnToMapButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(UiRadius.card),
           builder: (context, isHovered, isPressed) {
             return GlassPanel(
-              borderRadius: 10,
+              borderRadius: UiRadius.card,
               color: hasOpenMaps
                   ? (isHovered
-                        ? Color.alphaBlend(primaryColor.withValues(alpha: 0.22), palette.surface.controlBackground)
-                        : Color.alphaBlend(primaryColor.withValues(alpha: 0.12), palette.surface.controlBackground))
-                  : palette.surface.controlBackground.withValues(alpha: 0.45),
+                        ? Color.alphaBlend(primaryColor.withValues(alpha: 0.28), palette.surface.controlBackground)
+                        : Color.alphaBlend(primaryColor.withValues(alpha: 0.18), palette.surface.controlBackground))
+                  : Color.alphaBlend(primaryColor.withValues(alpha: 0.08), palette.surface.controlBackground),
               border: Border.all(
                 color: hasOpenMaps
-                    ? primaryColor.withValues(alpha: isHovered ? 0.6 : 0.4)
-                    : palette.surface.controlBorder,
+                    ? primaryColor.withValues(alpha: isHovered ? 0.75 : 0.5)
+                    : primaryColor.withValues(alpha: 0.22),
                 width: UiStrokeWidth.subtle,
               ),
               shadow: hasOpenMaps && isHovered
                   ? BoxShadow(
-                      color: primaryColor.withValues(alpha: 0.15),
-                      blurRadius: 6,
+                      color: primaryColor.withValues(alpha: 0.25),
+                      blurRadius: 8,
                       offset: const Offset(0, 2),
                     )
-                  : null,
+                  : (hasOpenMaps
+                      ? BoxShadow(
+                          color: primaryColor.withValues(alpha: 0.12),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        )
+                      : null),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 12,
+                  vertical: UiSpacing.standard,
+                  horizontal: UiSpacing.container,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.map_outlined,
-                      color: buttonColor.withValues(
-                        alpha: hasOpenMaps ? 1.0 : 0.4,
-                      ),
+                      color: buttonColor,
                       size: UiIconSize.standard,
                     ),
                     const SizedBox(width: UiSpacing.standard),
@@ -140,9 +144,7 @@ class _ReturnToMapButton extends StatelessWidget {
                         UiStrings.commands.returnToMap,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: buttonColor.withValues(
-                            alpha: hasOpenMaps ? 1.0 : 0.4,
-                          ),
+                          color: buttonColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -166,16 +168,24 @@ class _NewMapButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
 
     return Container(
-      width: 48,
-      height: 48,
+      width: WorkspaceTokens.newMapButtonSize,
+      height: WorkspaceTokens.newMapButtonSize,
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        color: primaryColor,
         borderRadius: BorderRadius.circular(UiRadius.card),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withValues(alpha: 0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: IconButton(
-        icon: Icon(Icons.add, color: theme.colorScheme.primary),
+        icon: const Icon(Icons.add, color: Colors.white),
         onPressed: () async {
           await controller.createNewMap();
           if (context.mounted) {

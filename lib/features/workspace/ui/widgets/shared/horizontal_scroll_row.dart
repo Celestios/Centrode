@@ -9,15 +9,18 @@ class HorizontalScrollRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 160,
+      height: WorkspaceTokens.cardHeight,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: UiInsets.horizontalGutter,
         itemCount: children.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: SizedBox(width: 180, child: children[index]),
+            padding: const EdgeInsets.only(right: WorkspaceTokens.cardSpacing),
+            child: SizedBox(
+              width: WorkspaceTokens.cardWidth,
+              child: children[index],
+            ),
           );
         },
       ),

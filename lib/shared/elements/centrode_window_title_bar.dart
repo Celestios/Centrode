@@ -88,12 +88,12 @@ class CentrodeWindowTitleBar extends StatelessWidget {
                     style: TextStyle(
                       color: theme.textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.w800,
-                      fontSize: UiFont.standard,
+                      fontSize: UiFont.title,
                       letterSpacing: 1.5,
                     ),
                   ),
                   TextSpan(
-                    text: '  $title',
+                    text: title,
                     style: TextStyle(
                       color: theme.textTheme.bodySmall?.color,
                       fontWeight: FontWeight.w400,
@@ -112,6 +112,7 @@ class CentrodeWindowTitleBar extends StatelessWidget {
     if (enableGlass) {
       return GlassPanel(
         borderRadius: UiRadius.none,
+        enableDoubleEdge: false,
         color: backgroundColor ?? theme.cardColor.withValues(alpha: 0.65),
         height: height,
         shadow: BoxShadow(

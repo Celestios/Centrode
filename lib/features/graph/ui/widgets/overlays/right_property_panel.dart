@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/node_render_state.dart';
 import 'package:centrode/shared/elements/elements.dart';
@@ -26,6 +27,7 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
   static const double _maxPanelWidth = 550.0;
 
   bool _isDragging = false;
+  bool _enablePanelTouch = false;
 
   void _toggleExpanded() {
     setState(() {
@@ -222,20 +224,54 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
             width: UiStrokeWidth.standard,
           );
 
+    final isDark = theme.brightness == Brightness.dark;
+    final bloomColor = isOnlyRelations ? tertiaryColor : primaryColor;
+
     return GlassPanel(
       borderRadius: UiRadius.panel,
       blur: 12.0,
       border: panelBorder,
+      gradient: RadialGradient(
+        center: const Alignment(0.7, -0.6),
+        radius: 1.0,
+        colors: [
+          bloomColor.withValues(alpha: isDark ? 0.30 : 0.20),
+          bloomColor.withValues(alpha: isDark ? 0.12 : 0.06),
+          bloomColor.withValues(alpha: 0.02),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.35, 0.70, 1.0],
+      ),
+      touchFlex: _enablePanelTouch ? const LiquidGlassFlex.subtle() : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTopTabBar(context, renderState),
+              MouseRegion(
+                onEnter: (_) => setState(() => _enablePanelTouch = true),
+                onExit: (_) => setState(() => _enablePanelTouch = false),
+                child: Listener(
+                  behavior: HitTestBehavior.translucent,
+                  onPointerDown: (_) {
+                    if (!_enablePanelTouch) {
+                      setState(() => _enablePanelTouch = true);
+                    }
+                  },
+                  child: _buildTopTabBar(context, renderState),
+                ),
+              ),
               const SizedBox(height: UiSpacing.tight),
 
               Expanded(
-                child: ClipRect(
+                child: Listener(
+                  behavior: HitTestBehavior.translucent,
+                  onPointerDown: (_) {
+                    if (_enablePanelTouch) {
+                      setState(() => _enablePanelTouch = false);
+                    }
+                  },
+                  child: ClipRect(
                   child: ValueListenableBuilder<InspectorTab>(
                     valueListenable: renderState.activeInspectorTabNotifier,
                     builder: (context, activeTab, _) {
@@ -329,7 +365,8 @@ class _RightPropertyPanelState extends State<RightPropertyPanel> {
                 ),
               ),
             ),
-          ],
+          ),
+        ],
         ),
       ),
     );

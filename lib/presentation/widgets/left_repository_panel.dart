@@ -14,11 +14,24 @@ class LeftRepositoryPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = theme.colorScheme.error;
+    final isDark = theme.brightness == Brightness.dark;
     return GlassPanel(
       padding: EdgeInsets.zero,
       blur: 12.0,
       borderRadius: UiRadius.panel,
       color: theme.cardColor.withValues(alpha: 0.90),
+      gradient: RadialGradient(
+        center: const Alignment(0.75, 0.85),
+        radius: 0.95,
+        colors: [
+          accent.withValues(alpha: isDark ? 0.30 : 0.20),
+          accent.withValues(alpha: isDark ? 0.15 : 0.08),
+          accent.withValues(alpha: 0.02),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.40, 0.75, 1.0],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -52,18 +52,23 @@ abstract final class ThemeSurfaceDerivation {
     // In light themes, the canvas is grounded at (1.0 - elevationStep), leaving room
     // for floating cards to sit at 1.0, eliminating harsh glare while preserving theme undertone.
     final groundLightness = isDark ? 0.0 : (1.0 - 2 * elevationStep);
-    final workspaceBackground = secOklch.copyWith(
-      l: groundLightness,
-      c: isDark ? 0.0 : (secOklch.c * 0.5),
+    final workspaceBackground = OklchColor(
+      groundLightness,
+      0.0,
+      0.0,
     ).toColor();
 
-    // Side panel surface:
-    // In dark mode: dark grey secondary anchor.
-    // In light mode: clean crisp bright panel (+elevationStep above canvas base) to maintain distinct separation.
+    final primOklch = OklchColor.fromColor(primary);
     final panelLightness = isDark
-        ? secOklch.l
-        : (secOklch.l + elevationStep).clamp(0.0, 1.0);
-    final panel = secOklch.copyWith(l: panelLightness).toColor();
+        ? (secOklch.l * 0.85).clamp(0.06, 0.16)
+        : (1.0 - 1.25 * elevationStep).clamp(0.0, 1.0);
+    final panelChroma = isDark
+        ? (primOklch.c * 0.22).clamp(0.015, 0.035)
+        : (primOklch.c * 0.28).clamp(0.02, 0.045);
+    final panel = primOklch.copyWith(
+      l: panelLightness,
+      c: panelChroma,
+    ).toColor();
 
     // Stepped card / elevation surface:
     // Symmetrically elevated above the canvas ground:

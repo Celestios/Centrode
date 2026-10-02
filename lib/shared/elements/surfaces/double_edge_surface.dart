@@ -10,7 +10,9 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
   final double? height;
   final EdgeInsetsGeometry? padding;
   final double cornerRadius;
+  final BorderRadius? customBorderRadius;
   final double stepWidth;
+  final bool enableDoubleEdge;
   final Color? backgroundColor;
   final Color? accentColor;
   final Gradient? gradient;
@@ -28,16 +30,18 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
     this.height,
     this.padding,
     this.cornerRadius = 16.0,
-    this.stepWidth = 2.0,
+    this.customBorderRadius,
+    this.stepWidth = 0.8,
+    this.enableDoubleEdge = true,
     this.backgroundColor,
     this.accentColor,
     this.gradient,
     this.boxShadow,
     this.mode,
     this.touchFlex = const LiquidGlassFlex.subtle(),
-    this.distortion = 0.05,
-    this.distortionWidth = 48.0,
-    this.blur = 3.0,
+    this.distortion = 0.02,
+    this.distortionWidth = 12.0,
+    this.blur = 2.5,
   });
 
   @override
@@ -62,16 +66,18 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
               )
             : null);
 
+    final resolvedBorderRadius = customBorderRadius ?? BorderRadius.circular(cornerRadius);
+
     final outerContainer = Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(cornerRadius),
+        borderRadius: resolvedBorderRadius,
         boxShadow: boxShadow,
       ),
       child: resolvedMode == CentrodeSurfaceMode.quality
-          ? _buildQualityGlass(context, isDark, baseColor, effectiveGradient)
-          : _buildPerformanceGlass(context, isDark, baseColor, effectiveGradient),
+          ? _buildQualityGlass(context, isDark, baseColor, effectiveGradient, resolvedBorderRadius)
+          : _buildPerformanceGlass(context, isDark, baseColor, effectiveGradient, resolvedBorderRadius),
     );
 
     return outerContainer;
@@ -82,55 +88,61 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
     bool isDark,
     Color baseColor,
     Gradient? effectiveGradient,
+    BorderRadius resolvedBorderRadius,
   ) {
-    return LiquidGlassLens(
-      touch: LiquidGlassTouch(
-        flex: touchFlex ?? const LiquidGlassFlex.subtle(),
-      ),
-      style: LiquidGlassStyle(
-        shape: LiquidGlassShape.continuousRoundedRectangle(
-          cornerRadius: cornerRadius,
-          borderWidth: 0.0,
+    return ClipRRect(
+      borderRadius: resolvedBorderRadius,
+      child: LiquidGlassLens(
+        touch: touchFlex != null
+            ? LiquidGlassTouch(flex: touchFlex!)
+            : null,
+        style: LiquidGlassStyle(
+          shape: LiquidGlassShape.continuousRoundedRectangle(
+            cornerRadius: customBorderRadius != null ? 0.0 : cornerRadius,
+            borderWidth: 0.0,
+          ),
+          appearance: LiquidGlassAppearance(
+            blur: LiquidGlassBlur(sigmaX: blur, sigmaY: blur),
+            color: baseColor,
+          ),
+          refraction: LiquidGlassRefraction(
+            distortion: distortion,
+            distortionWidth: distortionWidth,
+          ),
         ),
-        appearance: LiquidGlassAppearance(
-          blur: LiquidGlassBlur(sigmaX: blur, sigmaY: blur),
-          color: baseColor,
-        ),
-        refraction: LiquidGlassRefraction(
-          distortion: distortion,
-          distortionWidth: distortionWidth,
-        ),
-      ),
-      child: Stack(
-        fit: height != null ? StackFit.expand : StackFit.loose,
-        children: [
-          if (effectiveGradient != null)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(cornerRadius),
-                    gradient: effectiveGradient,
+        child: Stack(
+          fit: height != null ? StackFit.expand : StackFit.loose,
+          children: [
+            if (effectiveGradient != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: resolvedBorderRadius,
+                      gradient: effectiveGradient,
+                    ),
                   ),
                 ),
               ),
+            Padding(
+              padding: padding ?? EdgeInsets.zero,
+              child: child,
             ),
-          Padding(
-            padding: padding ?? EdgeInsets.zero,
-            child: child,
-          ),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: CustomPaint(
-                painter: CentrodeDoubleEdgePainter(
-                  cornerRadius: cornerRadius,
-                  stepWidth: stepWidth,
-                  lightIntensity: isDark ? 1.15 : 1.0,
+            if (enableDoubleEdge)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: CentrodeDoubleEdgePainter(
+                      cornerRadius: cornerRadius,
+                      customBorderRadius: customBorderRadius,
+                      stepWidth: stepWidth,
+                      lightIntensity: isDark ? 1.15 : 1.0,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -140,9 +152,10 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
     bool isDark,
     Color baseColor,
     Gradient? effectiveGradient,
+    BorderRadius resolvedBorderRadius,
   ) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(cornerRadius),
+      borderRadius: resolvedBorderRadius,
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: Container(
@@ -155,7 +168,7 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
                   child: IgnorePointer(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(cornerRadius),
+                        borderRadius: resolvedBorderRadius,
                         gradient: effectiveGradient,
                       ),
                     ),
@@ -165,17 +178,19 @@ class CentrodeDoubleEdgeSurface extends StatelessWidget {
                 padding: padding ?? EdgeInsets.zero,
                 child: child,
               ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: CentrodeDoubleEdgePainter(
-                      cornerRadius: cornerRadius,
-                      stepWidth: stepWidth,
-                      lightIntensity: isDark ? 1.15 : 1.0,
+              if (enableDoubleEdge)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: CentrodeDoubleEdgePainter(
+                        cornerRadius: cornerRadius,
+                        customBorderRadius: customBorderRadius,
+                        stepWidth: stepWidth,
+                        lightIntensity: isDark ? 1.15 : 1.0,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

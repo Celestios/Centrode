@@ -29,7 +29,6 @@ class ContextMenuLayoutDelegate extends SingleChildLayoutDelegate {
     return BoxConstraints(
       minWidth: effectiveMax,
       maxWidth: effectiveMax,
-      maxHeight: constraints.maxHeight - 32,
     );
   }
 

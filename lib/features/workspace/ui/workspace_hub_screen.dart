@@ -49,7 +49,7 @@ class _WorkspaceHubScreenState extends State<WorkspaceHubScreen> {
               left: WorkspaceTokens.leftPanelWidth,
               right: 0,
               child: CentrodeWindowTitleBar(
-                title: 'Workspace Hub',
+                title: '  Workspace Hub',
                 height: WorkspaceTokens.topBarHeight,
                 enableGlass: false,
                 backgroundColor: Colors.transparent,

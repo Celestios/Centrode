@@ -33,4 +33,4 @@ export 'ribbon_capsule.dart';
 export 'submenu_button_data.dart';
 export 'centrode_window_controls.dart';
 export 'surfaces/surfaces.dart';
-
+export 'centrode_contour_pattern.dart';
