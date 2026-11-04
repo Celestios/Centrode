@@ -1,7 +1,5 @@
-# سنترود (Centrode)
-
 <p align="center">
-  <img src="assets/branding/banner.png" alt="Centrode Banner" width="100%">
+  <img src="assets/branding/banner.svg" alt="Centrode Banner" width="100%">
 </p>
 
 <p align="center">
