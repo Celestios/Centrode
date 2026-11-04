@@ -1,5 +1,3 @@
-# Centrode
-
 <p align="center">
   <img src="assets/branding/banner.svg" alt="Centrode Banner" width="100%">
 </p>
