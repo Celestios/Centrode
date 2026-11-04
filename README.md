@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square" alt="License"></a>
-  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.10.1--preview-blue.svg?style=flat-square" alt="Version 0.10.0 Preview"></a>
+  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.10.2--preview-blue.svg?style=flat-square" alt="Version 0.10.0 Preview"></a>
   <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Android-green.svg?style=flat-square" alt="Platform"></a>
   <img src="https://img.shields.io/badge/architecture-Flutter%20%7C%20Rust-orange.svg?style=flat-square" alt="Architecture">
   <img src="https://img.shields.io/badge/storage-Local%20First-00D4B2.svg?style=flat-square" alt="Storage">
@@ -23,21 +23,6 @@
 
 ---
 
-## Visual Preview
-
-<p align="center">
-  <img src="assets/screenshots/canvas_main.png" alt="Centrode Infinite Canvas Workspace" width="100%">
-  <br>
-  <em>Infinite spatial canvas with connection routing and nested structures</em>
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/workspace_hub.png" alt="Centrode Workspace Hub" width="49%">
-  <img src="assets/screenshots/container_nesting.png" alt="Centrode Nested Nodes" width="49%">
-</p>
-
----
-
 ## What is Centrode?
 
 Centrode is a local-first, privacy-focused personal knowledge tool designed to organize ideas, research, and project structures into an interconnected visual network.
@@ -50,15 +35,15 @@ Currently distributed for modern **Windows (64-bit)** and **Android (ARM64)** de
 
 ## Downloads
 
-> **Note:** Centrode is currently in active pre-release development. Version **v0.10.1-preview** is available for testing on Windows and Android.
+> **Note:** Centrode is currently in active pre-release development. Version **v0.10.2-preview** is available for testing on Windows and Android.
 
 Download pre-compiled binaries from [GitHub Releases](https://github.com/Celestios/Centrode/releases/latest):
 
 | Platform | Package | Architecture | Download |
 | :--- | :--- | :--- | :--- |
-| **Windows** | Setup Installer | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.10.1/centrode-windows-x64-installer.exe) |
-| **Windows** | Standalone Portable Archive | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.10.1/centrode-windows-x64.zip) |
-| **Android** | Standalone APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.10.1/app-arm64-v8a-release.apk) |
+| **Windows** | Setup Installer | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64-installer.exe) |
+| **Windows** | Standalone Portable Archive | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64.zip) |
+| **Android** | Standalone APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.10.2/app-arm64-v8a-release.apk) |
 
 *For previous builds and release notes, visit the [Releases page](https://github.com/Celestios/Centrode/releases).*
 

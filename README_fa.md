@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square" alt="لایسنس"></a>
-  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.10.1--preview-blue.svg?style=flat-square" alt="نسخه 0.10.0 پیش‌انتشار"></a>
+  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.10.2--preview-blue.svg?style=flat-square" alt="نسخه 0.10.0 پیش‌انتشار"></a>
   <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Android-green.svg?style=flat-square" alt="پلتفرم"></a>
   <img src="https://img.shields.io/badge/architecture-Flutter%20%7C%20Rust-orange.svg?style=flat-square" alt="معماری">
   <img src="https://img.shields.io/badge/storage-Local%20First-00D4B2.svg?style=flat-square" alt="ذخیره‌سازی">
@@ -23,21 +23,6 @@
 
 ---
 
-## پیش‌نمایش تصویری (Visual Preview)
-
-<p align="center">
-  <img src="assets/screenshots/canvas_main.png" alt="فضای کار Infinite Canvas در Centrode" width="100%">
-  <br>
-  <em>محیط Spatial Canvas بی‌نهایت با قابلیت Connection Routing و ساختارهای Nested</em>
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/workspace_hub.png" alt="هاب پروژه‌ها در Centrode" width="49%">
-  <img src="assets/screenshots/container_nesting.png" alt="نودهای تودرتو در Centrode" width="49%">
-</p>
-
----
-
 ## سنترود چیست؟
 
 سنترود (Centrode) ابزاری برای مدیریت دانش شخصی بر پایه معماری **Local-First**، کاملاً **Offline** و با تمرکز بر حفظ کامل **Privacy** است که به شما امکان می‌دهد ایده‌ها، پژوهش‌ها و ساختار پروژه‌هایتان را در یک شبکه بصری یکپارچه سازمان‌دهی کنید.
@@ -50,15 +35,15 @@
 
 ## دانلود و نصب (Downloads)
 
-> **توجه:** سنترود در حال حاضر در فاز پیش‌انتشار (Pre-release) قرار دارد. نسخه **v0.10.1-preview** برای آزمایش و ارزیابی روی ویندوز و اندروید در دسترس است.
+> **توجه:** سنترود در حال حاضر در فاز پیش‌انتشار (Pre-release) قرار دارد. نسخه **v0.10.2-preview** برای آزمایش و ارزیابی روی ویندوز و اندروید در دسترس است.
 
 دریافت فایل‌های نصبی و باینری از [GitHub Releases](https://github.com/Celestios/Centrode/releases/latest):
 
 | پلتفرم | نوع بسته | معماری | لینک دانلود |
 | :--- | :--- | :--- | :--- |
-| **Windows** | فایل نصبی (Setup Installer) | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.10.1/centrode-windows-x64-installer.exe) |
-| **Windows** | نسخه پرتابل (Portable Zip) | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.10.1/centrode-windows-x64.zip) |
-| **Android** | فایل نصبی APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.10.1/app-arm64-v8a-release.apk) |
+| **Windows** | فایل نصبی (Setup Installer) | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64-installer.exe) |
+| **Windows** | نسخه پرتابل (Portable Zip) | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64.zip) |
+| **Android** | فایل نصبی APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.10.2/app-arm64-v8a-release.apk) |
 
 *جهت مشاهده یادداشت‌های تغییرات و نسخه‌های پیشین، به [صفحه ریلیزها](https://github.com/Celestios/Centrode/releases) مراجعه فرمایید.*
 
