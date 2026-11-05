@@ -65,7 +65,7 @@ Download pre-compiled binaries from [GitHub Releases](https://github.com/Celesti
 ## Roadmap & Future Plans
 
 ### Immediate Focus: Stabilization & Optimization
-*Active refinement and performance tuning currently in progress:*
+*Active refinement and performance tuning currently in progress which will be quickly ready:*
 
 - [ ] **Performance & Shader Optimization**: Profiling memory consumption and optimizing glass and blur rendering pipelines.
 - [ ] **Routing Stability**: Improving relation path calculation, shape consistency, and crossing avoidance.
