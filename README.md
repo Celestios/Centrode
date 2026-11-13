@@ -1,10 +1,12 @@
+# Centrode
+
 <p align="center">
   <img src="assets/branding/banner.svg" alt="Centrode Banner" width="100%">
 </p>
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square" alt="License"></a>
-  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.10.2--preview-blue.svg?style=flat-square" alt="Version 0.10.0 Preview"></a>
+  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.11.0-alpha.1--preview-blue.svg?style=flat-square" alt="Version 0.10.0 Preview"></a>
   <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Android-green.svg?style=flat-square" alt="Platform"></a>
   <img src="https://img.shields.io/badge/architecture-Flutter%20%7C%20Rust-orange.svg?style=flat-square" alt="Architecture">
   <img src="https://img.shields.io/badge/storage-Local%20First-00D4B2.svg?style=flat-square" alt="Storage">
@@ -33,15 +35,15 @@ Currently distributed for modern **Windows (64-bit)** and **Android (ARM64)** de
 
 ## Downloads
 
-> **Note:** Centrode is currently in active pre-release development. Version **v0.10.2-preview** is available for testing on Windows and Android.
+> **Note:** Centrode is currently in active pre-release development. Version **v0.11.0-alpha.1-preview** is available for testing on Windows and Android.
 
 Download pre-compiled binaries from [GitHub Releases](https://github.com/Celestios/Centrode/releases/latest):
 
 | Platform | Package | Architecture | Download |
 | :--- | :--- | :--- | :--- |
-| **Windows** | Setup Installer | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64-installer.exe) |
-| **Windows** | Standalone Portable Archive | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64.zip) |
-| **Android** | Standalone APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.10.2/app-arm64-v8a-release.apk) |
+| **Windows** | Setup Installer | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.11.0-alpha.1/centrode-windows-x64-installer.exe) |
+| **Windows** | Standalone Portable Archive | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.11.0-alpha.1/centrode-windows-x64.zip) |
+| **Android** | Standalone APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.11.0-alpha.1/app-arm64-v8a-release.apk) |
 
 *For previous builds and release notes, visit the [Releases page](https://github.com/Celestios/Centrode/releases).*
 
@@ -65,7 +67,7 @@ Download pre-compiled binaries from [GitHub Releases](https://github.com/Celesti
 ## Roadmap & Future Plans
 
 ### Immediate Focus: Stabilization & Optimization
-*Active refinement and performance tuning currently in progress which will be quickly ready:*
+*Active refinement and performance tuning currently in progress:*
 
 - [ ] **Performance & Shader Optimization**: Profiling memory consumption and optimizing glass and blur rendering pipelines.
 - [ ] **Routing Stability**: Improving relation path calculation, shape consistency, and crossing avoidance.

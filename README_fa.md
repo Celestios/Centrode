@@ -1,10 +1,12 @@
+# سنترود (Centrode)
+
 <p align="center">
   <img src="assets/branding/banner.svg" alt="Centrode Banner" width="100%">
 </p>
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square" alt="لایسنس"></a>
-  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.10.2--preview-blue.svg?style=flat-square" alt="نسخه 0.10.0 پیش‌انتشار"></a>
+  <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/version-v0.11.0-alpha.1--preview-blue.svg?style=flat-square" alt="نسخه 0.10.0 پیش‌انتشار"></a>
   <a href="https://github.com/Celestios/Centrode/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Android-green.svg?style=flat-square" alt="پلتفرم"></a>
   <img src="https://img.shields.io/badge/architecture-Flutter%20%7C%20Rust-orange.svg?style=flat-square" alt="معماری">
   <img src="https://img.shields.io/badge/storage-Local%20First-00D4B2.svg?style=flat-square" alt="ذخیره‌سازی">
@@ -33,15 +35,15 @@
 
 ## دانلود و نصب (Downloads)
 
-> **توجه:** سنترود در حال حاضر در فاز پیش‌انتشار (Pre-release) قرار دارد. نسخه **v0.10.2-preview** برای آزمایش و ارزیابی روی ویندوز و اندروید در دسترس است.
+> **توجه:** سنترود در حال حاضر در فاز پیش‌انتشار (Pre-release) قرار دارد. نسخه **v0.11.0-alpha.1-preview** برای آزمایش و ارزیابی روی ویندوز و اندروید در دسترس است.
 
 دریافت فایل‌های نصبی و باینری از [GitHub Releases](https://github.com/Celestios/Centrode/releases/latest):
 
 | پلتفرم | نوع بسته | معماری | لینک دانلود |
 | :--- | :--- | :--- | :--- |
-| **Windows** | فایل نصبی (Setup Installer) | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64-installer.exe) |
-| **Windows** | نسخه پرتابل (Portable Zip) | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.10.2/centrode-windows-x64.zip) |
-| **Android** | فایل نصبی APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.10.2/app-arm64-v8a-release.apk) |
+| **Windows** | فایل نصبی (Setup Installer) | x64 | [centrode-windows-x64-installer.exe](https://github.com/Celestios/Centrode/releases/download/v0.11.0-alpha.1/centrode-windows-x64-installer.exe) |
+| **Windows** | نسخه پرتابل (Portable Zip) | x64 | [centrode-windows-x64.zip](https://github.com/Celestios/Centrode/releases/download/v0.11.0-alpha.1/centrode-windows-x64.zip) |
+| **Android** | فایل نصبی APK | ARM64 (v8a) | [app-arm64-v8a-release.apk](https://github.com/Celestios/Centrode/releases/download/v0.11.0-alpha.1/app-arm64-v8a-release.apk) |
 
 *جهت مشاهده یادداشت‌های تغییرات و نسخه‌های پیشین، به [صفحه ریلیزها](https://github.com/Celestios/Centrode/releases) مراجعه فرمایید.*
 
@@ -65,7 +67,7 @@
 ## نقشه راه (Roadmap & Future Plans)
 
 ### اولویت فعلی: پایدارسازی و Performance Optimization
-*بهینه‌سازی‌ها و ارتقای فنی در حال انجام در هسته برنامه که خیلی زود آماده خواهند شد:*
+*بهینه‌سازی‌ها و ارتقای فنی در حال انجام در هسته برنامه:*
 
 - [ ] **Performance & Shader Optimization**: پروفایل مصرف RAM و بهینه‌سازی پایپ‌لاین رندر افکت‌های بلور و Liquid Glass.
 - [ ] **Routing Stability**: بهبود محاسبات هندسی مسیر Connectionها، حفظ ثبات اشکال و عبور تمیزتر از موانع.
